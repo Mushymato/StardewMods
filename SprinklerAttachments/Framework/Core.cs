@@ -245,36 +245,61 @@ namespace SprinklerAttachments.Framework
             }
         }
 
-        /// <summary>
-        /// This doesn't work very well prob need transcriber
-        /// </summary>
-        /// <param name="mon"></param>
-        /// <param name="sprinkler"></param>
-        /// <param name="spriteBatch"></param>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="alpha"></param>
-        public static void DrawAttachment(StardewObject sprinkler, SpriteBatch spriteBatch, int x, int y, float alpha = 1f)
+        // /// <summary>
+        // /// This doesn't work very well prob need transcriber
+        // /// </summary>
+        // /// <param name="mon"></param>
+        // /// <param name="sprinkler"></param>
+        // /// <param name="spriteBatch"></param>
+        // /// <param name="x"></param>
+        // /// <param name="y"></param>
+        // /// <param name="alpha"></param>
+        // public static bool DrawAttachment(StardewObject sprinkler, SpriteBatch spriteBatch, int x, int y, float alpha = 1f)
+        // {
+        //     if (TryGetSprinklerAttachment(sprinkler, out StardewObject? attachment) &&
+        //         ItemRegistry.GetData(attachment.QualifiedItemId)?.RawData is ObjectData data)
+        //     {
+        //         Rectangle bounds = sprinkler.GetBoundingBoxAt(x, y);
+        //         Vector2 offset = ModInfoHelper.GetOverlayOffset(data);
+        //         ParsedItemData parsedData = ItemRegistry.GetDataOrErrorItem(attachment.QualifiedItemId);
+        //         Rectangle sourceRect = parsedData.GetSourceRect(1);
+        //         spriteBatch.Draw(
+        //             parsedData.GetTexture(),
+        //             Game1.GlobalToLocal(Game1.viewport, new Vector2(x * 64 + 32 + ((sprinkler.shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0), y * 64 + 32 + ((sprinkler.shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0)) + offset),
+        //             sourceRect,
+        //             Color.White * alpha,
+        //             0f,
+        //             new Vector2(8f, 8f),
+        //             (sprinkler.scale.Y > 1f) ? sprinkler.getScale().Y : 4f,
+        //             sprinkler.Flipped ? SpriteEffects.None : SpriteEffects.FlipHorizontally, // the texture is already flipped
+        //             (sprinkler.isPassable() ? bounds.Top : bounds.Bottom) / 10000f + 1E-05f
+        //         );
+        //         return true;
+        //     }
+        //     return false;
+        // }
+
+        public static bool DrawAttachment(StardewObject sprinkler, SpriteBatch spriteBatch, int x, int y, float alpha)
         {
             if (TryGetSprinklerAttachment(sprinkler, out StardewObject? attachment) &&
                 ItemRegistry.GetData(attachment.QualifiedItemId)?.RawData is ObjectData data)
             {
-                Rectangle bounds = sprinkler.GetBoundingBoxAt(x, y);
-                Vector2 offset = ModInfoHelper.GetOverlayOffset(data);
                 ParsedItemData parsedData = ItemRegistry.GetDataOrErrorItem(attachment.QualifiedItemId);
+                Rectangle bounds = sprinkler.GetBoundingBoxAt(x, y);
                 Rectangle sourceRect = parsedData.GetSourceRect(1);
+                sourceRect.Height += 2; // add 2 since sprites for this mod are 18 tall
+                Vector2 offset = ModInfoHelper.GetOverlayOffset(data);
                 spriteBatch.Draw(
                     parsedData.GetTexture(),
                     Game1.GlobalToLocal(Game1.viewport, new Vector2(x * 64 + 32 + ((sprinkler.shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0), y * 64 + 32 + ((sprinkler.shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0)) + offset),
                     sourceRect,
-                    Color.White * alpha,
-                    0f,
-                    new Vector2(8f, 8f),
-                    (sprinkler.scale.Y > 1f) ? sprinkler.getScale().Y : 4f,
-                    sprinkler.Flipped ? SpriteEffects.None : SpriteEffects.FlipHorizontally, // the texture is already flipped
-                    (sprinkler.isPassable() ? bounds.Top : bounds.Bottom) / 10000f + 1E-05f
+                    Color.White * alpha, 0f, new Vector2(8f, 8f), (sprinkler.scale.Y > 1f) ? sprinkler.getScale().Y : 4f,
+                    sprinkler.Flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None,
+                    (float)(sprinkler.isPassable() ? bounds.Top : bounds.Bottom) / 10000f + 1E-05f
                 );
+                return true;
             }
+            return false;
         }
 
         /// <summary>

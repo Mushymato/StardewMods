@@ -6,8 +6,8 @@
       "Entries": {
         "{{ModId}}_SeedSpreader": {
           "Name": "SeedSpreader",
-          "DisplayName": "{{i18n:SeedSpreader.DisplayName}}",
-          "Description": "{{i18n:SeedSpreader.Description}}",
+          "DisplayName": "{{i18n:object.SeedSpreader.DisplayName}}",
+          "Description": "{{i18n:object.SeedSpreader.Description}}",
           "Type": "Basic",
           "Category": 0,
           "Price": 200,
@@ -31,15 +31,15 @@
             "{{ModId}}.IntakeChestSize": "9",
             "{{ModId}}.IntakeChestAcceptCategory": "-74",
             "{{ModId}}.OverlayOffsetX": "0",
-            "{{ModId}}.OverlayOffsetY": "-20",
+            "{{ModId}}.OverlayOffsetY": "-12",
             "{{ModId}}.IsSowing": true,
             "{{ModId}}.IsPressurize": false
           }
         },
         "{{ModId}}_3in1Nozzle": {
           "Name": "3in1Nozzle",
-          "DisplayName": "{{i18n:3in1Nozzle.DisplayName}}",
-          "Description": "{{i18n:3in1Nozzle.Description}}",
+          "DisplayName": "{{i18n:object.3in1Nozzle.DisplayName}}",
+          "Description": "{{i18n:object.3in1Nozzle.Description}}",
           "Type": "Basic",
           "Category": 0,
           "Price": 600,
@@ -63,7 +63,7 @@
             "{{ModId}}.IntakeChestSize": "9",
             "{{ModId}}.IntakeChestAcceptCategory": "-19,-74",
             "{{ModId}}.OverlayOffsetX": "0",
-            "{{ModId}}.OverlayOffsetY": "-20",
+            "{{ModId}}.OverlayOffsetY": "-16",
             "{{ModId}}.IsSowing": true,
             "{{ModId}}.IsPressurize": true
           }

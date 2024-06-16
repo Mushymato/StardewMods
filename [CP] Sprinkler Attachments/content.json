@@ -1,10 +1,9 @@
 {
     "Format": "2.2.0",
     "ConfigSchema": {
-        "Unlimited Krobus Stock": {
+        "RestrictKrobusStock": {
             "AllowValues": "true, false",
-            "Default": "false",
-            "Description": "Enabling this allows you to buy unlimited amount of attachments from Krobus, otherwise the limit is 1 of each kind per day."
+            "Default": "true"
         }
     },
     "Changes": [
@@ -16,6 +15,10 @@
         {
             "Action": "Include",
             "FromFile": "data/Objects.json"
+        },
+        {
+            "Action": "Include",
+            "FromFile": "data/Shops.json"
         }
     ]
 }
