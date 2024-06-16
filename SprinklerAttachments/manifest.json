@@ -1,9 +1,9 @@
 {
-  "Name": "Sprinkler Attachments",
+  "Name": "Sprinkler Attachments (Framework)",
   "Author": "mushymato",
   "Version": "0.0.1",
-  "Description": "Add new sprinkler add-on items similar to pressure nozzle and enricher.",
-  "UniqueID": "mushymato.SprinklerAttachments",
+  "Description": "Makes objects added by mushymato.SprinklerAttachments work as described.",
+  "UniqueID": "mushymato.SprinklerAttachments.Framework",
   "EntryDll": "SprinklerAttachments.dll",
   "MinimumApiVersion": "4.0.0",
   "UpdateKeys": []

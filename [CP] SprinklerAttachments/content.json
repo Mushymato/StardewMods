@@ -1,0 +1,21 @@
+{
+    "Format": "2.2.0",
+    "ConfigSchema": {
+        "Unlimited Krobus Stock": {
+            "AllowValues": "true, false",
+            "Default": "false",
+            "Description": "Enabling this allows you to buy unlimited amount of attachments from Krobus, otherwise the limit is 1 of each kind per day."
+        }
+    },
+    "Changes": [
+        {
+            "Action": "Load",
+            "Target": "{{ModId}}/Objects",
+            "FromFile": "assets/{{TargetWithoutPath}}.png"
+        },
+        {
+            "Action": "Include",
+            "FromFile": "data/Objects.json"
+        }
+    ]
+}

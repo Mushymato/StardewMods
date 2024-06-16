@@ -1,0 +1,74 @@
+{
+  "Changes": [
+    {
+      "Action": "EditData",
+      "Target": "Data/Shops",
+      "TargetField": [
+        "ShadowShop",
+        "Items"
+      ],
+      "When": {
+        "Unlimited Attachment Stock from Krobus": false
+      },
+      "Entries": {
+        "SprinklerAttachments_SeedSpreader": {
+          "Id": "SprinklerAttachments_SeedSpreader",
+          "ItemId": "SprinklerAttachments_SeedSpreader",
+          "Price": 20000,
+          "AvailableStock": 1
+        },
+        "SprinklerAttachments_3in1Nozzle": {
+          "Id": "SprinklerAttachments_3in1Nozzle",
+          "ItemId": "SprinklerAttachments_3in1Nozzle",
+          "Price": 80000,
+          "AvailableStock": 1
+        }
+      }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Shops",
+      "TargetField": [
+        "ShadowShop",
+        "Items"
+      ],
+      "When": {
+        "Unlimited Attachment Stock from Krobus": true
+      },
+      "Entries": {
+        "SprinklerAttachments_SeedSpreader": {
+          "Id": "SprinklerAttachments_SeedSpreader",
+          "ItemId": "SprinklerAttachments_SeedSpreader",
+          "Price": 20000
+        },
+        "SprinklerAttachments_3in1Nozzle": {
+          "Id": "SprinklerAttachments_3in1Nozzle",
+          "ItemId": "SprinklerAttachments_3in1Nozzle",
+          "Price": 80000
+        }
+      }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Shops",
+      "TargetField": [
+        "QiGemShop",
+        "Items"
+      ],
+      "Entries": {
+        "SprinklerAttachments_SeedSpreader": {
+          "Id": "SprinklerAttachments_SeedSpreader",
+          "ItemId": "SprinklerAttachments_SeedSpreader",
+          "TradeItemId": "(O)858",
+          "TradeItemAmount": 5
+        },
+        "SprinklerAttachments_3in1Nozzle": {
+          "Id": "SprinklerAttachments_3in1Nozzle",
+          "ItemId": "SprinklerAttachments_3in1Nozzle",
+          "TradeItemId": "(O)858",
+          "TradeItemAmount": 15
+        }
+      }
+    }
+  ]
+}
