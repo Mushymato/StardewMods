@@ -226,7 +226,7 @@ namespace SprinklerAttachments.Framework
             return originalValue;
         }
 
-        public static void ApplySowing()
+        public static void ApplySowingToAllSprinklers()
         {
             foreach (GameLocation location in Game1.locations)
             {
@@ -417,7 +417,7 @@ namespace SprinklerAttachments.Framework
         {
             string qItemId = ItemRegistry.QualifyItemId(itemId) ?? itemId;
             Farmer who = Game1.player;
-            // TODO: find an online farmhand with agriculturist to use as the planting player?
+            // TODO: find optimal player to do the planting?
             if (dirt.CanApplyFertilizer(itemId))
             {
                 dirt.fertilizer.Value = qItemId;
@@ -436,7 +436,7 @@ namespace SprinklerAttachments.Framework
             if (!Crop.TryGetData(itemId, out CropData cropData) || cropData.Seasons.Count == 0)
                 return false;
             Farmer who = Game1.player;
-            // TODO: find an online farmhand with agriculturist to use as the planting player?
+            // TODO: find optimal player to do the planting?
             Point tilePos = Utility.Vector2ToPoint(dirt.Tile);
             bool isGardenPot = location.objects.TryGetValue(dirt.Tile, out StardewObject obj) && obj is IndoorPot;
             bool isIndoorPot = isGardenPot && !location.IsOutdoors;

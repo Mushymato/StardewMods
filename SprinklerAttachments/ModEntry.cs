@@ -37,12 +37,12 @@ namespace SprinklerAttachments
         private void OnDayEnding(object? sender, DayEndingEventArgs e)
         {
             Monitor.Log($"Do end of day sowing.", LogLevel.Info);
-            SprinklerAttachment.ApplySowing();
+            SprinklerAttachment.ApplySowingToAllSprinklers();
         }
 
         private void ApplySowing(string command, string[] args)
         {
-            SprinklerAttachment.ApplySowing();
+            SprinklerAttachment.ApplySowingToAllSprinklers();
             Monitor.Log($"OK, performed sowing for all sprinklers.", LogLevel.Info);
         }
     }
