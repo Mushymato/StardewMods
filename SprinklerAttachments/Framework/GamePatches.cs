@@ -15,13 +15,9 @@ namespace SprinklerAttachments.Framework
 
     internal static class GamePatches
     {
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-        private static IMonitor mon;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
-        internal static void Apply(Harmony harmony, IMonitor monitor)
+        internal static void Apply(Harmony harmony)
         {
-            mon = monitor;
             try
             {
                 harmony.Patch(
@@ -52,7 +48,7 @@ namespace SprinklerAttachments.Framework
             }
             catch (Exception err)
             {
-                mon.Log($"Failed to patch SprinklerAttachments:\n{err}", LogLevel.Error);
+                ModEntry.Log($"Failed to patch SprinklerAttachments:\n{err}", LogLevel.Error);
             }
         }
 
@@ -65,7 +61,7 @@ namespace SprinklerAttachments.Framework
             }
             catch (Exception err)
             {
-                mon.Log($"Error in Object_performObjectDropInAction_Postfix:\n{err}", LogLevel.Error);
+                ModEntry.Log($"Error in Object_performObjectDropInAction_Postfix:\n{err}", LogLevel.Error);
             }
         }
 
@@ -78,7 +74,7 @@ namespace SprinklerAttachments.Framework
             }
             catch (Exception err)
             {
-                mon.Log($"Error in Object_checkForAction_Postfix:\n{err}", LogLevel.Error);
+                ModEntry.Log($"Error in Object_checkForAction_Postfix:\n{err}", LogLevel.Error);
             }
         }
 
@@ -86,13 +82,11 @@ namespace SprinklerAttachments.Framework
         {
             try
             {
-                mon.Log($"Vanilla radius: {__result}");
                 __result = SprinklerAttachment.GetModifiedRadiusForSprinkler(__instance, __result);
-                mon.Log($"Mod radius: {__result}");
             }
             catch (Exception err)
             {
-                mon.Log($"Error in Object_GetModifiedRadiusForSprinkler_PostFix:\n{err}", LogLevel.Error);
+                ModEntry.Log($"Error in Object_GetModifiedRadiusForSprinkler_PostFix:\n{err}", LogLevel.Error);
             }
         }
 
@@ -104,7 +98,7 @@ namespace SprinklerAttachments.Framework
             }
             catch (Exception err)
             {
-                mon.Log($"Error in Object_updateWhenCurrentLocation_Postfix:\n{err}", LogLevel.Error);
+                ModEntry.Log($"Error in Object_updateWhenCurrentLocation_Postfix:\n{err}", LogLevel.Error);
             }
         }
 
@@ -114,12 +108,21 @@ namespace SprinklerAttachments.Framework
             {
                 CodeMatcher matcher = new(instructions, generator);
 
+                // IL_0c79: ldarg.0
+                // IL_0c7a: ldfld class Netcode.NetBool StardewValley.Object::readyForHarvest
+                // IL_0c7f: call bool Netcode.NetBool::op_Implicit(class Netcode.NetBool)
+                // IL_0c84: brfalse IL_0f33
+
                 matcher = matcher.Start()
                 .MatchStartForward(new CodeMatch[]{
+                    // new(OpCodes.Ldarg_0),
+                    // new(OpCodes.Call, AccessTools.PropertyGetter(typeof(Item), nameof(Item.SpecialVariable))),
+                    // new(OpCodes.Ldc_I4, 999999),
+                    // new(OpCodes.Bne_Un)
                     new(OpCodes.Ldarg_0),
-                    new(OpCodes.Call, AccessTools.PropertyGetter(typeof(Item), nameof(Item.SpecialVariable))),
-                    new(OpCodes.Ldc_I4, 999999),
-                    new(OpCodes.Bne_Un)
+                    new(OpCodes.Ldfld, AccessTools.DeclaredField(typeof(StardewObject), nameof(StardewObject.readyForHarvest))),
+                    new(OpCodes.Call),
+                    new(OpCodes.Brfalse)
                 })
                 .CreateLabel(out Label lbl1)
                 .MatchEndBackwards(new CodeMatch[]{
@@ -129,7 +132,6 @@ namespace SprinklerAttachments.Framework
                     new(OpCodes.Brfalse),
                     new(OpCodes.Call),
                 })
-                // StardewObject sprinkler, SpriteBatch spriteBatch, int x, int y, float alpha = 1f
                 .Insert(new CodeInstruction[]{
                     new(OpCodes.Ldarg_0), // StardewObject __instance
                     new(OpCodes.Ldarg_1), // SpriteBatch spriteBatch
@@ -145,49 +147,19 @@ namespace SprinklerAttachments.Framework
             }
             catch (Exception err)
             {
-                mon.Log($"Error in Object_draw_Transpiler:\n{err}", LogLevel.Error);
+                ModEntry.Log($"Error in Object_draw_Transpiler:\n{err}", LogLevel.Error);
                 return instructions;
             }
-            // mon.Log($"new label: {lbl1.GetHashCode()}", LogLevel.Info);
-
-            //return matcher.Instructions();
-
-            // matcher = matcher.Start()
-            // .MatchEndForward(new CodeMatch[]{
-            //     new(OpCodes.Ldarg_0),
-            //     new(OpCodes.Callvirt, AccessTools.DeclaredMethod(typeof(StardewObject), nameof(StardewObject.IsSprinkler))),
-            //     new(OpCodes.Brfalse),
-            // })
-            // .MatchEndForward(new CodeMatch[]{
-            //     new(OpCodes.Ldarg_0),
-            //     new(OpCodes.Ldfld, AccessTools.DeclaredField(typeof(StardewObject), nameof(StardewObject.heldObject))),
-            //     new(OpCodes.Callvirt), // heldObject get_value method
-            //     new(OpCodes.Brfalse),
-            //     new(OpCodes.Call),
-            // })
-            // // .CreateLabel(out Label lbl1)
-            // .InsertAndAdvance(new CodeInstruction[]{
-            //     new(OpCodes.Call, AccessTools.Method(typeof(GamePatches), nameof(ShouldDraw)))
-            // })
-            // ;
-
-            // .InsertAndAdvance(new CodeMatch[]{
-            //     new(OpCodes.Ldarg_0),
-            //     new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(GamePatches), nameof(ShouldDraw))),
-            // });
-
-            // mon.Log(matcher.ToString() ?? "Empty Matcher", LogLevel.Debug);
-
         }
 
         private static void JustDraw()
         {
-            mon.Log($"JustDraw", LogLevel.Debug);
+            ModEntry.Log($"JustDraw", LogLevel.Debug);
         }
 
         private static bool ShouldDraw(StardewObject? heldObject)
         {
-            mon.Log($"ShouldDraw {heldObject?.Name}", LogLevel.Debug);
+            ModEntry.Log($"ShouldDraw {heldObject?.Name}", LogLevel.Debug);
             return true;
         }
         private static void Chest_GetActualCapacity_Postfix(Chest __instance, ref int __result)
@@ -198,7 +170,7 @@ namespace SprinklerAttachments.Framework
             }
             catch (Exception err)
             {
-                mon.Log($"Error in Chest_GetActualCapacity_Postfix:\n{err}", LogLevel.Error);
+                ModEntry.Log($"Error in Chest_GetActualCapacity_Postfix:\n{err}", LogLevel.Error);
             }
         }
     }

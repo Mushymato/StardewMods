@@ -1,0 +1,13 @@
+{
+    // config
+    "config.RestrictKrobusStock.name": "Restrict Krobus Stock",
+    "config.RestrictKrobusStock.description": "Krobus only stocks 1 of each sprinkler attachment on Sunday, disable this to purchase unlimited amount on any day of the week. Must leave and reenter the sewers for this to take effect.",
+    "config.WaterOnPlanting.name": "Water on Planting",
+    "config.WaterOnPlanting.description": "When crop is planted by an attachment, water it once so that they will sprout the next day.",
+    "config.EnableForGardenPots.name": "Enable for Garden Pots",
+    "config.EnableForGardenPots.description": "Allow attachments to plant/fertilize garden pots. Does NOT water the crop regardless of Water on Planting setting.",
+    "config.InvisibleAttachments.name": "Invisible Attachments",
+    "config.InvisibleAttachments.description": "Make attachments invisible once attached, useful if using sprinkler replacement mods.",
+    "config.PlantOnChestClose.name": "Plant on Chest Close",
+    "config.PlantOnChestClose.description": "Plant/fertilize right after closing the attachment chest menu."
+}

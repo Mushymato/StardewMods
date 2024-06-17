@@ -1,7 +1,4 @@
 {
-    // config
-    "config.RestrictKrobusStock.name": "Restrict Krobus Stock",
-    "config.RestrictKrobusStock.description": "Krobus only stocks 1 of each sprinkler attachment on Sunday, disable this to purchase unlimited amount on any day of the week.",
     // objects
     "object.SeedSpreader.DisplayName": "Seed Spreader",
     "object.SeedSpreader.Description": "Place on a sprinkler and load with seeds to plant overnight.",

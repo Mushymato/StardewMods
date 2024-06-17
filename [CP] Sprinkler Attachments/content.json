@@ -1,16 +1,23 @@
 {
     "Format": "2.2.0",
-    "ConfigSchema": {
-        "RestrictKrobusStock": {
-            "AllowValues": "true, false",
-            "Default": "true"
-        }
-    },
     "Changes": [
         {
             "Action": "Load",
-            "Target": "{{ModId}}/Objects",
-            "FromFile": "assets/{{TargetWithoutPath}}.png"
+            "Target": "Mod/{{ModId}}/Objects",
+            "FromFile": "assets/{{TargetWithoutPath}}.png",
+            "When": {
+                "mushymato.SprinklerAttachments/InvisibleAttachments": false
+            },
+            "Update": "OnLocationChange"
+        },
+        {
+            "Action": "Load",
+            "Target": "Mod/{{ModId}}/Objects",
+            "FromFile": "assets/{{TargetWithoutPath}}_Invisible.png",
+            "When": {
+                "mushymato.SprinklerAttachments/InvisibleAttachments": true
+            },
+            "Update": "OnLocationChange"
         },
         {
             "Action": "Include",
@@ -18,7 +25,8 @@
         },
         {
             "Action": "Include",
-            "FromFile": "data/Shops.json"
+            "FromFile": "data/Shops.json",
+            "Update": "OnLocationChange"
         }
     ]
 }

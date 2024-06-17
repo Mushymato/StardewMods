@@ -8,7 +8,7 @@
         "Items"
       ],
       "When": {
-        "RestrictKrobusStock": true
+        "mushymato.SprinklerAttachments/InvisibleAttachments": true
       },
       "Entries": {
         "{{ModId}}_SeedSpreader": {
@@ -45,7 +45,7 @@
         "Items"
       ],
       "When": {
-        "RestrictKrobusStock": false
+        "mushymato.SprinklerAttachments/InvisibleAttachments": false
       },
       "Entries": {
         "{{ModId}}_SeedSpreader": {
