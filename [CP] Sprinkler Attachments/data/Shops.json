@@ -21,7 +21,7 @@
         "{{ModId}}_3in1Nozzle": {
           "Id": "{{ModId}}_3in1Nozzle",
           "ItemId": "{{ModId}}_3in1Nozzle",
-          "Price": 80000,
+          "Price": 60000,
           "Condition": "DAY_OF_WEEK Sunday",
           "AvailableStock": 1
         }
@@ -56,7 +56,7 @@
         "{{ModId}}_3in1Nozzle": {
           "Id": "{{ModId}}_3in1Nozzle",
           "ItemId": "{{ModId}}_3in1Nozzle",
-          "Price": 80000
+          "Price": 60000
         }
       },
       "MoveEntries": [
@@ -88,25 +88,25 @@
           "Id": "{{ModId}}_3in1Nozzle",
           "ItemId": "{{ModId}}_3in1Nozzle",
           "TradeItemId": "(O)858",
-          "TradeItemAmount": 20
+          "TradeItemAmount": 15
         },
         "{{ModId}}_3in1Nozzle_Trade_Enricher": {
           "Id": "{{ModId}}_3in1Nozzle_Trade_Enricher",
           "ItemId": "{{ModId}}_3in1Nozzle",
           "TradeItemId": "(O)913",
-          "TradeItemAmount": 4
+          "TradeItemAmount": 3
         },
         "{{ModId}}_3in1Nozzle_Trade_PressureNozzle": {
           "Id": "{{ModId}}_3in1Nozzle_Trade_PressureNozzle",
           "ItemId": "{{ModId}}_3in1Nozzle",
           "TradeItemId": "(O)915",
-          "TradeItemAmount": 4
+          "TradeItemAmount": 3
         },
         "{{ModId}}_3in1Nozzle_Trade_SeedSpreader": {
           "Id": "{{ModId}}_3in1Nozzle_Trade_SeedSpreader",
           "ItemId": "{{ModId}}_3in1Nozzle",
           "TradeItemId": "(O){{ModId}}_SeedSpreader",
-          "TradeItemAmount": 4
+          "TradeItemAmount": 3
         }
       }
     }
