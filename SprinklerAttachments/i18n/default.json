@@ -18,5 +18,5 @@
     "config.PlantOnChestClose.name": "Plant on Chest Close",
     "config.PlantOnChestClose.description": "Plant/fertilize right after closing the attachment chest menu.\n!!WARNING: The player can get stuck on trellis crops.!!",
     "config.SeasonAwarePlanting.name": "Season Aware Planting",
-    "config.SeasonAwarePlanting.description": "Only plant crops if they will be harvestable."
+    "config.SeasonAwarePlanting.description": "In areas affected by seasons, only plant crops that will be harvestable."
 }

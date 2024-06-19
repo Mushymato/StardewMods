@@ -17,6 +17,6 @@
     "config.IntakeChestSize.description": "默认九格",
     "config.PlantOnChestClose.name": "即时种植",
     "config.PlantOnChestClose.description": "关闭附加器箱子后马上种植种子。\n！！注意：架子作物可能会卡住玩家！！",
-    "config.SeasonAwarePlanting.name": "播种季节内农作物",
-    "config.SeasonAwarePlanting.description": "只播种可收获作物",
+    "config.SeasonAwarePlanting.name": "只播种季节内农作物",
+    "config.SeasonAwarePlanting.description": "在有季节影响的地图中，只播种可收获作物",
 }
