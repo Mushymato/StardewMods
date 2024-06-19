@@ -28,7 +28,6 @@
             "{{ModId}}"
           ],
           "CustomFields": {
-            "{{ModId}}.IntakeChestSize": "9",
             "{{ModId}}.IntakeChestAcceptCategory": "-74",
             "{{ModId}}.OverlayOffsetX": "0",
             "{{ModId}}.OverlayOffsetY": "-12",
@@ -60,7 +59,6 @@
             "{{ModId}}"
           ],
           "CustomFields": {
-            "{{ModId}}.IntakeChestSize": "9",
             "{{ModId}}.IntakeChestAcceptCategory": "-19,-74",
             "{{ModId}}.OverlayOffsetX": "0",
             "{{ModId}}.OverlayOffsetY": "-16",

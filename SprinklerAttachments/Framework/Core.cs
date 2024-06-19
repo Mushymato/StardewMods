@@ -23,25 +23,21 @@ namespace SprinklerAttachments.Framework
     /// </summary>
     internal sealed class ModFieldHelper
     {
-        public const string Field_IntakeChestSize = $"{SprinklerAttachment.ContentModId}.IntakeChestSize";
         public const string Field_IntakeChestAcceptCategory = $"{SprinklerAttachment.ContentModId}.IntakeChestAcceptCategory";
         public const string Field_OverlayOffsetX = $"{SprinklerAttachment.ContentModId}.OverlayOffsetX";
         public const string Field_OverlayOffsetY = $"{SprinklerAttachment.ContentModId}.OverlayOffsetY";
         public const string Field_IsSowing = $"{SprinklerAttachment.ContentModId}.IsSowing";
         public const string Field_IsPressurize = $"{SprinklerAttachment.ContentModId}.IsPressurize";
 
-        public static bool TryGetIntakeChestSize(ObjectData data, [NotNullWhen(true)] out int? ret)
+        public static bool TryGetIntakeChestAcceptCategory(ObjectData data, [NotNullWhen(true)] out string? ret)
         {
-            return TryParseCustomField(data, Field_IntakeChestSize, out ret);
+            return data.CustomFields.TryGetValue(Field_IntakeChestAcceptCategory, out ret);
         }
-        public static bool TryGetIntakeChestSize(ModDataDictionary data, [NotNullWhen(true)] out int? ret)
-        {
-            return TryParseModData(data, Field_IntakeChestSize, out ret);
-        }
-        public static bool TryGetIntakeChestAcceptCategory(ObjectData data, [NotNullWhen(true)] out List<int>? ret)
+
+        public static bool TryGetModDataIntakeChestAcceptCategory(ModDataDictionary data, [NotNullWhen(true)] out List<int>? ret)
         {
             ret = null;
-            if (data.CustomFields.TryGetValue(Field_IntakeChestAcceptCategory, out string? valueStr))
+            if (data.TryGetValue(Field_IntakeChestAcceptCategory, out string? valueStr))
             {
                 ret = valueStr.Split(",").ToList().ConvertAll(cat => Convert.ToInt32(cat));
                 return true;
@@ -69,27 +65,35 @@ namespace SprinklerAttachments.Framework
             ret = default;
             if (data.CustomFields.TryGetValue(key, out string? valueStr) && valueStr != null)
             {
-                TypeConverter con = TypeDescriptor.GetConverter(typeof(T));
-                if (con != null)
+                return TryParse(valueStr, out ret);
+            }
+            return false;
+        }
+        public static bool TryParseModData<T>(ModDataDictionary data, string key, [NotNullWhen(true)] out T? ret)
+        {
+            ret = default;
+            if (data.TryGetValue(key, out string? valueStr) && valueStr != null)
+            {
+                return TryParse(valueStr, out ret);
+            }
+            return false;
+        }
+
+        private static bool TryParse<T>(string valueStr, out T? ret)
+        {
+            ret = default;
+            TypeConverter con = TypeDescriptor.GetConverter(typeof(T));
+            if (con != null)
+            {
+                try
                 {
                     ret = (T?)con.ConvertFromString(valueStr);
                     if (ret != null)
                         return true;
                 }
-            }
-            return false;
-        }
-        private static bool TryParseModData<T>(ModDataDictionary data, string key, [NotNullWhen(true)] out T? ret)
-        {
-            ret = default;
-            if (data.TryGetValue(key, out string? valueStr) && valueStr != null)
-            {
-                TypeConverter con = TypeDescriptor.GetConverter(typeof(T));
-                if (con != null)
+                catch (NotSupportedException)
                 {
-                    ret = (T?)con.ConvertFromString(valueStr);
-                    if (ret != null)
-                        return true;
+                    return false;
                 }
             }
             return false;
@@ -100,30 +104,41 @@ namespace SprinklerAttachments.Framework
     /// </summary>
     internal class ModConfig
     {
+        public enum Trellis
+        {
+            Any = 0,
+            Rows = 1,
+            Columns = 2
+        }
         public bool RestrictKrobusStock { get; set; } = true;
         public bool WaterOnPlanting { get; set; } = true;
         public bool EnableForGardenPots { get; set; } = true;
-        public bool InvisibleAttachments { get; set; } = false;
+        public Trellis TrellisPattern { get; set; } = Trellis.Any;
+        public int IntakeChestSize { get; set; } = 9;
         public bool PlantOnChestClose { get; set; } = false;
+        public bool InvisibleAttachments { get; set; } = false;
 
         private void Reset()
         {
             RestrictKrobusStock = true;
-            EnableForGardenPots = true;
             WaterOnPlanting = true;
-            InvisibleAttachments = false;
+            EnableForGardenPots = true;
+            TrellisPattern = Trellis.Any;
+            IntakeChestSize = 9;
             PlantOnChestClose = false;
+            InvisibleAttachments = false;
         }
 
         public void Register(IModHelper helper, IManifest mod,
                              Integration.IContentPatcherAPI CP, Integration.IGenericModConfigMenuApi? GMCM)
         {
             CP.RegisterToken(mod, nameof(RestrictKrobusStock), () => { return new string[] { RestrictKrobusStock.ToString() }; });
-            // CP.RegisterToken(mod, nameof(EnableForGardenPots), () => { return new string[] { EnableForGardenPots.ToString() }; });
-            // CP.RegisterToken(mod, nameof(WaterOnPlanting), () => { return new string[] { WaterOnPlanting.ToString() }; });
             CP.RegisterToken(mod, nameof(InvisibleAttachments), () => { return new string[] { InvisibleAttachments.ToString() }; });
             if (GMCM == null)
+            {
+                helper.WriteConfig(this);
                 return;
+            }
             GMCM.Register(
                 mod: mod,
                 reset: () =>
@@ -143,6 +158,13 @@ namespace SprinklerAttachments.Framework
             );
             GMCM.AddBoolOption(
                 mod,
+                getValue: () => { return InvisibleAttachments; },
+                setValue: (value) => { InvisibleAttachments = value; },
+                name: () => helper.Translation.Get("config.InvisibleAttachments.name"),
+                tooltip: () => helper.Translation.Get("config.InvisibleAttachments.description")
+            );
+            GMCM.AddBoolOption(
+                mod,
                 getValue: () => { return WaterOnPlanting; },
                 setValue: (value) => { WaterOnPlanting = value; },
                 name: () => helper.Translation.Get("config.WaterOnPlanting.name"),
@@ -155,12 +177,22 @@ namespace SprinklerAttachments.Framework
                 name: () => helper.Translation.Get("config.EnableForGardenPots.name"),
                 tooltip: () => helper.Translation.Get("config.EnableForGardenPots.description")
             );
-            GMCM.AddBoolOption(
+            GMCM.AddNumberOption(
                 mod,
-                getValue: () => { return InvisibleAttachments; },
-                setValue: (value) => { InvisibleAttachments = value; },
-                name: () => helper.Translation.Get("config.InvisibleAttachments.name"),
-                tooltip: () => helper.Translation.Get("config.InvisibleAttachments.description")
+                getValue: () => { return (int)TrellisPattern; },
+                setValue: (value) => { TrellisPattern = (Trellis)value; },
+                formatValue: (value) => { return helper.Translation.Get($"config.TrellisPattern.{value}"); },
+                name: () => helper.Translation.Get("config.TrellisPattern.name"),
+                tooltip: () => helper.Translation.Get("config.TrellisPattern.description"),
+                min: 0, max: 2
+            );
+            GMCM.AddNumberOption(
+                mod,
+                getValue: () => { return IntakeChestSize; },
+                setValue: (value) => { IntakeChestSize = value; },
+                name: () => helper.Translation.Get("config.IntakeChestSize.name"),
+                tooltip: () => helper.Translation.Get("config.IntakeChestSize.description"),
+                min: 3, max: 36, interval: 3
             );
             GMCM.AddBoolOption(
                 mod,
@@ -255,7 +287,7 @@ namespace SprinklerAttachments.Framework
             if (sprinkler.isTemporarilyInvisible || // item not loaded
                 attachmentItem is not StardewObject attachment || // item not an object
                 !attachment.HasContextTag(ContentModId) || // not an attachment item for this mod
-                ItemRegistry.GetData(attachmentItem.QualifiedItemId)?.RawData is not ObjectData data || // item lack object data (?)
+                ItemRegistry.GetData(attachment.QualifiedItemId)?.RawData is not ObjectData data || // item lack object data (?)
                 !sprinkler.IsSprinkler() || // not a sprinkler
                 sprinkler.heldObject.Value != null) // already has attached item (vanilla or mod)
                 return false;
@@ -273,17 +305,23 @@ namespace SprinklerAttachments.Framework
             if (attachment.getOne() is not StardewObject attached)
                 return false;
 
-            // setup chest if IntakeChestSize is set
-            if (ModFieldHelper.TryGetIntakeChestSize(data, out int? ret) && ret > 0 && attached.heldObject.Value == null)
-            {
-                Chest intakeChest = new();
-                intakeChest.modData.Add(ModFieldHelper.Field_IntakeChestSize, ret.ToString());
-                attached.heldObject.Value = intakeChest;
-                intakeChest.mutex.Update(sprinkler.Location);
-            }
             location.playSound("axe");
             sprinkler.heldObject.Value = attached;
             sprinkler.MinutesUntilReady = -1;
+
+            // setup chest if IsSowing is set
+            if (ModFieldHelper.TryGetIntakeChestAcceptCategory(data, out string? ret) && attached.heldObject.Value == null)
+            {
+                Chest intakeChest = new(playerChest: false);
+
+                intakeChest.modData.Add(ContentModId, "true");
+                intakeChest.modData.Add(ModFieldHelper.Field_IntakeChestAcceptCategory, ret);
+                attached.heldObject.Value = intakeChest;
+                intakeChest.GetMutex().RequestLock(delegate ()
+                {
+                    ShowIntakeChestMenu(intakeChest);
+                });
+            }
 
             return true;
         }
@@ -301,11 +339,9 @@ namespace SprinklerAttachments.Framework
                 intakeChest.mutex.Update(sprinkler.Location);
                 if (Game1.activeClickableMenu == null && intakeChest.GetMutex().IsLockHeld())
                 {
-                    intakeChest.GetMutex().ReleaseLock();
-                    if (Config?.PlantOnChestClose ?? false)
-                    {
+                    if (Config!.PlantOnChestClose)
                         ApplySowing(sprinkler);
-                    }
+                    intakeChest.GetMutex().ReleaseLock();
                 }
             }
         }
@@ -322,18 +358,17 @@ namespace SprinklerAttachments.Framework
         {
             if (!TryGetSprinklerAttachment(sprinkler, out StardewObject? attachment))
                 return false;
-
             if (justCheckingForActivity)
                 return true; // dryrun stops here
-
             if (!Game1.didPlayerJustRightClick(ignoreNonMouseHeldInput: true)) // TODO: how does this work with controllers?
                 return false;
-
-            if (attachment.heldObject.Value is not Chest attachedChest ||
-                ItemRegistry.GetData(attachment.QualifiedItemId)?.RawData is not ObjectData data)
+            if (attachment.heldObject.Value is not Chest intakeChest)
                 return false;
 
-            attachedChest.GetMutex().RequestLock(delegate () { ShowIntakeChestMenu(attachedChest, data); });
+            intakeChest.GetMutex().RequestLock(delegate ()
+            {
+                ShowIntakeChestMenu(intakeChest);
+            });
             return true;
         }
 
@@ -354,7 +389,7 @@ namespace SprinklerAttachments.Framework
         }
 
         /// <summary>
-        /// If the chest has <see cref="ModFieldHelper.Field_IntakeChestSize"/> set, return it; else return original value.
+        /// Override the chest size for sprinkler
         /// <seealso cref="Chest.GetActualCapacity"/>
         /// </summary>
         /// <param name="intakeChest">Chest object instance</param>
@@ -362,8 +397,8 @@ namespace SprinklerAttachments.Framework
         /// <returns>int capacity for chest</returns>
         public static int GetActualCapacity(Chest intakeChest, int originalValue)
         {
-            if (ModFieldHelper.TryGetIntakeChestSize(intakeChest.modData, out int? ret))
-                return (int)ret;
+            if (ModFieldHelper.TryParseModData(intakeChest.modData, ContentModId, out bool? ret) && (bool)ret)
+                return Config?.IntakeChestSize ?? originalValue;
             return originalValue;
         }
 
@@ -432,10 +467,10 @@ namespace SprinklerAttachments.Framework
         /// </summary>
         /// <param name="chest">intake chest</param>
         /// <param name="data">object data of attachment that holds chest</param>
-        private static void ShowIntakeChestMenu(Chest chest, ObjectData data)
+        private static void ShowIntakeChestMenu(Chest intakeChest)
         {
             InventoryMenu.highlightThisItem highlightFunction;
-            if (ModFieldHelper.TryGetIntakeChestAcceptCategory(data, out List<int>? ret))
+            if (ModFieldHelper.TryGetModDataIntakeChestAcceptCategory(intakeChest.modData, out List<int>? ret))
             {
                 highlightFunction = (Item item) => { return ret.Contains(item.Category); };
             }
@@ -445,27 +480,63 @@ namespace SprinklerAttachments.Framework
             }
             ItemGrabMenu? oldMenu = Game1.activeClickableMenu as ItemGrabMenu;
             Game1.activeClickableMenu = new ItemGrabMenu(
-                inventory: chest.GetItemsForPlayer(),
+                inventory: intakeChest.GetItemsForPlayer(),
                 reverseGrab: false,
                 showReceivingMenu: true,
                 highlightFunction: highlightFunction,
-                behaviorOnItemSelectFunction: chest.grabItemFromInventory,
+                behaviorOnItemSelectFunction: (Item item, Farmer who) => GrabItemFromInventory(intakeChest, item, who),
                 message: null,
-                behaviorOnItemGrab: chest.grabItemFromChest,
+                behaviorOnItemGrab: (Item item, Farmer who) => GrabItemFromChest(intakeChest, item, who),
                 snapToBottom: false,
                 canBeExitedWithKey: true,
                 playRightClickSound: true,
                 allowRightClick: true,
-                showOrganizeButton: true,
+                showOrganizeButton: false,
                 source: 1,
-                sourceItem: chest,
+                sourceItem: intakeChest.fridge.Value ? null : intakeChest,
                 whichSpecialButton: -1,
-                context: chest
+                context: intakeChest
             );
             if (oldMenu != null && Game1.activeClickableMenu is ItemGrabMenu newMenu)
             {
                 newMenu.inventory.moveItemSound = oldMenu.inventory.moveItemSound;
                 newMenu.inventory.highlightMethod = oldMenu.inventory.highlightMethod;
+            }
+        }
+
+        private static void GrabItemFromInventory(Chest intakeChest, Item item, Farmer who)
+        {
+            if (item.Stack == 0)
+            {
+                item.Stack = 1;
+            }
+            Item tmp = intakeChest.addItem(item);
+            if (tmp == null)
+            {
+                who.removeItemFromInventory(item);
+            }
+            else
+            {
+                tmp = who.addItemToInventory(tmp);
+            }
+            intakeChest.clearNulls();
+            int oldID = ((Game1.activeClickableMenu.currentlySnappedComponent != null) ? Game1.activeClickableMenu.currentlySnappedComponent.myID : (-1));
+            ShowIntakeChestMenu(intakeChest);
+            (Game1.activeClickableMenu as ItemGrabMenu)!.heldItem = tmp;
+            if (oldID != -1)
+            {
+                Game1.activeClickableMenu.currentlySnappedComponent = Game1.activeClickableMenu.getComponentWithID(oldID);
+                Game1.activeClickableMenu.snapCursorToCurrentSnappedComponent();
+            }
+        }
+
+        public static void GrabItemFromChest(Chest intakeChest, Item item, Farmer who)
+        {
+            if (who.couldInventoryAcceptThisItem(item))
+            {
+                intakeChest.GetItemsForPlayer().Remove(item);
+                intakeChest.clearNulls();
+                ShowIntakeChestMenu(intakeChest);
             }
         }
 
@@ -478,9 +549,12 @@ namespace SprinklerAttachments.Framework
         public static bool TryGetOpenHoedDirtAroundSprinkler(StardewObject sprinkler, [NotNullWhen(true)] out List<HoeDirt>? dirtList)
         {
             GameLocation location = sprinkler.Location;
+            Vector2 sprinklerTile = sprinkler.TileLocation;
             dirtList = new();
             foreach (Vector2 current in (CompatibleGetSprinklerTiles ?? GetSprinklerTiles_Vanilla)(sprinkler))
             {
+                if (current == sprinklerTile)
+                    continue;
                 HoeDirt candidate;
                 if ((Config?.EnableForGardenPots ?? true) &&
                      (location.getObjectAtTile((int)current.X, (int)current.Y) is IndoorPot ||
@@ -525,8 +599,7 @@ namespace SprinklerAttachments.Framework
                 intakeChest.Items.Count > 0 &&
                 intakeChest.Items[0] != null)
             {
-                PlantFromIntakeChest(dirtList, intakeChest, StardewObject.fertilizerCategory, RemotePlantFertilizer);
-                PlantFromIntakeChest(dirtList, intakeChest, StardewObject.SeedsCategory, RemotePlantCrop);
+                PlantFromIntakeChest(dirtList, sprinkler.TileLocation, intakeChest);
             }
         }
 
@@ -556,82 +629,143 @@ namespace SprinklerAttachments.Framework
             return false;
         }
 
-        private static void PlantFromIntakeChest(List<HoeDirt> dirtList, Chest intakeChest, int category, Func<HoeDirt, string, bool> plantFunction)
+        /// <summary>
+        /// Plant seeds and apply fertilizer from chest
+        /// </summary>
+        /// <param name="dirtList"></param>
+        /// <param name="sprinklerPos"></param>
+        /// <param name="intakeChest"></param>
+        private static void PlantFromIntakeChest(List<HoeDirt> dirtList, Vector2 sprinklerPos, Chest intakeChest)
         {
             Inventory chestItems = intakeChest.Items;
-            Item item;
-            for (int i = 0; i < chestItems.Count; i++)
+            int seedIdx = 0;
+            int fertIdx = 0;
+            Item? seed;
+            Farmer who = GetAgriculturistFarmer();
+
+            foreach (HoeDirt dirt in dirtList)
             {
-                item = chestItems[i];
-                // TODO: can improve perf here by checking whether item is valid for location overall, then skipping
-                if (item == null || item.Category != category)
-                    continue;
-                foreach (HoeDirt dirt in dirtList)
+                while (NextMatching(chestItems, StardewObject.SeedsCategory, ref seedIdx, out seed))
                 {
-                    if (plantFunction(dirt, item.ItemId))
+                    if (RemotePlantCrop(who, dirt, sprinklerPos, seed))
                     {
-                        item.Stack--;
-                        if (item.Stack <= 0)
+                        seed.Stack--;
+                        if (seed.Stack <= 0)
                         {
-                            chestItems[i] = null;
-                            break;
+                            chestItems[seedIdx] = null;
+                            seed = null;
+                            seedIdx++;
                         }
+                        if (NextMatching(chestItems, StardewObject.fertilizerCategory, ref fertIdx, out Item? fertilizer))
+                        {
+                            if (RemotePlantFertilizer(who, dirt, fertilizer))
+                            {
+                                fertilizer.Stack--;
+                                if (fertilizer.Stack <= 0)
+                                {
+                                    chestItems[fertIdx] = null;
+                                    fertIdx++;
+                                }
+                            }
+                        }
+                        break;
                     }
-                }
+                    else
+                    {
+                        seedIdx++;
+                    }
+                };
+                // due to the trellis pattern feature, we must check all seed on all dirt
+                if (seed == null)
+                    seedIdx = 0;
             }
         }
 
-        private static bool RemotePlantFertilizer(HoeDirt dirt, string itemId)
+        /// <summary>
+        /// Find an agriculturist player if one is online.
+        /// </summary>
+        /// <returns></returns>
+        private static Farmer GetAgriculturistFarmer()
         {
-            string qItemId = ItemRegistry.QualifyItemId(itemId) ?? itemId;
-            Farmer who = Game1.player;
-            // TODO: find optimal player to do the planting?
-            if (dirt.CanApplyFertilizer(itemId))
+            if (!Game1.IsMultiplayer)
+                return Game1.player;
+            foreach (Farmer player in Game1.getOnlineFarmers())
             {
-                dirt.fertilizer.Value = qItemId;
+                if (player.professions.Contains(Farmer.agriculturist))
+                    return player;
+            }
+            return Game1.player;
+        }
+
+        private static bool NextMatching(Inventory chestItems, int category, ref int curr, [NotNullWhen(true)] out Item? next)
+        {
+            next = null;
+            while (curr < chestItems.Count)
+            {
+                next = chestItems[curr];
+                if (next != null && next.Category == category)
+                    return true;
+                curr++;
+            }
+            return false;
+        }
+
+        private static bool RemotePlantFertilizer(Farmer who, HoeDirt dirt, Item item)
+        {
+            if (dirt.CanApplyFertilizer(item.ItemId))
+            {
+                dirt.fertilizer.Value = item.QualifiedItemId;
                 dirt.applySpeedIncreases(who);
                 return true;
             }
             return false;
         }
 
-        private static bool RemotePlantCrop(HoeDirt dirt, string itemId)
+        private static bool RemotePlantCrop(Farmer who, HoeDirt dirt, Vector2 sprinklerPos, Item item)
         {
             if (dirt.crop != null)
                 return false;
             GameLocation location = dirt.Location;
-            itemId = Crop.ResolveSeedId(itemId, location);
+            string itemId = Crop.ResolveSeedId(item.ItemId, location);
             if (!Crop.TryGetData(itemId, out CropData cropData) || cropData.Seasons.Count == 0)
                 return false;
-            Farmer who = Game1.player;
             // TODO: find optimal player to do the planting?
             Point tilePos = Utility.Vector2ToPoint(dirt.Tile);
             bool isGardenPot = location.objects.TryGetValue(dirt.Tile, out StardewObject obj) && obj is IndoorPot;
+
+            if (!isGardenPot && cropData.IsRaised)
+            {
+                ModConfig.Trellis trellisPattern = Config?.TrellisPattern ?? ModConfig.Trellis.Any;
+                if (trellisPattern == ModConfig.Trellis.Rows && (tilePos.Y - sprinklerPos.Y + 1) % 3 == 0)
+                    return false;
+                if (trellisPattern == ModConfig.Trellis.Columns && (tilePos.X - sprinklerPos.X + 1) % 3 == 0)
+                    return false;
+            }
+
             bool isIndoorPot = isGardenPot && !location.IsOutdoors;
             if (!location.CanPlantSeedsHere(itemId, tilePos.X, tilePos.Y, isGardenPot, out string _deniedMsg))
                 return false;
             Season season = location.GetSeason();
-            if (isIndoorPot || location.SeedsIgnoreSeasonsHere() || !((!(cropData.Seasons?.Contains(season))) ?? true))
+            if (!isIndoorPot && !location.SeedsIgnoreSeasonsHere() && ((!(cropData.Seasons?.Contains(season))) ?? true))
+                return false;
+
+            dirt.crop = new Crop(itemId, tilePos.X, tilePos.Y, location);
+            Game1.stats.SeedsSown++;
+            dirt.applySpeedIncreases(who);
+            dirt.nearWaterForPaddy.Value = -1;
+            if (dirt.hasPaddyCrop() && dirt.paddyWaterCheck())
             {
-                dirt.crop = new Crop(itemId, tilePos.X, tilePos.Y, location);
-                Game1.stats.SeedsSown++;
-                dirt.applySpeedIncreases(who);
-                dirt.nearWaterForPaddy.Value = -1;
-                if (dirt.hasPaddyCrop() && dirt.paddyWaterCheck())
-                {
-                    dirt.state.Value = 1;
-                    dirt.updateNeighbors();
-                }
-                // water any newly planted crops, so they will sprout on day begin
-                else if ((Config?.WaterOnPlanting ?? true) &&
-                         !(dirt.Location.doesTileHavePropertyNoNull((int)dirt.Tile.X, (int)dirt.Tile.Y, "NoSprinklers", "Back") == "T") &&
-                         dirt.state.Value != 2)
-                {
-                    dirt.state.Value = 1;
-                }
-                return true;
+                dirt.state.Value = 1;
+                dirt.updateNeighbors();
             }
-            return false;
+            // water any newly planted crops, so they will sprout on day begin
+            else if ((Config?.WaterOnPlanting ?? true) &&
+                     !(dirt.Location.doesTileHavePropertyNoNull((int)dirt.Tile.X, (int)dirt.Tile.Y, "NoSprinklers", "Back") == "T") &&
+                     dirt.state.Value != 2)
+            {
+                dirt.state.Value = 1;
+            }
+            return true;
         }
     }
 }

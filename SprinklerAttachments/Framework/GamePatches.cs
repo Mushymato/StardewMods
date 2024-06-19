@@ -1,5 +1,3 @@
-using System.Reflection;
-using Netcode;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using HarmonyLib;
@@ -8,7 +6,6 @@ using StardewObject = StardewValley.Object;
 using StardewModdingAPI;
 using StardewValley.Objects;
 using System.Reflection.Emit;
-using StardewValley.Menus;
 
 namespace SprinklerAttachments.Framework
 {

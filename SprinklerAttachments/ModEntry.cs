@@ -2,15 +2,12 @@
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using SprinklerAttachments.Framework;
-using SprinklerAttachments.Framework.Integration;
-using System.Reflection.Metadata;
 
 namespace SprinklerAttachments
 {
     /// <summary>The mod entry point.</summary>
     internal sealed class ModEntry : Mod
     {
-        private static Framework.Integration.IContentPatcherAPI? ContentPatcherAPI;
         private static IMonitor? mon;
         /// <summary>The mod entry point, called after the mod is first loaded.</summary>
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
@@ -21,14 +18,14 @@ namespace SprinklerAttachments
             helper.Events.GameLoop.DayEnding += OnDayEnding;
             helper.ConsoleCommands.Add(
                 "apply_sowing",
-                "Triggers sowing (planting of seed and fertilizer from attachment) on all sprinklers with applicable attachment.\nThis action is always called at the end of a day.",
-                ApplySowing
+                "Triggers sowing (planting of seed and fertilizer from attachment) on all sprinklers with applicable attachment.",
+                ConsoleApplySowing
             );
         }
 
         public static void Log(string msg, LogLevel level = LogLevel.Debug)
         {
-            mon?.Log(msg, level);
+            mon!.Log(msg, level);
         }
 
         /// <summary>
@@ -59,8 +56,13 @@ namespace SprinklerAttachments
         /// </summary>
         /// <param name="command"></param>
         /// <param name="args"></param>
-        private void ApplySowing(string command, string[] args)
+        private void ConsoleApplySowing(string command, string[] args)
         {
+            if (!Context.IsWorldReady)
+            {
+                Log("Must load save first.", LogLevel.Error);
+                return;
+            }
             SprinklerAttachment.ApplySowingToAllSprinklers(verbose: true);
             Log($"OK, performed sowing for all sprinklers.", LogLevel.Info);
         }

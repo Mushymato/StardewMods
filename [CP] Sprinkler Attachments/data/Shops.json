@@ -8,7 +8,7 @@
         "Items"
       ],
       "When": {
-        "mushymato.SprinklerAttachments/InvisibleAttachments": true
+        "mushymato.SprinklerAttachments/RestrictKrobusStock": true
       },
       "Entries": {
         "{{ModId}}_SeedSpreader": {
@@ -35,7 +35,8 @@
           "Id": "{{ModId}}_3in1Nozzle",
           "BeforeId": "(O)767"
         }
-      ]
+      ],
+      "Update": "OnLocationChange"
     },
     {
       "Action": "EditData",
@@ -45,7 +46,7 @@
         "Items"
       ],
       "When": {
-        "mushymato.SprinklerAttachments/InvisibleAttachments": false
+        "mushymato.SprinklerAttachments/RestrictKrobusStock": false
       },
       "Entries": {
         "{{ModId}}_SeedSpreader": {
@@ -68,7 +69,8 @@
           "Id": "{{ModId}}_3in1Nozzle",
           "BeforeId": "(O)305"
         }
-      ]
+      ],
+      "Update": "OnLocationChange"
     },
     {
       "Action": "EditData",
