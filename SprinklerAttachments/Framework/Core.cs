@@ -553,8 +553,6 @@ namespace SprinklerAttachments.Framework
             dirtList = new();
             foreach (Vector2 current in (CompatibleGetSprinklerTiles ?? GetSprinklerTiles_Vanilla)(sprinkler))
             {
-                if (current == sprinklerTile)
-                    continue;
                 HoeDirt candidate;
                 if ((Config?.EnableForGardenPots ?? true) &&
                      (location.getObjectAtTile((int)current.X, (int)current.Y) is IndoorPot ||
@@ -574,7 +572,8 @@ namespace SprinklerAttachments.Framework
                         continue;
                     }
                 }
-                else if (location.terrainFeatures.TryGetValue(current, out var terrain) && terrain is HoeDirt dirt)
+                else if (location.terrainFeatures.TryGetValue(current, out var terrain) && terrain is HoeDirt dirt &&
+                         (location.farmers.Any((farmer) => current == farmer.Tile) || location.CanItemBePlacedHere(current, useFarmerTile: true)))
                 {
                     candidate = dirt;
                 }
@@ -641,33 +640,77 @@ namespace SprinklerAttachments.Framework
             int seedIdx = 0;
             int fertIdx = 0;
             Item? seed;
+            Item? fertilizer;
+            bool fertilized = false;
             Farmer who = GetAgriculturistFarmer();
+
+            // sort trellis crops first
+            List<int> seedMapping = Enumerable.Range(0, chestItems.Count).ToList();
+            seedMapping.Sort((int x, int y) =>
+            {
+                Item itemX = chestItems[x];
+                if (!Crop.TryGetData(itemX.ItemId, out CropData cropDataX))
+                    return 1;
+                Item itemY = chestItems[y];
+                if (!Crop.TryGetData(itemY.ItemId, out CropData cropDataY))
+                    return -1;
+                // trellis first
+                if (cropDataX.IsRaised && cropDataX.IsRaised != cropDataY.IsRaised)
+                    return -1;
+                return 0;
+            });
+            List<int> fertilizerMapping = Enumerable.Range(0, chestItems.Count).ToList();
+            fertilizerMapping.Sort((int x, int y) =>
+            {
+                Item itemX = chestItems[x];
+                if (itemX.Category != StardewObject.fertilizerCategory)
+                    return 1;
+                Item itemY = chestItems[y];
+                HoeDirt fakeDirt = new();
+                if (itemY.Category != StardewObject.fertilizerCategory)
+                    return -1;
+                fakeDirt.fertilizer.Value = itemX.QualifiedItemId;
+                float speedBoostX = fakeDirt.GetFertilizerSpeedBoost();
+                float qualityX = fakeDirt.GetFertilizerQualityBoostLevel();
+                float retentionX = fakeDirt.GetFertilizerWaterRetentionChance();
+                fakeDirt.fertilizer.Value = itemY.QualifiedItemId;
+                float speedBoostY = fakeDirt.GetFertilizerSpeedBoost();
+                float qualityY = fakeDirt.GetFertilizerQualityBoostLevel();
+                float retentionY = fakeDirt.GetFertilizerWaterRetentionChance();
+                if (speedBoostX > speedBoostY || qualityX > qualityY || retentionX > retentionY)
+                    return -1;
+                return 0;
+            });
+
+            static void decrementStack(int idx, Item item)
+            {
+                item.Stack--;
+                if (item.Stack <= 0)
+                    idx++;
+            }
 
             foreach (HoeDirt dirt in dirtList)
             {
-                while (NextMatching(chestItems, StardewObject.SeedsCategory, ref seedIdx, out seed))
+                while (NextMatching(chestItems, StardewObject.SeedsCategory, seedMapping, ref seedIdx, out seed))
                 {
-                    if (RemotePlantCrop(who, dirt, sprinklerPos, seed))
+                    if (RemotePlantCrop(who, dirt, sprinklerPos, seed, out bool ignoreSeasons))
                     {
-                        seed.Stack--;
-                        if (seed.Stack <= 0)
+                        fertilized = (
+                            NextMatching(chestItems, StardewObject.fertilizerCategory, fertilizerMapping, ref fertIdx, out fertilizer) &&
+                            RemotePlantFertilizer(who, dirt, fertilizer)
+                        );
+                        // check that planted crop can be harvested in time
+                        if (!ignoreSeasons && dirt.crop!.phaseDays.Take(dirt.crop.phaseDays.Count - 1).Sum() > (28 - Game1.dayOfMonth))
                         {
-                            chestItems[seedIdx] = null;
-                            seed = null;
-                            seedIdx++;
+                            // cannot harvest, revert planting and continue to next seed
+                            dirt.crop = null;
+                            seedMapping[seedIdx] = -1; // ban this seed from planting
+                            continue;
                         }
-                        if (NextMatching(chestItems, StardewObject.fertilizerCategory, ref fertIdx, out Item? fertilizer))
-                        {
-                            if (RemotePlantFertilizer(who, dirt, fertilizer))
-                            {
-                                fertilizer.Stack--;
-                                if (fertilizer.Stack <= 0)
-                                {
-                                    chestItems[fertIdx] = null;
-                                    fertIdx++;
-                                }
-                            }
-                        }
+                        // decrement items for reals
+                        decrementStack(seedIdx, seed);
+                        if (fertilized)
+                            decrementStack(fertIdx, fertilizer!);
                         break;
                     }
                     else
@@ -675,9 +718,22 @@ namespace SprinklerAttachments.Framework
                         seedIdx++;
                     }
                 };
+                // fertilize any unfertilized crops (e.g. ones that arent planted by attachment)
+                if (NextMatching(chestItems, StardewObject.fertilizerCategory, fertilizerMapping, ref fertIdx, out fertilizer))
+                {
+                    if (RemotePlantFertilizer(who, dirt, fertilizer))
+                    {
+                        decrementStack(fertIdx, fertilizer);
+                    }
+                }
                 // due to the trellis pattern feature, we must check all seed on all dirt
-                if (seed == null)
-                    seedIdx = 0;
+                seedIdx = 0;
+            }
+            // set all 0 item slots to null
+            for (int i = 0; i < chestItems.Count; i++)
+            {
+                if (chestItems[i].Stack <= 0)
+                    chestItems[i] = null;
             }
         }
 
@@ -697,14 +753,17 @@ namespace SprinklerAttachments.Framework
             return Game1.player;
         }
 
-        private static bool NextMatching(Inventory chestItems, int category, ref int curr, [NotNullWhen(true)] out Item? next)
+        private static bool NextMatching(Inventory chestItems, int category, List<int> idxMapping, ref int curr, [NotNullWhen(true)] out Item? next)
         {
             next = null;
             while (curr < chestItems.Count)
             {
-                next = chestItems[curr];
-                if (next != null && next.Category == category)
-                    return true;
+                if (idxMapping[curr] != -1)
+                {
+                    next = chestItems[idxMapping[curr]];
+                    if (next.Stack > 0 && next.Category == category)
+                        return true;
+                }
                 curr++;
             }
             return false;
@@ -712,7 +771,7 @@ namespace SprinklerAttachments.Framework
 
         private static bool RemotePlantFertilizer(Farmer who, HoeDirt dirt, Item item)
         {
-            if (dirt.CanApplyFertilizer(item.ItemId))
+            if (dirt.crop != null && dirt.CanApplyFertilizer(item.ItemId))
             {
                 dirt.fertilizer.Value = item.QualifiedItemId;
                 dirt.applySpeedIncreases(who);
@@ -721,8 +780,9 @@ namespace SprinklerAttachments.Framework
             return false;
         }
 
-        private static bool RemotePlantCrop(Farmer who, HoeDirt dirt, Vector2 sprinklerPos, Item item)
+        private static bool RemotePlantCrop(Farmer who, HoeDirt dirt, Vector2 sprinklerPos, Item item, out bool ignoreSeasons)
         {
+            ignoreSeasons = false;
             if (dirt.crop != null)
                 return false;
             GameLocation location = dirt.Location;
@@ -746,13 +806,13 @@ namespace SprinklerAttachments.Framework
             if (!location.CanPlantSeedsHere(itemId, tilePos.X, tilePos.Y, isGardenPot, out string _deniedMsg))
                 return false;
             Season season = location.GetSeason();
+            ignoreSeasons = isIndoorPot || location.SeedsIgnoreSeasonsHere();
             if (!isIndoorPot && !location.SeedsIgnoreSeasonsHere() && ((!(cropData.Seasons?.Contains(season))) ?? true))
                 return false;
 
             dirt.crop = new Crop(itemId, tilePos.X, tilePos.Y, location);
             Game1.stats.SeedsSown++;
             dirt.applySpeedIncreases(who);
-            dirt.nearWaterForPaddy.Value = -1;
             if (dirt.hasPaddyCrop() && dirt.paddyWaterCheck())
             {
                 dirt.state.Value = 1;
