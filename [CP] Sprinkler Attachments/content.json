@@ -7,8 +7,7 @@
             "FromFile": "assets/{{TargetWithoutPath}}.png",
             "When": {
                 "mushymato.SprinklerAttachments/InvisibleAttachments": false
-            },
-            "Update": "OnLocationChange"
+            }
         },
         {
             "Action": "Load",
@@ -16,8 +15,7 @@
             "FromFile": "assets/{{TargetWithoutPath}}_Invisible.png",
             "When": {
                 "mushymato.SprinklerAttachments/InvisibleAttachments": true
-            },
-            "Update": "OnLocationChange"
+            }
         },
         {
             "Action": "Include",

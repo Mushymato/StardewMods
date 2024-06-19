@@ -113,10 +113,11 @@ namespace SprinklerAttachments.Framework
         public bool RestrictKrobusStock { get; set; } = true;
         public bool WaterOnPlanting { get; set; } = true;
         public bool EnableForGardenPots { get; set; } = true;
-        public Trellis TrellisPattern { get; set; } = Trellis.Any;
+        public Trellis TrellisPattern { get; set; } = Trellis.Rows;
         public int IntakeChestSize { get; set; } = 9;
         public bool PlantOnChestClose { get; set; } = false;
         public bool InvisibleAttachments { get; set; } = false;
+        public bool SeasonAwarePlanting = true;
 
         private void Reset()
         {
@@ -127,6 +128,7 @@ namespace SprinklerAttachments.Framework
             IntakeChestSize = 9;
             PlantOnChestClose = false;
             InvisibleAttachments = false;
+            SeasonAwarePlanting = true;
         }
 
         public void Register(IModHelper helper, IManifest mod,
@@ -186,6 +188,13 @@ namespace SprinklerAttachments.Framework
                 tooltip: () => helper.Translation.Get("config.TrellisPattern.description"),
                 min: 0, max: 2
             );
+            GMCM.AddBoolOption(
+                mod,
+                getValue: () => { return SeasonAwarePlanting; },
+                setValue: (value) => { SeasonAwarePlanting = value; },
+                name: () => helper.Translation.Get("config.SeasonAwarePlanting.name"),
+                tooltip: () => helper.Translation.Get("config.SeasonAwarePlanting.description")
+            );
             GMCM.AddNumberOption(
                 mod,
                 getValue: () => { return IntakeChestSize; },
@@ -215,6 +224,7 @@ namespace SprinklerAttachments.Framework
         private static Func<StardewObject, IEnumerable<Vector2>>? CompatibleGetSprinklerTiles;
         private static Integration.IBetterSprinklersApi? BetterSprinklersApi;
         public static ModConfig? Config;
+        public const float SeasonDays = 28;
 
         public static void SetUpModCompatibility(IModHelper helper)
         {
@@ -312,7 +322,10 @@ namespace SprinklerAttachments.Framework
             // setup chest if IsSowing is set
             if (ModFieldHelper.TryGetIntakeChestAcceptCategory(data, out string? ret) && attached.heldObject.Value == null)
             {
-                Chest intakeChest = new(playerChest: false);
+                Chest intakeChest = new(playerChest: false)
+                {
+                    SpecialChestType = Chest.SpecialChestTypes.Enricher
+                };
 
                 intakeChest.modData.Add(ContentModId, "true");
                 intakeChest.modData.Add(ModFieldHelper.Field_IntakeChestAcceptCategory, ret);
@@ -448,14 +461,9 @@ namespace SprinklerAttachments.Framework
                 if (sprinkler.SpecialVariable == 999999)
                 {
                     if (offset.Y != 0)
-                    {
                         Torch.drawBasicTorch(spriteBatch, (float)(x * 64) - 2f, y * 64 - 32, (float)bounds.Bottom / 10000f + 1E-06f);
-                    }
                     else
-                    {
                         Torch.drawBasicTorch(spriteBatch, (float)(x * 64) - 2f, y * 64 - 32 + 12, (float)(bounds.Bottom + 2) / 10000f);
-
-                    }
                 }
                 return true;
             }
@@ -693,22 +701,32 @@ namespace SprinklerAttachments.Framework
             {
                 while (NextMatching(chestItems, StardewObject.SeedsCategory, seedMapping, ref seedIdx, out seed))
                 {
-                    if (RemotePlantCrop(who, dirt, sprinklerPos, seed, out bool ignoreSeasons))
+                    if (RemotePlantCrop(who, dirt, sprinklerPos, seed, out bool ignoreSeasons, out CropData? cropData))
                     {
                         fertilized = (
                             NextMatching(chestItems, StardewObject.fertilizerCategory, fertilizerMapping, ref fertIdx, out fertilizer) &&
                             RemotePlantFertilizer(who, dirt, fertilizer)
                         );
                         // check that planted crop can be harvested in time
-                        if (!ignoreSeasons && dirt.crop!.phaseDays.Take(dirt.crop.phaseDays.Count - 1).Sum() > (28 - Game1.dayOfMonth))
+                        if (!ignoreSeasons && Config!.SeasonAwarePlanting)
                         {
-                            // cannot harvest, revert planting and continue to next seed
-                            dirt.crop = null;
-                            seedMapping[seedIdx] = -1; // ban this seed from planting
-                            continue;
+                            int growthDays = dirt.crop!.phaseDays.Take(dirt.crop.phaseDays.Count - 1).Sum();
+                            if (growthDays > (SeasonDays - Game1.dayOfMonth))
+                            {
+                                Season season = dirt.Location.GetSeason();
+                                Season expected = season + (int)Math.Ceiling((growthDays - (SeasonDays - Game1.dayOfMonth)) / SeasonDays);
+                                // cannot harvest, revert planting and continue to next seed
+                                if (!cropData.Seasons.Contains(expected))
+                                {
+                                    dirt.crop = null;
+                                    seedMapping[seedIdx] = -1; // ban this seed from planting
+                                    continue;
+                                }
+                            }
                         }
                         // decrement items for reals
                         decrementStack(seedIdx, seed);
+                        Game1.stats.SeedsSown++;
                         if (fertilized)
                             decrementStack(fertIdx, fertilizer!);
                         break;
@@ -780,14 +798,15 @@ namespace SprinklerAttachments.Framework
             return false;
         }
 
-        private static bool RemotePlantCrop(Farmer who, HoeDirt dirt, Vector2 sprinklerPos, Item item, out bool ignoreSeasons)
+        private static bool RemotePlantCrop(Farmer who, HoeDirt dirt, Vector2 sprinklerPos, Item item, out bool ignoreSeasons, [NotNullWhen(true)] out CropData? cropData)
         {
+            cropData = null;
             ignoreSeasons = false;
             if (dirt.crop != null)
                 return false;
             GameLocation location = dirt.Location;
             string itemId = Crop.ResolveSeedId(item.ItemId, location);
-            if (!Crop.TryGetData(itemId, out CropData cropData) || cropData.Seasons.Count == 0)
+            if (!Crop.TryGetData(itemId, out cropData) || cropData.Seasons.Count == 0)
                 return false;
             // TODO: find optimal player to do the planting?
             Point tilePos = Utility.Vector2ToPoint(dirt.Tile);
@@ -807,11 +826,10 @@ namespace SprinklerAttachments.Framework
                 return false;
             Season season = location.GetSeason();
             ignoreSeasons = isIndoorPot || location.SeedsIgnoreSeasonsHere();
-            if (!isIndoorPot && !location.SeedsIgnoreSeasonsHere() && ((!(cropData.Seasons?.Contains(season))) ?? true))
+            if (!isIndoorPot && !location.SeedsIgnoreSeasonsHere() && (!cropData.Seasons.Contains(season)))
                 return false;
 
             dirt.crop = new Crop(itemId, tilePos.X, tilePos.Y, location);
-            Game1.stats.SeedsSown++;
             dirt.applySpeedIncreases(who);
             if (dirt.hasPaddyCrop() && dirt.paddyWaterCheck())
             {
@@ -819,7 +837,7 @@ namespace SprinklerAttachments.Framework
                 dirt.updateNeighbors();
             }
             // water any newly planted crops, so they will sprout on day begin
-            else if ((Config?.WaterOnPlanting ?? true) &&
+            else if (Config!.WaterOnPlanting &&
                      !(dirt.Location.doesTileHavePropertyNoNull((int)dirt.Tile.X, (int)dirt.Tile.Y, "NoSprinklers", "Back") == "T") &&
                      dirt.state.Value != 2)
             {
