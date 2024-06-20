@@ -6,7 +6,9 @@
     "MinimumGameVersion": "1.6.0",
     "Description": "Add items supported by mushymato.SprinklerAttachments.",
     "UniqueID": "mushymato.SprinklerAttachments.CP",
-    "UpdateKeys": [],
+    "UpdateKeys": [
+        "Nexus:25326"
+    ],
     "ContentPackFor": {
         "UniqueID": "Pathoschild.ContentPatcher"
     },

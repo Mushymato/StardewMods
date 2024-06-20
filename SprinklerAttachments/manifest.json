@@ -6,7 +6,9 @@
     "MinimumGameVersion": "1.6.0",
     "Description": "Add new sprinkler add-on items similar to pressure nozzle and enricher.",
     "UniqueID": "mushymato.SprinklerAttachments",
-    "UpdateKeys": [],
+    "UpdateKeys": [
+        "Nexus:25326"
+    ],
     "EntryDll": "SprinklerAttachments.dll",
     "Dependencies": [
         {
