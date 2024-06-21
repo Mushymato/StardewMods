@@ -224,7 +224,6 @@ namespace SprinklerAttachments.Framework
         private static Func<StardewObject, IEnumerable<Vector2>>? CompatibleGetSprinklerTiles;
         private static Integration.IBetterSprinklersApi? BetterSprinklersApi;
         public static ModConfig? Config;
-        public const float SeasonDays = 28;
 
         public static void SetUpModCompatibility(IModHelper helper)
         {
@@ -711,10 +710,10 @@ namespace SprinklerAttachments.Framework
                         if (!ignoreSeasons && Config!.SeasonAwarePlanting)
                         {
                             int growthDays = dirt.crop!.phaseDays.Take(dirt.crop.phaseDays.Count - 1).Sum();
-                            if (growthDays > (SeasonDays - Game1.dayOfMonth))
+                            if (growthDays > (WorldDate.DaysPerMonth - Game1.dayOfMonth))
                             {
                                 Season season = dirt.Location.GetSeason();
-                                Season expected = season + (int)Math.Ceiling((growthDays - (SeasonDays - Game1.dayOfMonth)) / SeasonDays);
+                                Season expected = season + (int)Math.Ceiling((growthDays - (WorldDate.DaysPerMonth - Game1.dayOfMonth)) / (decimal)WorldDate.DaysPerMonth);
                                 // cannot harvest, revert planting and continue to next seed
                                 if (!cropData.Seasons.Contains(expected))
                                 {
