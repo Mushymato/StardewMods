@@ -1,5 +1,4 @@
-﻿using Force.DeepCloner;
-using StardewModdingAPI;
+﻿using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley.GameData;
 using StardewValley.GameData.Machines;
@@ -8,6 +7,11 @@ namespace SprinklerAttachments
 {
     public class ModEntry : Mod
     {
+        public static readonly HashSet<string> Exclusions = new()
+        {
+            "(BC)BaitMaker",
+        };
+
         public override void Entry(IModHelper helper)
         {
             helper.Events.Content.AssetRequested += OnAssetRequested;
@@ -35,7 +39,7 @@ namespace SprinklerAttachments
             {
                 string qItemId = kv.Key;
                 MachineData machine = kv.Value;
-                if (machine.IsIncubator || machine.OutputRules == null || !machine.AllowFairyDust)
+                if (machine.IsIncubator || machine.OutputRules == null || !machine.AllowFairyDust || Exclusions.Contains(qItemId))
                     continue;
 
                 foreach (MachineOutputRule rule in machine.OutputRules)
@@ -48,19 +52,19 @@ namespace SprinklerAttachments
                     {
                         if (item is not null && item.OutputMethod == null && item.QualityModifiers == null)
                         {
-                            item.QualityModifiers = new(){
-                                    new(){
-                                        Condition = "ITEM_QUALITY Input 4 4",
-                                        Modification = QuantityModifier.ModificationType.Set,
-                                        Amount = 2
-                                    },
-                                    new(){
-                                        Condition = "ITEM_QUALITY Input 2 2",
-                                        Modification = QuantityModifier.ModificationType.Set,
-                                        Amount = 1
-                                    },
-                            };
-                            //item.CopyQuality = true;
+                            // item.QualityModifiers = new(){
+                            //     new(){
+                            //         Condition = "ITEM_QUALITY Input 4 4",
+                            //         Modification = QuantityModifier.ModificationType.Set,
+                            //         Amount = 2
+                            //     },
+                            //     new(){
+                            //         Condition = "ITEM_QUALITY Input 2 2",
+                            //         Modification = QuantityModifier.ModificationType.Set,
+                            //         Amount = 1
+                            //     },
+                            // };
+                            item.CopyQuality = true;
                         }
                     });
                 }

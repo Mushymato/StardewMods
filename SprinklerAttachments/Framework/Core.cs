@@ -221,12 +221,15 @@ namespace SprinklerAttachments.Framework
         /// ModId of content pack
         /// </summary>
         public const string ContentModId = "mushymato.SprinklerAttachments.CP";
-        private static Func<StardewObject, IEnumerable<Vector2>>? CompatibleGetSprinklerTiles;
+        private static Func<StardewObject, IEnumerable<Vector2>> CompatibleGetSprinklerTiles = GetSprinklerTiles_Vanilla;
+        private static Func<Farmer, HoeDirt, Item, bool> CompatibleRemotePlantFertilizer = RemotePlantFertilizer_Vanilla;
         private static Integration.IBetterSprinklersApi? BetterSprinklersApi;
+        private static Integration.IUltimateFertilizerApi? UltimateFertilizerApi;
         public static ModConfig? Config;
 
         public static void SetUpModCompatibility(IModHelper helper)
         {
+            // Better Sprinkler
             foreach (string modId in Integration.IBetterSprinklersApi.ModIds)
             {
                 if (helper.ModRegistry.IsLoaded(modId))
@@ -236,12 +239,20 @@ namespace SprinklerAttachments.Framework
                     if (BetterSprinklersApi != null)
                     {
                         CompatibleGetSprinklerTiles = GetSprinklerTiles_BetterSprinklersPlus;
-                        return;
                     }
                 }
             }
-            // Vanilla
-            CompatibleGetSprinklerTiles = GetSprinklerTiles_Vanilla;
+
+            // Ultimate Fertilizer
+            if (helper.ModRegistry.IsLoaded(Integration.IUltimateFertilizerApi.ModId))
+            {
+                ModEntry.Log($"Apply compatibility changes with UltimateFertilizer ({Integration.IUltimateFertilizerApi.ModId})", LogLevel.Trace);
+                UltimateFertilizerApi = helper.ModRegistry.GetApi<Integration.IUltimateFertilizerApi>(Integration.IUltimateFertilizerApi.ModId);
+                if (UltimateFertilizerApi != null)
+                {
+                    CompatibleRemotePlantFertilizer = RemotePlantFertilizer_UltimateFertilizer;
+                }
+            }
         }
 
         public static void SetUpModConfigMenu(IModHelper helper, IManifest manifest)
@@ -260,11 +271,7 @@ namespace SprinklerAttachments.Framework
 
         private static List<Vector2> GetSprinklerTiles_BetterSprinklersPlus(StardewObject sprinkler)
         {
-            if (BetterSprinklersApi == null)
-            {
-                return sprinkler.GetSprinklerTiles();
-            }
-            Dictionary<int, Vector2[]> allCoverage = (Dictionary<int, Vector2[]>)BetterSprinklersApi.GetSprinklerCoverage();
+            Dictionary<int, Vector2[]> allCoverage = (Dictionary<int, Vector2[]>)BetterSprinklersApi!.GetSprinklerCoverage();
             // BetterSprinklerPlus uses ParentSheetIndex instead of itemId to check sprinkler
             if (allCoverage.TryGetValue(sprinkler.ParentSheetIndex, out Vector2[]? relCoverage) && relCoverage != null)
             {
@@ -579,8 +586,7 @@ namespace SprinklerAttachments.Framework
                         continue;
                     }
                 }
-                else if (location.terrainFeatures.TryGetValue(current, out var terrain) && terrain is HoeDirt dirt &&
-                         (location.farmers.Any((farmer) => current == farmer.Tile) || location.CanItemBePlacedHere(current, useFarmerTile: true)))
+                else if (location.terrainFeatures.TryGetValue(current, out var terrain) && terrain is HoeDirt dirt)
                 {
                     candidate = dirt;
                 }
@@ -646,9 +652,9 @@ namespace SprinklerAttachments.Framework
             Inventory chestItems = intakeChest.Items;
             int seedIdx = 0;
             int fertIdx = 0;
-            Item? seed;
-            Item? fertilizer;
             bool fertilized = false;
+            List<Tuple<int, Item>> appliedFert = new(); // for case where more than 1 fertilizer is applied
+            Item? fertilizer = null;
             Farmer who = GetAgriculturistFarmer();
 
             // sort trellis crops first
@@ -684,8 +690,12 @@ namespace SprinklerAttachments.Framework
                 float speedBoostY = fakeDirt.GetFertilizerSpeedBoost();
                 float qualityY = fakeDirt.GetFertilizerQualityBoostLevel();
                 float retentionY = fakeDirt.GetFertilizerWaterRetentionChance();
-                if (speedBoostX > speedBoostY || qualityX > qualityY || retentionX > retentionY)
-                    return -1;
+                if (speedBoostX != speedBoostY)
+                    return speedBoostY.CompareTo(speedBoostX);
+                if (qualityX != qualityY)
+                    return qualityY.CompareTo(qualityX);
+                if (retentionX != retentionY)
+                    return retentionY.CompareTo(retentionX);
                 return 0;
             });
 
@@ -696,16 +706,67 @@ namespace SprinklerAttachments.Framework
                     idx++;
             }
 
+            Action<HoeDirt> doFertilizer;
+            if (UltimateFertilizerApi is not null)
+            {
+                // ultimate fertilizer
+                doFertilizer = (HoeDirt dirt) =>
+                {
+                    fertilized = false;
+                    appliedFert.Clear();
+                    fertIdx = 0;
+                    while (NextMatching(chestItems, StardewObject.fertilizerCategory, fertilizerMapping, ref fertIdx, out fertilizer))
+                    {
+                        if (CompatibleRemotePlantFertilizer!(who, dirt, fertilizer))
+                        {
+                            appliedFert.Add(new(fertIdx, fertilizer));
+                            fertilized = true;
+                        }
+                        fertIdx++;
+                    }
+                };
+            }
+            else
+            {
+                // vanilla
+                doFertilizer = (HoeDirt dirt) =>
+                {
+                    fertilized = (
+                        NextMatching(chestItems, StardewObject.fertilizerCategory, fertilizerMapping, ref fertIdx, out fertilizer) &&
+                        CompatibleRemotePlantFertilizer!(who, dirt, fertilizer)
+                    );
+                };
+            }
+
+
             foreach (HoeDirt dirt in dirtList)
             {
-                while (NextMatching(chestItems, StardewObject.SeedsCategory, seedMapping, ref seedIdx, out seed))
+                // fertilize any unfertilized crops (e.g. ones that arent planted by attachment)
+                if (dirt.crop != null)
+                {
+                    doFertilizer(dirt);
+                    if (fertilized)
+                    {
+                        if (appliedFert.Count > 0)
+                        {
+                            foreach ((int fIdx, Item fert) in appliedFert)
+                            {
+                                decrementStack(fIdx, fert);
+                            }
+                        }
+                        else
+                        {
+                            decrementStack(fertIdx, fertilizer!);
+                        }
+                    }
+                    continue;
+                }
+                // plant new crop
+                while (NextMatching(chestItems, StardewObject.SeedsCategory, seedMapping, ref seedIdx, out Item? seed))
                 {
                     if (RemotePlantCrop(who, dirt, sprinklerPos, seed, out bool ignoreSeasons, out CropData? cropData))
                     {
-                        fertilized = (
-                            NextMatching(chestItems, StardewObject.fertilizerCategory, fertilizerMapping, ref fertIdx, out fertilizer) &&
-                            RemotePlantFertilizer(who, dirt, fertilizer)
-                        );
+                        doFertilizer(dirt);
                         // check that planted crop can be harvested in time
                         if (!ignoreSeasons && Config!.SeasonAwarePlanting)
                         {
@@ -717,6 +778,8 @@ namespace SprinklerAttachments.Framework
                                 // cannot harvest, revert planting and continue to next seed
                                 if (!cropData.Seasons.Contains(expected))
                                 {
+                                    if (fertilized)
+                                        dirt.fertilizer.Value = null;
                                     dirt.crop = null;
                                     seedMapping[seedIdx] = -1; // ban this seed from planting
                                     continue;
@@ -727,7 +790,19 @@ namespace SprinklerAttachments.Framework
                         decrementStack(seedIdx, seed);
                         Game1.stats.SeedsSown++;
                         if (fertilized)
-                            decrementStack(fertIdx, fertilizer!);
+                        {
+                            if (appliedFert.Count > 0)
+                            {
+                                foreach ((int fIdx, Item fert) in appliedFert)
+                                {
+                                    decrementStack(fIdx, fert);
+                                }
+                            }
+                            else
+                            {
+                                decrementStack(fertIdx, fertilizer!);
+                            }
+                        }
                         break;
                     }
                     else
@@ -735,14 +810,6 @@ namespace SprinklerAttachments.Framework
                         seedIdx++;
                     }
                 };
-                // fertilize any unfertilized crops (e.g. ones that arent planted by attachment)
-                if (NextMatching(chestItems, StardewObject.fertilizerCategory, fertilizerMapping, ref fertIdx, out fertilizer))
-                {
-                    if (RemotePlantFertilizer(who, dirt, fertilizer))
-                    {
-                        decrementStack(fertIdx, fertilizer);
-                    }
-                }
                 // due to the trellis pattern feature, we must check all seed on all dirt
                 seedIdx = 0;
             }
@@ -786,13 +853,22 @@ namespace SprinklerAttachments.Framework
             return false;
         }
 
-        private static bool RemotePlantFertilizer(Farmer who, HoeDirt dirt, Item item)
+        private static bool RemotePlantFertilizer_Vanilla(Farmer who, HoeDirt dirt, Item item)
         {
-            if (dirt.crop != null && dirt.CanApplyFertilizer(item.ItemId))
+            if (dirt.CanApplyFertilizer(item.ItemId))
             {
                 dirt.fertilizer.Value = item.QualifiedItemId;
                 dirt.applySpeedIncreases(who);
                 return true;
+            }
+            return false;
+        }
+
+        private static bool RemotePlantFertilizer_UltimateFertilizer(Farmer who, HoeDirt dirt, Item item)
+        {
+            if (dirt.CanApplyFertilizer(item.ItemId))
+            {
+                return UltimateFertilizerApi!.ApplyFertilizerOnDirt(dirt, item.ItemId, who);
             }
             return false;
         }
@@ -804,10 +880,11 @@ namespace SprinklerAttachments.Framework
             if (dirt.crop != null)
                 return false;
             GameLocation location = dirt.Location;
+            if (!(location.farmers.Any((farmer) => dirt.Tile == farmer.Tile) || location.CanItemBePlacedHere(dirt.Tile, useFarmerTile: true)))
+                return false;
             string itemId = Crop.ResolveSeedId(item.ItemId, location);
             if (!Crop.TryGetData(itemId, out cropData) || cropData.Seasons.Count == 0)
                 return false;
-            // TODO: find optimal player to do the planting?
             Point tilePos = Utility.Vector2ToPoint(dirt.Tile);
             bool isGardenPot = location.objects.TryGetValue(dirt.Tile, out StardewObject obj) && obj is IndoorPot;
 
