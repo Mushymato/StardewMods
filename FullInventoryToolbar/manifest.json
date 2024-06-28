@@ -1,0 +1,12 @@
+{
+    "Name": "Full Inventory Toolbar",
+    "Author": "mushymato",
+    "Version": "1.0.0",
+    "MinimumApiVersion": "4.0.0",
+    "MinimumGameVersion": "1.6.0",
+    "Description": "Display entire inventory on screen as interactable toolbar.",
+    "UniqueID": "mushymato.FullInventoryToolbar",
+    "UpdateKeys": [],
+    "EntryDll": "FullInventoryToolbar.dll",
+    "Dependencies": []
+}
