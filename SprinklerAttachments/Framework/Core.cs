@@ -534,7 +534,7 @@ namespace SprinklerAttachments.Framework
                 tmp = who.addItemToInventory(tmp);
             }
             intakeChest.clearNulls();
-            int oldID = ((Game1.activeClickableMenu.currentlySnappedComponent != null) ? Game1.activeClickableMenu.currentlySnappedComponent.myID : (-1));
+            int oldID = (Game1.activeClickableMenu.currentlySnappedComponent != null) ? Game1.activeClickableMenu.currentlySnappedComponent.myID : (-1);
             ShowIntakeChestMenu(intakeChest);
             (Game1.activeClickableMenu as ItemGrabMenu)!.heldItem = tmp;
             if (oldID != -1)
@@ -554,6 +554,36 @@ namespace SprinklerAttachments.Framework
             }
         }
 
+
+        /// <summary>
+        /// Get hoe dirt (from terrain or pot) and check if it is valid for planting
+        /// </summary>
+        /// <param name="location"></param>
+        /// <param name="current"></param>
+        /// <param name="candidate"></param>
+        /// <returns></returns>
+        public static bool TryGetCandidateDirt(GameLocation location, Vector2 current, [NotNullWhen(true)] out HoeDirt? candidate)
+        {
+            candidate = null;
+            if (Config?.EnableForGardenPots ?? true)
+            {
+                if (location.getObjectAtTile((int)current.X, (int)current.Y) is IndoorPot pot1)
+                {
+                    candidate = pot1.hoeDirt.Value;
+                }
+                // special case carpets
+                else if (location.getObjectAtTile((int)current.X, (int)current.Y, ignorePassables: true) is IndoorPot pot2)
+                {
+                    candidate = pot2.hoeDirt.Value;
+                }
+            }
+            if (candidate == null && location.terrainFeatures.TryGetValue(current, out var terrain) && terrain is HoeDirt dirt)
+            {
+                candidate = dirt;
+            }
+            return candidate != null && (candidate.crop == null || !candidate.HasFertilizer());
+        }
+
         /// <summary>
         /// Get open (no crop or no fertilizer) dirt within the sprinkler's range.
         /// </summary>
@@ -567,37 +597,8 @@ namespace SprinklerAttachments.Framework
             dirtList = new();
             foreach (Vector2 current in (CompatibleGetSprinklerTiles ?? GetSprinklerTiles_Vanilla)(sprinkler))
             {
-                HoeDirt candidate;
-                if ((Config?.EnableForGardenPots ?? true) &&
-                     (location.getObjectAtTile((int)current.X, (int)current.Y) is IndoorPot ||
-                      location.getObjectAtTile((int)current.X, (int)current.Y, ignorePassables: true) is IndoorPot))
-                {
-                    if (location.getObjectAtTile((int)current.X, (int)current.Y) is IndoorPot pot1)
-                    {
-                        candidate = pot1.hoeDirt.Value;
-                    }
-                    // special case carpets
-                    else if (location.getObjectAtTile((int)current.X, (int)current.Y, ignorePassables: true) is IndoorPot pot2)
-                    {
-                        candidate = pot2.hoeDirt.Value;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                }
-                else if (location.terrainFeatures.TryGetValue(current, out var terrain) && terrain is HoeDirt dirt)
-                {
-                    candidate = dirt;
-                }
-                else
-                {
-                    continue;
-                }
-                if (candidate.crop == null || !candidate.HasFertilizer())
-                {
+                if (TryGetCandidateDirt(location, current, out HoeDirt? candidate))
                     dirtList.Add(candidate);
-                }
             }
             return dirtList.Count > 0;
         }
@@ -741,6 +742,7 @@ namespace SprinklerAttachments.Framework
 
             foreach (HoeDirt dirt in dirtList)
             {
+                ModEntry.Log($"HoeDirt {dirt}: {dirt.Tile} (crop: {dirt.crop}, fert: {dirt.crop})");
                 // fertilize any unfertilized crops (e.g. ones that arent planted by attachment)
                 if (dirt.crop != null)
                 {
@@ -778,6 +780,7 @@ namespace SprinklerAttachments.Framework
                                 // cannot harvest, revert planting and continue to next seed
                                 if (!cropData.Seasons.Contains(expected))
                                 {
+                                    ModEntry.Log($"Revoke crop {dirt.Tile}");
                                     if (fertilized)
                                         dirt.fertilizer.Value = null;
                                     dirt.crop = null;
@@ -880,21 +883,24 @@ namespace SprinklerAttachments.Framework
             if (dirt.crop != null)
                 return false;
             GameLocation location = dirt.Location;
-            if (!(location.farmers.Any((farmer) => dirt.Tile == farmer.Tile) || location.CanItemBePlacedHere(dirt.Tile, useFarmerTile: true)))
-                return false;
             string itemId = Crop.ResolveSeedId(item.ItemId, location);
             if (!Crop.TryGetData(itemId, out cropData) || cropData.Seasons.Count == 0)
                 return false;
             Point tilePos = Utility.Vector2ToPoint(dirt.Tile);
             bool isGardenPot = location.objects.TryGetValue(dirt.Tile, out StardewObject obj) && obj is IndoorPot;
 
-            if (!isGardenPot && cropData.IsRaised)
+            if (!isGardenPot)
             {
-                ModConfig.Trellis trellisPattern = Config?.TrellisPattern ?? ModConfig.Trellis.Any;
-                if (trellisPattern == ModConfig.Trellis.Rows && (tilePos.Y - sprinklerPos.Y + 1) % 3 == 0)
+                if (!(location.farmers.Any((farmer) => dirt.Tile == farmer.Tile) || location.CanItemBePlacedHere(dirt.Tile, useFarmerTile: true)))
                     return false;
-                if (trellisPattern == ModConfig.Trellis.Columns && (tilePos.X - sprinklerPos.X + 1) % 3 == 0)
-                    return false;
+                if (cropData.IsRaised)
+                {
+                    ModConfig.Trellis trellisPattern = Config?.TrellisPattern ?? ModConfig.Trellis.Any;
+                    if (trellisPattern == ModConfig.Trellis.Rows && (tilePos.Y - sprinklerPos.Y + 1) % 3 == 0)
+                        return false;
+                    if (trellisPattern == ModConfig.Trellis.Columns && (tilePos.X - sprinklerPos.X + 1) % 3 == 0)
+                        return false;
+                }
             }
 
             bool isIndoorPot = isGardenPot && !location.IsOutdoors;
@@ -906,6 +912,7 @@ namespace SprinklerAttachments.Framework
                 return false;
 
             dirt.crop = new Crop(itemId, tilePos.X, tilePos.Y, location);
+            ModEntry.Log($"Try plant dirt crop at {dirt.Tile}");
             dirt.applySpeedIncreases(who);
             if (dirt.hasPaddyCrop() && dirt.paddyWaterCheck())
             {

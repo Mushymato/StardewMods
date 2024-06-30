@@ -2,12 +2,13 @@
 using StardewModdingAPI.Events;
 using StardewValley.GameData;
 using StardewValley.GameData.Machines;
+using StardewValley.Menus;
 
 namespace SprinklerAttachments
 {
     public class ModEntry : Mod
     {
-        public static readonly HashSet<string> Exclusions = new()
+        public static readonly HashSet<string> MachineExclusions = new()
         {
             "(BC)BaitMaker",
         };
@@ -39,7 +40,7 @@ namespace SprinklerAttachments
             {
                 string qItemId = kv.Key;
                 MachineData machine = kv.Value;
-                if (machine.IsIncubator || machine.OutputRules == null || !machine.AllowFairyDust || Exclusions.Contains(qItemId))
+                if (machine.IsIncubator || machine.OutputRules == null || !machine.AllowFairyDust)
                     continue;
 
                 foreach (MachineOutputRule rule in machine.OutputRules)
@@ -50,21 +51,61 @@ namespace SprinklerAttachments
                         continue;
                     rule.OutputItem.ForEach(item =>
                     {
-                        if (item is not null && item.OutputMethod == null && item.QualityModifiers == null)
+                        switch (qItemId)
                         {
-                            // item.QualityModifiers = new(){
-                            //     new(){
-                            //         Condition = "ITEM_QUALITY Input 4 4",
-                            //         Modification = QuantityModifier.ModificationType.Set,
-                            //         Amount = 2
-                            //     },
-                            //     new(){
-                            //         Condition = "ITEM_QUALITY Input 2 2",
-                            //         Modification = QuantityModifier.ModificationType.Set,
-                            //         Amount = 1
-                            //     },
-                            // };
-                            item.CopyQuality = true;
+                            case "(BC)BaitMaker":
+                                if (item is null || item.OutputMethod != null)
+                                    return;
+                                item.StackModifiers ??= new List<QuantityModifier>();
+                                item.StackModifiers.Add(new()
+                                {
+                                    Condition = "ITEM_QUALITY Input 1 1",
+                                    Modification = QuantityModifier.ModificationType.Add,
+                                    Amount = 1
+                                });
+                                item.StackModifiers.Add(new()
+                                {
+                                    Condition = "ITEM_QUALITY Input 2 2",
+                                    Modification = QuantityModifier.ModificationType.Add,
+                                    Amount = 2
+                                });
+                                item.StackModifiers.Add(new()
+                                {
+                                    Condition = "ITEM_QUALITY Input 4 4",
+                                    Modification = QuantityModifier.ModificationType.Add,
+                                    Amount = 3
+                                });
+                                break;
+                            case "(BC)25":
+                                item.StackModifiers ??= new List<QuantityModifier>();
+                                item.StackModifiers.Add(new()
+                                {
+                                    Condition = "ITEM_QUALITY Input 2 2",
+                                    Modification = QuantityModifier.ModificationType.Add,
+                                    Amount = 1
+                                });
+                                item.StackModifiers.Add(new()
+                                {
+                                    Condition = "ITEM_QUALITY Input 4 4",
+                                    Modification = QuantityModifier.ModificationType.Add,
+                                    Amount = 2
+                                });
+                                break;
+                            default:
+                                if (item is null || item.OutputMethod != null)
+                                    return;
+                                if (item.Quality == 2)
+                                { // special case large milk/egg, copy quality, but produce 2
+                                    item.StackModifiers ??= new List<QuantityModifier>();
+                                    item.StackModifiers.Add(new()
+                                    {
+                                        Modification = QuantityModifier.ModificationType.Add,
+                                        Amount = 1
+                                    });
+                                }
+                                else
+                                    item.CopyQuality = true;
+                                break;
                         }
                     });
                 }

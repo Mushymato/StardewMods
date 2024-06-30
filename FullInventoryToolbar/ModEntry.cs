@@ -6,8 +6,7 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
 using System.Reflection.Emit;
-using StardewValley.GameData.HomeRenovations;
-using System.Reflection;
+using System.Globalization;
 
 
 namespace FullInventoryToolbar
@@ -37,7 +36,6 @@ namespace FullInventoryToolbar
         private static IMonitor? mon;
         private const int ToolbarHeight = 72;
         private const int ToolbarWidth = 776;
-        public static Texture2D? WhiteSquare;
         public static ModConfig? Config;
         public override void Entry(IModHelper helper)
         {
@@ -75,11 +73,11 @@ namespace FullInventoryToolbar
                     reset: () =>
                     {
                         Config!.Reset();
-                        Helper.WriteConfig(this);
+                        Helper.WriteConfig(Config!);
                     },
                     save: () =>
                     {
-                        Helper.WriteConfig(this);
+                        Helper.WriteConfig(Config!);
                     },
                     titleScreenOnly: false
                 );
@@ -132,7 +130,11 @@ namespace FullInventoryToolbar
                 harmony.Patch(
                     original: AccessTools.DeclaredMethod(typeof(Toolbar), nameof(Toolbar.draw)),
                     postfix: new HarmonyMethod(typeof(ModEntry), nameof(Toolbar_draw_Postfix)),
-                transpiler: new HarmonyMethod(typeof(ModEntry), nameof(Toolbar_draw_Transpiler))
+                    transpiler: new HarmonyMethod(typeof(ModEntry), nameof(Toolbar_draw_Transpiler))
+                );
+                harmony.Patch(
+                    original: AccessTools.DeclaredMethod(typeof(Game1), nameof(Game1.pressSwitchToolButton)),
+                    transpiler: new HarmonyMethod(typeof(ModEntry), nameof(Toolbar_pressSwitchToolButton_Transpiler))
                 );
             }
             catch (Exception err)
@@ -254,14 +256,11 @@ namespace FullInventoryToolbar
                         lastBounds = __instance.buttons[Farmer.hotbarSize - 1].bounds;
                         break;
                 };
-                Log($"firstBounds {firstBounds} lastBounds {lastBounds}");
-                Rectangle tbBounds = new(
+                __result = new Rectangle(
                     firstBounds.X, firstBounds.Y,
                     lastBounds.Right - firstBounds.Left,
                     lastBounds.Bottom - firstBounds.Top
-                );
-                __result = tbBounds.Contains(x, y);
-                Log($"Check ({x}, {y}) in {tbBounds}? {__result}");
+                ).Contains(x, y);
                 return false;
             }
             catch (Exception err)
@@ -308,20 +307,13 @@ namespace FullInventoryToolbar
 
         private static void DrawItemBox(SpriteBatch b, Texture2D texture, Vector2 position, Rectangle? sourceRect, Color color)
         {
-            if (Game1.getSourceRectForStandardTileSheet(Game1.menuTexture, 56) == sourceRect)
+            if (!Config!.HideToolbarItemBoxes || Game1.getSourceRectForStandardTileSheet(Game1.menuTexture, 56) == sourceRect)
                 b.Draw(texture, position, sourceRect, color);
         }
 
         private static void DrawToolbarRows(Toolbar tb, SpriteBatch b)
         {
             if (Game1.activeClickableMenu != null)
-                return;
-
-            mon!.LogOnce($"tooblar pos: {tb.xPositionOnScreen}, {tb.yPositionOnScreen}");
-            mon!.LogOnce($"Farmer.hotbarSize: {Farmer.hotbarSize}");
-
-            int highestItem = HighestItem();
-            if (highestItem / Farmer.hotbarSize == 0)
                 return;
 
             int i;
@@ -331,6 +323,8 @@ namespace FullInventoryToolbar
                 Vector2 toDraw = new(Game1.uiViewport.Width / 2 - 384 + i % Farmer.hotbarSize * 64 + AlignX(i / Farmer.hotbarSize), tb.yPositionOnScreen - 96 + 8 + AlignY(tb.yPositionOnScreen, i / Farmer.hotbarSize));
                 DrawItemBox(b, Game1.menuTexture, toDraw, Game1.getSourceRectForStandardTileSheet(Game1.menuTexture, (Game1.player.CurrentToolIndex == i) ? 56 : 10), Color.White * tb.transparency);
             }
+
+            int highestItem = HighestItem();
 
             for (i = Farmer.hotbarSize; i < (highestItem + 1); i++)
             {
@@ -405,6 +399,66 @@ namespace FullInventoryToolbar
                 matcher.Instruction.operand = null;
                 matcher.Advance(1);
                 matcher.Instruction.opcode = OpCodes.Br_S;
+
+                return matcher.Instructions();
+            }
+            catch (Exception err)
+            {
+                Log($"Error in Toolbar_draw_Transpiler:\n{err}", LogLevel.Error);
+                return instructions;
+            }
+        }
+
+        private static IEnumerable<CodeInstruction> Toolbar_pressSwitchToolButton_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            try
+            {
+                CodeMatcher matcher = new(instructions, generator);
+
+                // change 3 checks for 12 to 36, and 2 checks for 11 to 35
+                matcher = matcher.Start()
+                .MatchStartForward(new CodeMatch[]{
+                    new(OpCodes.Add),
+                    new(OpCodes.Ldc_I4_S, (sbyte) 12),
+                    new(OpCodes.Rem)
+                })
+                ;
+                matcher.InstructionAt(1).operand = (sbyte)Farmer.maxInventorySpace;
+
+                matcher = matcher
+                .MatchEndForward(new CodeMatch[]{
+                    new(OpCodes.Call, AccessTools.PropertyGetter(typeof(Game1), nameof(Game1.player))),
+                    new(OpCodes.Ldc_I4_S, (sbyte) 11),
+                })
+                ;
+                matcher.Instruction.operand = (sbyte)(Farmer.maxInventorySpace - 1);
+
+                matcher = matcher
+                .MatchStartForward(new CodeMatch[]{
+                    new(OpCodes.Add),
+                    new(OpCodes.Ldc_I4_S, (sbyte) 12),
+                    new(OpCodes.Rem)
+                })
+                ;
+                matcher.InstructionAt(1).operand = (sbyte)Farmer.maxInventorySpace;
+
+                matcher = matcher
+                .MatchEndForward(new CodeMatch[]{
+                    new(OpCodes.Call, AccessTools.PropertyGetter(typeof(Game1), nameof(Game1.player))),
+                    new(OpCodes.Ldc_I4_S, (sbyte) 11),
+                })
+                ;
+                matcher.Instruction.operand = (sbyte)(Farmer.maxInventorySpace - 1);
+
+                matcher = matcher
+                .MatchStartForward(new CodeMatch[]{
+                    new(OpCodes.Ldloc_3),
+                    new(OpCodes.Ldc_I4_S, (sbyte) 12),
+                    new(OpCodes.Blt_S)
+                })
+                ;
+                matcher.InstructionAt(1).operand = (sbyte)Farmer.maxInventorySpace;
+
 
                 return matcher.Instructions();
             }
