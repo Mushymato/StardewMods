@@ -742,7 +742,6 @@ namespace SprinklerAttachments.Framework
 
             foreach (HoeDirt dirt in dirtList)
             {
-                ModEntry.Log($"HoeDirt {dirt}: {dirt.Tile} (crop: {dirt.crop}, fert: {dirt.crop})");
                 // fertilize any unfertilized crops (e.g. ones that arent planted by attachment)
                 if (dirt.crop != null)
                 {
@@ -780,7 +779,6 @@ namespace SprinklerAttachments.Framework
                                 // cannot harvest, revert planting and continue to next seed
                                 if (!cropData.Seasons.Contains(expected))
                                 {
-                                    ModEntry.Log($"Revoke crop {dirt.Tile}");
                                     if (fertilized)
                                         dirt.fertilizer.Value = null;
                                     dirt.crop = null;
@@ -912,7 +910,6 @@ namespace SprinklerAttachments.Framework
                 return false;
 
             dirt.crop = new Crop(itemId, tilePos.X, tilePos.Y, location);
-            ModEntry.Log($"Try plant dirt crop at {dirt.Tile}");
             dirt.applySpeedIncreases(who);
             if (dirt.hasPaddyCrop() && dirt.paddyWaterCheck())
             {
