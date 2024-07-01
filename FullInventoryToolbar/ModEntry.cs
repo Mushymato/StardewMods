@@ -13,22 +13,22 @@ namespace FullInventoryToolbar
 {
     public enum ToolbarArrangement
     {
-        Vanilla = 0,
-        H_213 = 1,
-        H_312 = 2,
-        V_123 = 3,
+        Horizontal = 1,
+        Vertical = 2,
     }
     public class ModConfig
     {
-        public ToolbarArrangement Arrangement = ToolbarArrangement.H_213;
+        public ToolbarArrangement Arrangement = ToolbarArrangement.Horizontal;
         public bool HideToolbarItemBoxes = false;
         public bool HideToolbarBackground = false;
+        public int ToolbarRowCount = -1;
 
         public void Reset()
         {
-            Arrangement = ToolbarArrangement.H_312;
+            Arrangement = ToolbarArrangement.Horizontal;
             HideToolbarItemBoxes = false;
             HideToolbarBackground = false;
+            ToolbarRowCount = -1;
         }
     }
     internal sealed class ModEntry : Mod
@@ -36,13 +36,14 @@ namespace FullInventoryToolbar
         private static IMonitor? mon;
         private const int ToolbarHeight = 72;
         private const int ToolbarWidth = 776;
+        private static bool ToolbarIconsLoaded = false;
+        private const int ToolbarIcons_V_123_Offset = 62;
+
         public static ModConfig? Config;
         public override void Entry(IModHelper helper)
         {
             Config = Helper.ReadConfig<ModConfig>();
             mon = Monitor;
-            Harmony patcher = new(ModManifest.UniqueID);
-            Patch(patcher); // need to patch immediately since Toolbar constructor is called super early
 
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
         }
@@ -61,8 +62,10 @@ namespace FullInventoryToolbar
         private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
         {
             SetupConfig();
+            ToolbarIconsLoaded = Helper.ModRegistry.IsLoaded("furyx639.ToolbarIcons");
+            Harmony patcher = new(ModManifest.UniqueID);
+            Patch(patcher);
         }
-
 
         private void SetupConfig()
         {
@@ -88,7 +91,16 @@ namespace FullInventoryToolbar
                     formatValue: (value) => { return Helper.Translation.Get($"config.ToolbarArrangement.{value}"); },
                     name: () => Helper.Translation.Get("config.ToolbarArrangement.name"),
                     tooltip: () => Helper.Translation.Get("config.ToolbarArrangement.description"),
-                    min: 0, max: 3
+                    min: 1, max: 2
+                );
+                GMCM.AddNumberOption(
+                    ModManifest,
+                    getValue: () => { return Config!.ToolbarRowCount; },
+                    setValue: (value) => { Config!.ToolbarRowCount = value; },
+                    formatValue: (value) => { return value == -1 ? Helper.Translation.Get("config.ToolbarRowCount.auto") : (value * Farmer.hotbarSize).ToString(); },
+                    name: () => Helper.Translation.Get("config.ToolbarRowCount.name"),
+                    tooltip: () => Helper.Translation.Get("config.ToolbarRowCount.description"),
+                    min: -1, max: 3
                 );
                 GMCM.AddBoolOption(
                     ModManifest,
@@ -107,7 +119,7 @@ namespace FullInventoryToolbar
             }
             else
             {
-                // Helper.WriteConfig(this);
+                Helper.WriteConfig(Config!);
             }
         }
 
@@ -115,10 +127,10 @@ namespace FullInventoryToolbar
         {
             try
             {
-                harmony.Patch(
-                    original: AccessTools.DeclaredConstructor(typeof(Toolbar), Array.Empty<Type>()),
-                    postfix: new HarmonyMethod(typeof(ModEntry), nameof(Toolbar_constructor_Postfix))
-                );
+                // harmony.Patch(
+                //     original: AccessTools.DeclaredConstructor(typeof(Toolbar), Array.Empty<Type>()),
+                //     postfix: new HarmonyMethod(typeof(ModEntry), nameof(Toolbar_constructor_Postfix))
+                // );
                 harmony.Patch(
                     original: AccessTools.DeclaredMethod(typeof(Toolbar), nameof(Toolbar.gameWindowSizeChanged)),
                     postfix: new HarmonyMethod(typeof(ModEntry), nameof(Toolbar_gameWindowSizeChanged_Postfix))
@@ -129,6 +141,7 @@ namespace FullInventoryToolbar
                 );
                 harmony.Patch(
                     original: AccessTools.DeclaredMethod(typeof(Toolbar), nameof(Toolbar.draw)),
+                    prefix: new HarmonyMethod(typeof(ModEntry), nameof(Toolbar_draw_Prefix)),
                     postfix: new HarmonyMethod(typeof(ModEntry), nameof(Toolbar_draw_Postfix)),
                     transpiler: new HarmonyMethod(typeof(ModEntry), nameof(Toolbar_draw_Transpiler))
                 );
@@ -145,50 +158,39 @@ namespace FullInventoryToolbar
 
         private static int AlignY(int yPositionOnScreen, int row)
         {
-            return Config!.Arrangement switch
+            switch (Config!.Arrangement)
             {
-                // simplified determination of toolbar top align-ness
-                ToolbarArrangement.V_123 => ((yPositionOnScreen > Game1.uiViewport.Height / 2) ? -1 : 1) * row * ToolbarHeight,
-                _ => 0,
-            };
+                case ToolbarArrangement.Vertical:
+                    int alignY = row * ToolbarHeight;
+                    if (ToolbarIconsLoaded)
+                        alignY += ToolbarIcons_V_123_Offset;
+                    alignY *= (yPositionOnScreen > Game1.uiViewport.Height / 2) ? -1 : 1;
+                    return alignY;
+                default:
+                    return 0;
+            }
         }
 
         private static int AlignX(int row)
         {
             return Config!.Arrangement switch
             {
-                ToolbarArrangement.H_213 => ((row % 2 == 1) ? -1 : 1) * ToolbarWidth,
-                ToolbarArrangement.H_312 => ((row % 2 == 1) ? 1 : -1) * ToolbarWidth,
+                ToolbarArrangement.Horizontal => ((row % 2 == 1) ? (row / 2 + 1) : -(row / 2)) * ToolbarWidth,
                 _ => 0,
             };
         }
 
-        private static int HighestItem()
-        {
-            int highestItem = 0;
-            for (int i = Farmer.hotbarSize; i < Game1.player.maxItems.Value; i++)
-            {
-                if (Game1.player.Items.Count > i && Game1.player.Items[i] != null)
-                    highestItem = i;
-            }
-            return highestItem;
-        }
-
-        private static void Toolbar_constructor_Postfix(Toolbar __instance)
+        private static void InitializeExtraButtons(Toolbar __instance)
         {
             try
             {
                 // __instance.xPositionOnScreen -= ToolbarWidth;
                 // __instance.width *= 3;
-                for (int i = Farmer.hotbarSize; i < Farmer.maxInventorySpace; i++)
+                for (int i = __instance.buttons.Count; i < GetMaxItems(); i++)
                 {
                     __instance.buttons.Add(
                         new ClickableComponent(
-                            new Rectangle(
-                                Game1.uiViewport.Width / 2 - 384 + i % Farmer.hotbarSize * 64 + AlignX(i / Farmer.hotbarSize),
-                                __instance.yPositionOnScreen - 96 + 8 + AlignY(__instance.yPositionOnScreen, i / Farmer.hotbarSize),
-                                64, 64
-                            ),
+                            new Rectangle(-65, -65, 64, 64),
                             i.ToString() ?? ""
                         )
                     );
@@ -196,7 +198,7 @@ namespace FullInventoryToolbar
             }
             catch (Exception err)
             {
-                Log($"Error in Toolbar_constructor_Postfix:\n{err}", LogLevel.Error);
+                Log($"Error in InitializeExtraButtons:\n{err}", LogLevel.Error);
             }
         }
 
@@ -225,37 +227,30 @@ namespace FullInventoryToolbar
         {
             try
             {
+                int maxItems = GetMaxItems();
+                if (__instance.buttons.Count < maxItems)
+                    InitializeExtraButtons(__instance);
+                int rowCount = maxItems / Farmer.hotbarSize;
                 Rectangle firstBounds;
                 Rectangle lastBounds;
-                switch (Config!.Arrangement)
+                if (Config!.Arrangement == ToolbarArrangement.Horizontal)
                 {
-                    case ToolbarArrangement.H_213:
-                        firstBounds = __instance.buttons[Farmer.hotbarSize].bounds;
-                        lastBounds = __instance.buttons.Last().bounds;
-                        break;
-                    case ToolbarArrangement.H_312:
-                        firstBounds = __instance.buttons[Farmer.hotbarSize * 2].bounds;
-                        lastBounds = __instance.buttons[Farmer.hotbarSize * 2 - 1].bounds;
-                        break;
-                    case ToolbarArrangement.V_123:
-                        if (__instance.yPositionOnScreen > Game1.uiViewport.Height / 2)
-                        {
-                            // toolbar on bottom
-                            firstBounds = __instance.buttons[Farmer.hotbarSize * 2].bounds;
-                            lastBounds = __instance.buttons[Farmer.hotbarSize - 1].bounds;
-                        }
-                        else
-                        {
-                            // toolbar on top
-                            firstBounds = __instance.buttons.First().bounds;
-                            lastBounds = __instance.buttons.Last().bounds;
-                        }
-                        break;
-                    default:
-                        firstBounds = __instance.buttons[0].bounds;
+                    firstBounds = __instance.buttons[Farmer.hotbarSize * ((rowCount - 1) / 2) * 2].bounds;
+                    lastBounds = __instance.buttons[Farmer.hotbarSize * (rowCount / 2 + 1) - 1].bounds;
+                }
+                else
+                {
+                    if (__instance.yPositionOnScreen > Game1.uiViewport.Height / 2)
+                    {
+                        firstBounds = __instance.buttons[Farmer.hotbarSize * (rowCount - 1)].bounds;
                         lastBounds = __instance.buttons[Farmer.hotbarSize - 1].bounds;
-                        break;
-                };
+                    }
+                    else
+                    {
+                        firstBounds = __instance.buttons[0].bounds;
+                        lastBounds = __instance.buttons[maxItems - 1].bounds;
+                    }
+                }
                 __result = new Rectangle(
                     firstBounds.X, firstBounds.Y,
                     lastBounds.Right - firstBounds.Left,
@@ -271,11 +266,25 @@ namespace FullInventoryToolbar
         }
 
 
+        private static void Toolbar_draw_Prefix(Toolbar __instance, SpriteBatch b)
+        {
+            try
+            {
+                if (__instance.buttons.Count < GetMaxItems())
+                    InitializeExtraButtons(__instance);
+            }
+            catch (Exception err)
+            {
+                Log($"Error in Toolbar_draw_Postfix:\n{err}", LogLevel.Error);
+            }
+        }
+
+
         private static void Toolbar_draw_Postfix(Toolbar __instance, SpriteBatch b)
         {
             try
             {
-                if (!(Config!.Arrangement == ToolbarArrangement.Vanilla))
+                if (Farmer.hotbarSize < GetMaxItems())
                     DrawToolbarRows(__instance, b);
             }
             catch (Exception err)
@@ -288,19 +297,36 @@ namespace FullInventoryToolbar
         {
             if (Config!.HideToolbarBackground)
                 return;
-            if (!(Config!.Arrangement == ToolbarArrangement.Vanilla))
+            int rowCountM1 = GetMaxItems() / Farmer.hotbarSize - 1;
+            if (Config!.Arrangement == ToolbarArrangement.Vertical)
             {
-                if (Config!.Arrangement == ToolbarArrangement.V_123)
+                if (ToolbarIconsLoaded)
                 {
-                    height += ToolbarHeight * 2;
+                    // draw the original toolbar box
+                    IClickableMenu.drawTextureBox(b, texture, sourceRect, x, y, width, height, color, scale: scale, drawShadow: drawShadow, draw_layer: draw_layer);
+                    // set the right y & height for 2 rows of toolbar box
+                    height = ToolbarHeight * rowCountM1 + (height - ToolbarHeight);
                     if (y > Game1.uiViewport.Height / 2)
-                        y -= ToolbarHeight * 2;
+                    {
+                        y -= ToolbarHeight * rowCountM1 + ToolbarIcons_V_123_Offset;
+                    }
+                    else
+                    {
+                        y += ToolbarHeight + ToolbarIcons_V_123_Offset;
+                    }
                 }
                 else
                 {
-                    width += ToolbarWidth * 2;
-                    x -= ToolbarWidth;
+                    height += ToolbarHeight * rowCountM1;
+                    if (y > Game1.uiViewport.Height / 2)
+                        y -= ToolbarHeight * rowCountM1;
+
                 }
+            }
+            else
+            {
+                width += ToolbarWidth * rowCountM1;
+                x -= ToolbarWidth * (rowCountM1 / 2);
             }
             IClickableMenu.drawTextureBox(b, texture, sourceRect, x, y, width, height, color, scale: scale, drawShadow: drawShadow, draw_layer: draw_layer);
         }
@@ -316,15 +342,21 @@ namespace FullInventoryToolbar
             if (Game1.activeClickableMenu != null)
                 return;
 
+            int maxItems = GetMaxItems();
             int i;
-            for (i = Farmer.hotbarSize; i < Farmer.maxInventorySpace; i++)
+            for (i = Farmer.hotbarSize; i < maxItems; i++)
             {
                 UpdateButtonBounds(tb, i);
                 Vector2 toDraw = new(Game1.uiViewport.Width / 2 - 384 + i % Farmer.hotbarSize * 64 + AlignX(i / Farmer.hotbarSize), tb.yPositionOnScreen - 96 + 8 + AlignY(tb.yPositionOnScreen, i / Farmer.hotbarSize));
                 DrawItemBox(b, Game1.menuTexture, toDraw, Game1.getSourceRectForStandardTileSheet(Game1.menuTexture, (Game1.player.CurrentToolIndex == i) ? 56 : 10), Color.White * tb.transparency);
             }
 
-            int highestItem = HighestItem();
+            int highestItem = 0;
+            for (i = Farmer.hotbarSize; i < maxItems; i++)
+            {
+                if (Game1.player.Items.Count > i && Game1.player.Items[i] != null)
+                    highestItem = i;
+            }
 
             for (i = Farmer.hotbarSize; i < (highestItem + 1); i++)
             {
@@ -409,6 +441,20 @@ namespace FullInventoryToolbar
             }
         }
 
+        /// <summary>
+        /// Get max inventory items, either Game1.player.MaxItems or Farmer.maxInventorySpace
+        /// </summary>
+        /// <returns></returns>
+        public static int GetMaxItems()
+        {
+            int maxItems = Farmer.maxInventorySpace;
+            if (Game1.player != null)
+                maxItems = Game1.player.MaxItems;
+            if (Config!.ToolbarRowCount != -1)
+                maxItems = Math.Min(Config!.ToolbarRowCount * Farmer.hotbarSize, maxItems);
+            return maxItems;
+        }
+
         private static IEnumerable<CodeInstruction> Toolbar_pressSwitchToolButton_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             try
@@ -423,7 +469,9 @@ namespace FullInventoryToolbar
                     new(OpCodes.Rem)
                 })
                 ;
-                matcher.InstructionAt(1).operand = (sbyte)Farmer.maxInventorySpace;
+                matcher.Advance(1).SetInstruction(new CodeInstruction(
+                    OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetMaxItems))
+                ));
 
                 matcher = matcher
                 .MatchEndForward(new CodeMatch[]{
@@ -431,7 +479,14 @@ namespace FullInventoryToolbar
                     new(OpCodes.Ldc_I4_S, (sbyte) 11),
                 })
                 ;
-                matcher.Instruction.operand = (sbyte)(Farmer.maxInventorySpace - 1);
+                matcher.SetInstructionAndAdvance(new CodeInstruction(
+                    OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetMaxItems))
+                ))
+                .Insert(new CodeInstruction[]
+                {
+                    new(OpCodes.Ldc_I4, 1),
+                    new(OpCodes.Sub)
+                });
 
                 matcher = matcher
                 .MatchStartForward(new CodeMatch[]{
@@ -440,7 +495,10 @@ namespace FullInventoryToolbar
                     new(OpCodes.Rem)
                 })
                 ;
-                matcher.InstructionAt(1).operand = (sbyte)Farmer.maxInventorySpace;
+                // matcher.InstructionAt(1).operand = (sbyte)Farmer.maxInventorySpace;
+                matcher.Advance(1).SetInstruction(new CodeInstruction(
+                    OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetMaxItems))
+                ));
 
                 matcher = matcher
                 .MatchEndForward(new CodeMatch[]{
@@ -448,7 +506,14 @@ namespace FullInventoryToolbar
                     new(OpCodes.Ldc_I4_S, (sbyte) 11),
                 })
                 ;
-                matcher.Instruction.operand = (sbyte)(Farmer.maxInventorySpace - 1);
+                matcher.SetInstructionAndAdvance(new CodeInstruction(
+                    OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetMaxItems))
+                ))
+                .Insert(new CodeInstruction[]
+                {
+                    new(OpCodes.Ldc_I4, 1),
+                    new(OpCodes.Sub)
+                });
 
                 matcher = matcher
                 .MatchStartForward(new CodeMatch[]{
@@ -457,8 +522,9 @@ namespace FullInventoryToolbar
                     new(OpCodes.Blt_S)
                 })
                 ;
-                matcher.InstructionAt(1).operand = (sbyte)Farmer.maxInventorySpace;
-
+                matcher.Advance(1).SetInstruction(new CodeInstruction(
+                    OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetMaxItems))
+                ));
 
                 return matcher.Instructions();
             }
