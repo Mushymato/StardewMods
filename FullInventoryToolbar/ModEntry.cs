@@ -97,7 +97,7 @@ namespace FullInventoryToolbar
                     ModManifest,
                     getValue: () => { return Config!.ToolbarRowCount; },
                     setValue: (value) => { Config!.ToolbarRowCount = value; },
-                    formatValue: (value) => { return value == 0 ? Helper.Translation.Get("config.ToolbarRowCount.auto") : (value * Farmer.hotbarSize).ToString(); },
+                    formatValue: (value) => { return value == 0 ? Helper.Translation.Get("config.ToolbarRowCount.auto") : value.ToString(); },
                     name: () => Helper.Translation.Get("config.ToolbarRowCount.name"),
                     tooltip: () => Helper.Translation.Get("config.ToolbarRowCount.description"),
                     min: 0, max: 3

@@ -1,13 +1,13 @@
 {
     "config.ToolbarArrangement.name": "Toolbar Arrangement",
-    "config.ToolbarArrangement.description": "Change how toolbars are ordered on screen\nVanilla: Show 1 toolbar only\nH 213: horizontal, 2-1-3 order\nH 312: horizontal, 3-1-2 order\nV 123: vertical, 1-2-3 order (3-2-1 when bar is bottom screen)",
+    "config.ToolbarArrangement.description": "Lay bars out horizontally, or stack bars vertically",
     "config.ToolbarArrangement.1": "Horizontal",
     "config.ToolbarArrangement.2": "Vertical",
-    "config.ToolbarRowCount.name": "Toolbar Length",
-    "config.ToolbarRowCount.description": "Change how many items are on the toolbar, When set to auto, displays as many items as your backpack size.",
+    "config.ToolbarRowCount.name": "Toolbar Row Count",
+    "config.ToolbarRowCount.description": "Size of displayed toolbar.",
     "config.ToolbarRowCount.auto": "Auto",
     "config.HideToolbarItemBoxes.name": "Hide Toolbar Boxes",
-    "config.HideToolbarItemBoxes.description": "Hide the boxes behind each item",
+    "config.HideToolbarItemBoxes.description": "Do not show the boxes behind each item (except for the selected item)",
     "config.HideToolbarBackground.name": "Hide Toolbar Background",
-    "config.HideToolbarBackground.description": "Hide the menu texture"
+    "config.HideToolbarBackground.description": "Do not show the toolbar UI background."
 }

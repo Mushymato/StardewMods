@@ -6,7 +6,9 @@
     "MinimumGameVersion": "1.6.0",
     "Description": "Display entire inventory on screen as interactable toolbar.",
     "UniqueID": "mushymato.FullInventoryToolbar",
-    "UpdateKeys": [],
+    "UpdateKeys": [
+        "Nexus:25711"
+    ],
     "EntryDll": "FullInventoryToolbar.dll",
     "Dependencies": []
 }
