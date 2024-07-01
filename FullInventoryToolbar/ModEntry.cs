@@ -21,14 +21,14 @@ namespace FullInventoryToolbar
         public ToolbarArrangement Arrangement = ToolbarArrangement.Horizontal;
         public bool HideToolbarItemBoxes = false;
         public bool HideToolbarBackground = false;
-        public int ToolbarRowCount = -1;
+        public int ToolbarRowCount = 0;
 
         public void Reset()
         {
             Arrangement = ToolbarArrangement.Horizontal;
             HideToolbarItemBoxes = false;
             HideToolbarBackground = false;
-            ToolbarRowCount = -1;
+            ToolbarRowCount = 0;
         }
     }
     internal sealed class ModEntry : Mod
@@ -97,10 +97,10 @@ namespace FullInventoryToolbar
                     ModManifest,
                     getValue: () => { return Config!.ToolbarRowCount; },
                     setValue: (value) => { Config!.ToolbarRowCount = value; },
-                    formatValue: (value) => { return value == -1 ? Helper.Translation.Get("config.ToolbarRowCount.auto") : (value * Farmer.hotbarSize).ToString(); },
+                    formatValue: (value) => { return value == 0 ? Helper.Translation.Get("config.ToolbarRowCount.auto") : (value * Farmer.hotbarSize).ToString(); },
                     name: () => Helper.Translation.Get("config.ToolbarRowCount.name"),
                     tooltip: () => Helper.Translation.Get("config.ToolbarRowCount.description"),
-                    min: -1, max: 3
+                    min: 0, max: 3
                 );
                 GMCM.AddBoolOption(
                     ModManifest,
@@ -450,7 +450,7 @@ namespace FullInventoryToolbar
             int maxItems = Farmer.maxInventorySpace;
             if (Game1.player != null)
                 maxItems = Game1.player.MaxItems;
-            if (Config!.ToolbarRowCount != -1)
+            if (Config!.ToolbarRowCount != 0)
                 maxItems = Math.Min(Config!.ToolbarRowCount * Farmer.hotbarSize, maxItems);
             return maxItems;
         }
