@@ -425,21 +425,29 @@ namespace SprinklerAttachments.Framework
         {
             foreach (GameLocation location in Game1.locations)
             {
-
                 if (location.GetData()?.CanPlantHere ?? location.IsFarm)
                 {
-                    location.objects.Lock();
-                    foreach (KeyValuePair<Vector2, StardewObject> pair in location.objects.Pairs)
+                    ApplySowingToLocation(location, verbose);
+                    foreach (GameLocation interior in location.GetInstancedBuildingInteriors())
                     {
-                        if (pair.Value.IsSprinkler())
-                        {
-                            if (verbose) ModEntry.Log($"Try ApplySowing on sprinkler {pair.Value.Name} ({pair.Key}:{location})", LogLevel.Debug);
-                            ApplySowing(pair.Value);
-                        }
+                        ApplySowingToLocation(interior, verbose); // don't check CantPlantHere for interiors, since garden pots are a thing
                     }
-                    location.objects.Unlock();
                 }
             }
+        }
+
+        public static void ApplySowingToLocation(GameLocation location, bool verbose)
+        {
+            location.objects.Lock();
+            foreach (KeyValuePair<Vector2, StardewObject> pair in location.objects.Pairs)
+            {
+                if (pair.Value.IsSprinkler())
+                {
+                    if (verbose) ModEntry.Log($"Try ApplySowing on sprinkler {pair.Value.Name} ({pair.Key}:{location})", LogLevel.Debug);
+                    ApplySowing(pair.Value);
+                }
+            }
+            location.objects.Unlock();
         }
 
         public static bool DrawAttachment(StardewObject sprinkler, SpriteBatch spriteBatch, int x, int y, float alpha)
