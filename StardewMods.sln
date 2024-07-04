@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompatibleArtisanGoodsKeepQ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FullInventoryToolbar", "FullInventoryToolbar\FullInventoryToolbar.csproj", "{76B91146-15EA-447A-A39F-6BB0A1388046}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomIntroductions", "CustomIntroductions\CustomIntroductions.csproj", "{76FE0EB1-48E4-4A8C-93B6-C67E6E2BFB9A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{76B91146-15EA-447A-A39F-6BB0A1388046}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76B91146-15EA-447A-A39F-6BB0A1388046}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76B91146-15EA-447A-A39F-6BB0A1388046}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76FE0EB1-48E4-4A8C-93B6-C67E6E2BFB9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76FE0EB1-48E4-4A8C-93B6-C67E6E2BFB9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76FE0EB1-48E4-4A8C-93B6-C67E6E2BFB9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76FE0EB1-48E4-4A8C-93B6-C67E6E2BFB9A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,63 @@
+{
+    "Format": "2.2.0",
+    "Changes": [
+        // load Cohort Quest info
+        {
+            "Action": "EditData",
+            "Target": "mushymato.CustomIntroductions/CohortQuest",
+            "Entries": {
+                "{{ModId}}_MeetTheKids": {
+                    // unique id
+                    "Id": "{{ModId}}_MeetTheKids",
+                    // standard quest fields, just as a dict
+                    "Title": "Meet the Kids",
+                    "Description": "Say Hi to the kids of Pelican Town!",
+                    "NextQuests": [], // optional
+                    "MoneyReward": 100, // set to -1 to use reward description
+                    "RewardDescription": "-1", // optional
+                    "CanBeCancelled": true, // optional
+                    // custom fields
+                    "Characters": [
+                        "Jas",
+                        "Vincent"
+                    ]
+                }
+            }
+        },
+        // Trigger Action
+        {
+            "Action": "EditData",
+            "Target": "Data/TriggerActions",
+            "Entries": {
+                "{{ModId}}_MeetTheKids_DayStart": {
+                    "Id": "{{ModId}}_MeetTheKids_DayStart",
+                    "Trigger": "DayStarted",
+                    "Actions": [
+                        "mushymato.CustomIntroductions_AddCohortQuest {{ModId}}_MeetTheKids"
+                    ]
+                }
+            }
+        },
+        // Optional: exclude NPC from vanilla IntroductionsQuest
+        {
+            "Action": "EditData",
+            "Target": "Data/Characters",
+            "TargetField": [
+                "Jas"
+            ],
+            "Entries": {
+                "IntroductionsQuest": false
+            }
+        },
+        {
+            "Action": "EditData",
+            "Target": "Data/Characters",
+            "TargetField": [
+                "Vincent"
+            ],
+            "Entries": {
+                "IntroductionsQuest": false
+            }
+        }
+    ]
+}

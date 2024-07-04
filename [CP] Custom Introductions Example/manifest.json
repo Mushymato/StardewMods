@@ -1,0 +1,15 @@
+{
+    "Name": "[CP] Custom Introductions Example",
+    "Author": "mushymato",
+    "Version": "1.0.0",
+    "MinimumApiVersion": "4.0.0",
+    "MinimumGameVersion": "1.6.0",
+    "Description": "Example character custom fields for introductions quest",
+    "UniqueID": "mushymato.CustomIntroductions.Example",
+    "UpdateKeys": [
+        "Nexus:???"
+    ],
+    "ContentPackFor": {
+        "UniqueID": "Pathoschild.ContentPatcher"
+    }
+}
