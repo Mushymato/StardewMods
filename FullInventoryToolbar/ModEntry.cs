@@ -3,10 +3,12 @@ using Microsoft.Xna.Framework.Graphics;
 using HarmonyLib;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
+using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
 using System.Reflection.Emit;
 using System.Globalization;
+using StardewValley.Inventories;
 
 
 namespace FullInventoryToolbar
@@ -22,6 +24,8 @@ namespace FullInventoryToolbar
         public bool HideToolbarItemBoxes = false;
         public bool HideToolbarBackground = false;
         public int ToolbarRowCount = 0;
+        public KeybindList MultiShift = new();
+        public int MultiShiftRowCount = 0;
 
         public void Reset()
         {
@@ -29,6 +33,16 @@ namespace FullInventoryToolbar
             HideToolbarItemBoxes = false;
             HideToolbarBackground = false;
             ToolbarRowCount = 0;
+            MultiShift = new();
+            MultiShiftRowCount = 0;
+        }
+    }
+    public class FullInventoryToolbarApi : IFullInventoryToolbarApi
+    {
+        /// <inheritdoc/>
+        public int GetToolbarMax()
+        {
+            return ModEntry.GetToolbarMax();
         }
     }
     internal sealed class ModEntry : Mod
@@ -46,13 +60,19 @@ namespace FullInventoryToolbar
             mon = Monitor;
 
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+            helper.Events.Input.ButtonsChanged += OnButtonsChanged;
+        }
+
+        /// <summary>Get an API that other mods can access. This is always called after <see cref="Entry"/>.</summary>
+        public override object GetApi()
+        {
+            return new FullInventoryToolbarApi();
         }
 
         public static void Log(string msg, LogLevel level = LogLevel.Debug)
         {
             mon!.Log(msg, level);
         }
-
 
         /// <summary>
         /// Apply <see cref="GamePatches"/> on game launch
@@ -65,6 +85,14 @@ namespace FullInventoryToolbar
             ToolbarIconsLoaded = Helper.ModRegistry.IsLoaded("furyx639.ToolbarIcons");
             Harmony patcher = new(ModManifest.UniqueID);
             Patch(patcher);
+        }
+
+        private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
+        {
+            if (Config!.MultiShift.JustPressed())
+            {
+                MultiShiftToolbar();
+            }
         }
 
         private void SetupConfig()
@@ -102,12 +130,21 @@ namespace FullInventoryToolbar
                     tooltip: () => Helper.Translation.Get("config.ToolbarRowCount.description"),
                     min: 0, max: 3
                 );
-                GMCM.AddBoolOption(
+                GMCM.AddKeybindList(
                     ModManifest,
-                    getValue: () => { return Config!.HideToolbarItemBoxes; },
-                    setValue: (value) => { Config!.HideToolbarItemBoxes = value; },
-                    name: () => Helper.Translation.Get("config.HideToolbarItemBoxes.name"),
-                    tooltip: () => Helper.Translation.Get("config.HideToolbarItemBoxes.description")
+                    getValue: () => { return Config!.MultiShift; },
+                    setValue: (value) => { Config!.MultiShift = value; },
+                    name: () => Helper.Translation.Get("config.MultiShift.name"),
+                    tooltip: () => Helper.Translation.Get("config.MultiShift.description")
+                );
+                GMCM.AddNumberOption(
+                    ModManifest,
+                    getValue: () => { return Config!.MultiShiftRowCount; },
+                    setValue: (value) => { Config!.MultiShiftRowCount = value; },
+                    formatValue: (value) => { return value == 0 ? Helper.Translation.Get("config.MultiShiftRowCount.full") : value.ToString(); },
+                    name: () => Helper.Translation.Get("config.MultiShiftRowCount.name"),
+                    tooltip: () => Helper.Translation.Get("config.MultiShiftRowCount.description"),
+                    min: 0, max: 3
                 );
                 GMCM.AddBoolOption(
                     ModManifest,
@@ -115,6 +152,13 @@ namespace FullInventoryToolbar
                     setValue: (value) => { Config!.HideToolbarBackground = value; },
                     name: () => Helper.Translation.Get("config.HideToolbarBackground.name"),
                     tooltip: () => Helper.Translation.Get("config.HideToolbarBackground.description")
+                );
+                GMCM.AddBoolOption(
+                    ModManifest,
+                    getValue: () => { return Config!.HideToolbarItemBoxes; },
+                    setValue: (value) => { Config!.HideToolbarItemBoxes = value; },
+                    name: () => Helper.Translation.Get("config.HideToolbarItemBoxes.name"),
+                    tooltip: () => Helper.Translation.Get("config.HideToolbarItemBoxes.description")
                 );
             }
             else
@@ -186,7 +230,7 @@ namespace FullInventoryToolbar
             {
                 // __instance.xPositionOnScreen -= ToolbarWidth;
                 // __instance.width *= 3;
-                for (int i = __instance.buttons.Count; i < GetMaxItems(); i++)
+                for (int i = __instance.buttons.Count; i < GetToolbarMax(); i++)
                 {
                     __instance.buttons.Add(
                         new ClickableComponent(
@@ -227,7 +271,7 @@ namespace FullInventoryToolbar
         {
             try
             {
-                int maxItems = GetMaxItems();
+                int maxItems = GetToolbarMax();
                 if (__instance.buttons.Count < maxItems)
                     InitializeExtraButtons(__instance);
                 int rowCount = maxItems / Farmer.hotbarSize;
@@ -270,7 +314,7 @@ namespace FullInventoryToolbar
         {
             try
             {
-                if (__instance.buttons.Count < GetMaxItems())
+                if (__instance.buttons.Count < GetToolbarMax())
                     InitializeExtraButtons(__instance);
             }
             catch (Exception err)
@@ -284,8 +328,13 @@ namespace FullInventoryToolbar
         {
             try
             {
-                if (Farmer.hotbarSize < GetMaxItems())
+                if (Farmer.hotbarSize < GetToolbarMax())
                     DrawToolbarRows(__instance, b);
+                if (__instance.hoverItem != null)
+                {
+                    IClickableMenu.drawToolTip(b, __instance.hoverItem.getDescription(), __instance.hoverItem.DisplayName, __instance.hoverItem);
+                    __instance.hoverItem = null;
+                }
             }
             catch (Exception err)
             {
@@ -297,7 +346,7 @@ namespace FullInventoryToolbar
         {
             if (Config!.HideToolbarBackground)
                 return;
-            int rowCountM1 = GetMaxItems() / Farmer.hotbarSize - 1;
+            int rowCountM1 = GetToolbarMax() / Farmer.hotbarSize - 1;
             if (Config!.Arrangement == ToolbarArrangement.Vertical)
             {
                 if (ToolbarIconsLoaded)
@@ -342,7 +391,7 @@ namespace FullInventoryToolbar
             if (Game1.activeClickableMenu != null)
                 return;
 
-            int maxItems = GetMaxItems();
+            int maxItems = GetToolbarMax();
             int i;
             for (i = Farmer.hotbarSize; i < maxItems; i++)
             {
@@ -366,12 +415,6 @@ namespace FullInventoryToolbar
                     Vector2 toDraw2 = new(Game1.uiViewport.Width / 2 - 384 + i % Farmer.hotbarSize * 64 + AlignX(i / Farmer.hotbarSize), tb.yPositionOnScreen - 96 + 8 + AlignY(tb.yPositionOnScreen, i / Farmer.hotbarSize));
                     Game1.player.Items[i].drawInMenu(b, toDraw2, (Game1.player.CurrentToolIndex == i) ? 0.9f : (tb.buttons[i].scale * 0.8f), tb.transparency, 0.88f);
                 }
-            }
-
-            if (tb.hoverItem != null)
-            {
-                IClickableMenu.drawToolTip(b, tb.hoverItem.getDescription(), tb.hoverItem.DisplayName, tb.hoverItem);
-                tb.hoverItem = null;
             }
         }
 
@@ -442,10 +485,10 @@ namespace FullInventoryToolbar
         }
 
         /// <summary>
-        /// Get max inventory items, either Game1.player.MaxItems or Farmer.maxInventorySpace
+        /// Get max toolbar items, either Game1.player.MaxItems or Farmer.maxInventorySpace
         /// </summary>
         /// <returns></returns>
-        public static int GetMaxItems()
+        public static int GetToolbarMax()
         {
             int maxItems = Farmer.maxInventorySpace;
             if (Game1.player != null)
@@ -470,7 +513,7 @@ namespace FullInventoryToolbar
                 })
                 ;
                 matcher.Advance(1).SetInstruction(new CodeInstruction(
-                    OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetMaxItems))
+                    OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetToolbarMax))
                 ));
 
                 matcher = matcher
@@ -480,7 +523,7 @@ namespace FullInventoryToolbar
                 })
                 ;
                 matcher.SetInstructionAndAdvance(new CodeInstruction(
-                    OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetMaxItems))
+                    OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetToolbarMax))
                 ))
                 .Insert(new CodeInstruction[]
                 {
@@ -497,7 +540,7 @@ namespace FullInventoryToolbar
                 ;
                 // matcher.InstructionAt(1).operand = (sbyte)Farmer.maxInventorySpace;
                 matcher.Advance(1).SetInstruction(new CodeInstruction(
-                    OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetMaxItems))
+                    OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetToolbarMax))
                 ));
 
                 matcher = matcher
@@ -507,7 +550,7 @@ namespace FullInventoryToolbar
                 })
                 ;
                 matcher.SetInstructionAndAdvance(new CodeInstruction(
-                    OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetMaxItems))
+                    OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetToolbarMax))
                 ))
                 .Insert(new CodeInstruction[]
                 {
@@ -523,7 +566,7 @@ namespace FullInventoryToolbar
                 })
                 ;
                 matcher.Advance(1).SetInstruction(new CodeInstruction(
-                    OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetMaxItems))
+                    OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetToolbarMax))
                 ));
 
                 return matcher.Instructions();
@@ -532,6 +575,48 @@ namespace FullInventoryToolbar
             {
                 Log($"Error in Toolbar_draw_Transpiler:\n{err}", LogLevel.Error);
                 return instructions;
+            }
+        }
+
+
+        /// <summary>
+        /// Variant of Farmer.shiftToolbar that shifts more than 1 row of toolbar.
+        /// Implemented separately rather than as patch to default shift behavior.
+        /// </summary>
+        /// <param name="right"></param>
+        public void MultiShiftToolbar(bool right = true)
+        {
+            Inventory playerItems = Game1.player.Items;
+            int maxItems = GetToolbarMax();
+            if (playerItems == null || playerItems.Count < maxItems || Game1.player.UsingTool || Game1.dialogueUp || !Game1.player.CanMove || !playerItems.HasAny() || Game1.eventUp || Game1.farmEvent != null)
+                return;
+            int shiftCount = Config!.MultiShiftRowCount == 0 ? maxItems : Math.Min(Config!.MultiShiftRowCount * Farmer.hotbarSize, maxItems);
+            Game1.playSound("shwip");
+            Game1.player.CurrentItem?.actionWhenStopBeingHeld(Game1.player);
+            if (right)
+            {
+                IList<Item> toMove2 = playerItems.GetRange(0, shiftCount);
+                playerItems.RemoveRange(0, shiftCount);
+                playerItems.AddRange(toMove2);
+            }
+            else
+            {
+                IList<Item> toMove = playerItems.GetRange(playerItems.Count - shiftCount, shiftCount);
+                for (int j = 0; j < playerItems.Count - shiftCount; j++)
+                {
+                    toMove.Add(playerItems[j]);
+                }
+                playerItems.OverwriteWith(toMove);
+            }
+            Game1.player.netItemStowed.Set(newValue: false);
+            Game1.player.CurrentItem?.actionWhenBeingHeld(Game1.player);
+            for (int i = 0; i < Game1.onScreenMenus.Count; i++)
+            {
+                if (Game1.onScreenMenus[i] is Toolbar toolbar)
+                {
+                    toolbar.shifted(right);
+                    break;
+                }
             }
         }
     }

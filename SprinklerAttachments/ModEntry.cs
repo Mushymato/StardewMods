@@ -23,6 +23,12 @@ namespace SprinklerAttachments
             );
         }
 
+        /// <summary>Get an API that other mods can access. This is always called after <see cref="Entry"/>.</summary>
+        public override object GetApi()
+        {
+            return new SprinklerAttachmentsApi();
+        }
+
         public static void Log(string msg, LogLevel level = LogLevel.Debug)
         {
             mon!.Log(msg, level);
