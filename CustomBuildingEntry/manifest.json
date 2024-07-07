@@ -1,0 +1,11 @@
+{
+    "Name": "Custom Building Entry",
+    "Author": "mushymato",
+    "Version": "1.0.0",
+    "MinimumApiVersion": "4.0.0",
+    "MinimumGameVersion": "1.6.0",
+    "Description": "Allow custom maps for building interiors to specify where the player enters, using map property BuildingEntryLocation <x> <y>.",
+    "UniqueID": "mushymato.CustomBuildingEntry",
+    "UpdateKeys": [],
+    "EntryDll": "CustomBuildingEntry.dll"
+}

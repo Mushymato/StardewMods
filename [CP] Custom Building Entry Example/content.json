@@ -1,0 +1,12 @@
+{
+    "Format": "2.0.0",
+    "Changes": [
+        {
+            "Action": "EditMap",
+            "Target": "Maps/Coop",
+            "MapProperties": {
+                "BuildingEntryLocation": "2 3"
+            }
+        }
+    ]
+}

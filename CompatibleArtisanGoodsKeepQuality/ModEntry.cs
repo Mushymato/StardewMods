@@ -4,15 +4,10 @@ using StardewValley.GameData;
 using StardewValley.GameData.Machines;
 using StardewValley.Menus;
 
-namespace SprinklerAttachments
+namespace CompatibleArtisanGoodsKeepQuality
 {
     public class ModEntry : Mod
     {
-        public static readonly HashSet<string> MachineExclusions = new()
-        {
-            "(BC)BaitMaker",
-        };
-
         public override void Entry(IModHelper helper)
         {
             helper.Events.Content.AssetRequested += OnAssetRequested;
@@ -76,7 +71,7 @@ namespace SprinklerAttachments
                                     Amount = 3
                                 });
                                 break;
-                            case "(BC)25":
+                            case "(BC)25": // seed maker
                                 item.StackModifiers ??= new List<QuantityModifier>();
                                 item.StackModifiers.Add(new()
                                 {
@@ -90,6 +85,8 @@ namespace SprinklerAttachments
                                     Modification = QuantityModifier.ModificationType.Add,
                                     Amount = 2
                                 });
+                                break;
+                            case "(BC)20": // recycling machine
                                 break;
                             default:
                                 if (item is null || item.OutputMethod != null)

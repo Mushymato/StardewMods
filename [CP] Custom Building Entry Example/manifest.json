@@ -1,0 +1,12 @@
+{
+  "Name": "[CP] Custom Building Entry Example",
+  "Author": "mushymato",
+  "Version": "1.0.0",
+  "Description": "Example for mushymato.CustomBuildingEntry",
+  "UniqueID": "mushymato.CustomBuildingEntry.Example",
+  "MinimumApiVersion": "4.0.0",
+  "UpdateKeys": [],
+  "ContentPackFor": {
+    "UniqueID": "Pathoschild.ContentPatcher"
+  }
+}
