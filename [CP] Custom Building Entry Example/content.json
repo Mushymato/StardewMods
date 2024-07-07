@@ -7,6 +7,13 @@
             "MapProperties": {
                 "BuildingEntryLocation": "2 3"
             }
+        },
+        {
+            "Action": "EditMap",
+            "Target": "Maps/Greenhouse",
+            "MapProperties": {
+                "BuildingEntryLocation": "0 0"
+            }
         }
     ]
 }
