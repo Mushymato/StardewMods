@@ -1,8 +1,5 @@
-﻿using HarmonyLib;
-using SpecialOrderNotifications.Framework;
+﻿using SpecialOrderNotifications.Framework;
 using StardewModdingAPI;
-using StardewValley;
-using StardewValley.SpecialOrders.Objectives;
 
 namespace SpecialOrderNotifications
 {
@@ -19,6 +16,12 @@ namespace SpecialOrderNotifications
             //     "debug_quest_ping",
             //     "debug_quest_ping current max",
             //     DebugQuestPing
+            // );
+
+            // helper.ConsoleCommands.Add(
+            //     "debugmonsterpings",
+            //     "debugmonsterpings",
+            //     new Action<string, string[]>(DebugMonsterPings)
             // );
         }
 
@@ -37,6 +40,17 @@ namespace SpecialOrderNotifications
         //     if (int.TryParse(args[0], out int current) && int.TryParse(args[1], out int max))
         //     {
         //         QuestPingHelper.PingJunimoKart(current, max);
+        //     }
+        // }
+
+        // public void DebugMonsterPings(string command, string[] args)
+        // {
+        //     string[] monsters = Game1.content.Load<Dictionary<string, string>>("Data\\Monsters").Keys.ToArray<string>();
+        //     if (int.TryParse(args[0], out int idx))
+        //     {
+        //         Log($"Monster: {monsters[idx]}");
+        //         Monster mon = new(monsters[idx], Vector2.Zero);
+        //         QuestPingHelper.PingMonster(mon, 5, 10);
         //     }
         // }
     }

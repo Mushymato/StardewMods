@@ -18,30 +18,34 @@ namespace SpecialOrderNotifications.Framework
                 // can use same transpiler for these two as they have same code
                 harmony.Patch(
                     original: AccessTools.Method(typeof(CollectObjective), nameof(CollectObjective.OnItemShipped)),
+                    prefix: new HarmonyMethod(typeof(GamePatches), nameof(Objective_CheckComplete_Prefix)),
                     transpiler: new HarmonyMethod(typeof(GamePatches), nameof(Objective_OnIncrementCount_Transpiler))
                 );
                 harmony.Patch(
                     original: AccessTools.Method(typeof(FishObjective), nameof(FishObjective.OnFishCaught)),
+                    prefix: new HarmonyMethod(typeof(GamePatches), nameof(Objective_CheckComplete_Prefix)),
                     transpiler: new HarmonyMethod(typeof(GamePatches), nameof(Objective_OnIncrementCount_Transpiler))
                 );
 
                 harmony.Patch(
                     original: AccessTools.Method(typeof(GiftObjective), nameof(GiftObjective.OnGiftGiven)),
+                    prefix: new HarmonyMethod(typeof(GamePatches), nameof(Objective_CheckComplete_Prefix)),
                     transpiler: new HarmonyMethod(typeof(GamePatches), nameof(GiftObjective_OnGiftGiven_Transpiler))
                 );
                 harmony.Patch(
                     original: AccessTools.Method(typeof(SlayObjective), nameof(SlayObjective.OnMonsterSlain)),
+                    prefix: new HarmonyMethod(typeof(GamePatches), nameof(Objective_CheckComplete_Prefix)),
                     transpiler: new HarmonyMethod(typeof(GamePatches), nameof(SlayObjective_OnMonsterSlain_Transpiler))
                 );
 
                 harmony.Patch(
                     original: AccessTools.Method(typeof(JKScoreObjective), nameof(JKScoreObjective.OnNewValue)),
-                    prefix: new HarmonyMethod(typeof(GamePatches), nameof(JKScoreObjective_OnNewValue_Prefix)),
+                    prefix: new HarmonyMethod(typeof(GamePatches), nameof(Objective_CheckComplete_Prefix)),
                     postfix: new HarmonyMethod(typeof(GamePatches), nameof(JKScoreObjective_OnNewValue_Postfix))
                 );
                 harmony.Patch(
                     original: AccessTools.Method(typeof(ReachMineFloorObjective), nameof(ReachMineFloorObjective.OnNewValue)),
-                    prefix: new HarmonyMethod(typeof(GamePatches), nameof(ReachMineFloorObjective_OnNewValue_Prefix)),
+                    prefix: new HarmonyMethod(typeof(GamePatches), nameof(Objective_CheckComplete_Prefix)),
                     postfix: new HarmonyMethod(typeof(GamePatches), nameof(ReachMineFloorObjective_OnNewValue_Postfix))
                 );
             }
@@ -71,7 +75,7 @@ namespace SpecialOrderNotifications.Framework
                 CodeMatcher matcher = new(instructions, generator);
 
                 matcher.Start()
-                .MatchStartForward(new CodeMatch[]{
+                .MatchEndForward(new CodeMatch[]{
                     new(OpCodes.Brtrue_S),
                     new(OpCodes.Ldarg_0),
                     new(OpCodes.Ldarg_2),
@@ -79,11 +83,6 @@ namespace SpecialOrderNotifications.Framework
                     new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.IncrementCount))),
                     new(OpCodes.Leave_S)
                 })
-                .InsertAndAdvance(new CodeInstruction[]{
-                    new(OpCodes.Ldarg_0), new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.IsComplete))),
-                    new(OpCodes.Or)
-                })
-                .Advance(5)
                 .Insert(new CodeInstruction[]{
                     new(OpCodes.Ldarg_2),
                     new(OpCodes.Ldarg_0), new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetCount))),
@@ -112,12 +111,15 @@ namespace SpecialOrderNotifications.Framework
                     new(OpCodes.Ldarg_0),
                     new(OpCodes.Ldc_I4_1),
                     new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.IncrementCount))),
-                    // new(OpCodes.Leave_S)
+                    new(OpCodes.Leave_S)
                 })
                 .InsertAndAdvance(new CodeInstruction[]{
                     new(OpCodes.Ldarg_2),
-                })
-                .SetInstruction(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(GamePatches), nameof(SlayObjectiveIncrementCount))));
+                    new(OpCodes.Ldarg_0), new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetCount))),
+                    new(OpCodes.Ldarg_0), new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetMaxCount))),
+                    new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(QuestPingHelper), nameof(QuestPingHelper.PingMonster)))
+                });
+
                 return matcher.Instructions();
             }
             catch (Exception err)
@@ -125,14 +127,6 @@ namespace SpecialOrderNotifications.Framework
                 ModEntry.Log($"Error in SlayObjective_OnMonsterSlain_Transpiler:\n{err}", LogLevel.Error);
                 return instructions;
             }
-        }
-
-        private static void SlayObjectiveIncrementCount(SlayObjective objective, int count, Monster monster)
-        {
-            if (objective.IsComplete())
-                return;
-            objective.IncrementCount(count);
-            QuestPingHelper.PingMonster(monster, objective.GetCount(), objective.GetMaxCount());
         }
 
         private static IEnumerable<CodeInstruction> GiftObjective_OnGiftGiven_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -148,21 +142,12 @@ namespace SpecialOrderNotifications.Framework
                     new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.IncrementCount))),
                     new(OpCodes.Ret)
                 })
-                .CreateLabel(out Label lbl)
                 .Insert(new CodeInstruction[]{
                     new(OpCodes.Ldarg_0),
                     new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetCount))),
                     new(OpCodes.Ldarg_0),
                     new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetMaxCount))),
                     new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(QuestPingHelper), nameof(QuestPingHelper.PingGift)))
-                })
-                .Advance(-2)
-                .InsertAndAdvance(new CodeInstruction[]{
-                    // steal the existing Ldarg_0
-                    new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.IsComplete))),
-                    new(OpCodes.Brtrue_S, lbl),
-                    // return the Ldarg_0
-                    new(OpCodes.Ldarg_0)
                 });
 
                 return matcher.Instructions();
@@ -174,7 +159,7 @@ namespace SpecialOrderNotifications.Framework
             }
         }
 
-        private static bool JKScoreObjective_OnNewValue_Prefix(JKScoreObjective __instance, Farmer who, int new_value)
+        private static bool Objective_CheckComplete_Prefix(OrderObjective __instance)
         {
             try
             {
@@ -182,7 +167,7 @@ namespace SpecialOrderNotifications.Framework
             }
             catch (Exception err)
             {
-                ModEntry.Log($"Error in JKScoreObjective_OnNewValue_Prefix:\n{err}", LogLevel.Error);
+                ModEntry.Log($"Error in Objective_CheckComplete_Prefix:\n{err}", LogLevel.Error);
                 return true;
             }
         }
@@ -197,19 +182,6 @@ namespace SpecialOrderNotifications.Framework
             catch (Exception err)
             {
                 ModEntry.Log($"Error in JKScoreObjective_OnNewValue_Postfix:\n{err}", LogLevel.Error);
-            }
-        }
-
-        private static bool ReachMineFloorObjective_OnNewValue_Prefix(JKScoreObjective __instance, Farmer who, int new_value)
-        {
-            try
-            {
-                return !__instance.IsComplete();
-            }
-            catch (Exception err)
-            {
-                ModEntry.Log($"Error in ReachMineFloorObjective_OnNewValue_Prefix:\n{err}", LogLevel.Error);
-                return true;
             }
         }
 

@@ -125,6 +125,8 @@ namespace SpecialOrderNotifications.Framework
         /// <param name="max"></param>
         public static void PingMonster(Monster monster, int current, int max)
         {
+            if (monster.Sprite.Texture == null)
+                return;
             // No good way to auto pick icon rect from a monster sprite sheet, follow game hardcoding
             // StardewValley.Menus/DayTimeMoneyBox.cs pingQuest SlayMonsterQuest
             Rectangle sourceRect = new(0, 5, 16, 16);
@@ -132,7 +134,7 @@ namespace SpecialOrderNotifications.Framework
             {
                 sourceRect = new Rectangle(0, 264, 16, 16);
             }
-            else if (monster.Name.Contains("Frost"))
+            else if (monster.Name.Equals("Frost Jelly"))
             {
                 sourceRect = new Rectangle(16, 264, 16, 16);
             }
@@ -142,7 +144,7 @@ namespace SpecialOrderNotifications.Framework
             }
             else if (monster.Name.Equals("Dust Spirit"))
             {
-                sourceRect.Y = 9;
+                sourceRect.Y = 8;
             }
             else if (monster.Name.Contains("Crab"))
             {
@@ -156,7 +158,6 @@ namespace SpecialOrderNotifications.Framework
             {
                 sourceRect = new Rectangle(0, 0, 16, 16);
             }
-
             SetQuestPing(monster.Sprite.Texture, sourceRect, current, max);
         }
 
