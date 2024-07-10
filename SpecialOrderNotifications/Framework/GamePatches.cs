@@ -3,6 +3,7 @@ using HarmonyLib;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
+using StardewValley.Monsters;
 using StardewValley.SpecialOrders.Objectives;
 
 namespace SpecialOrderNotifications.Framework
@@ -35,10 +36,12 @@ namespace SpecialOrderNotifications.Framework
 
                 harmony.Patch(
                     original: AccessTools.Method(typeof(JKScoreObjective), nameof(JKScoreObjective.OnNewValue)),
+                    prefix: new HarmonyMethod(typeof(GamePatches), nameof(JKScoreObjective_OnNewValue_Prefix)),
                     postfix: new HarmonyMethod(typeof(GamePatches), nameof(JKScoreObjective_OnNewValue_Postfix))
                 );
                 harmony.Patch(
                     original: AccessTools.Method(typeof(ReachMineFloorObjective), nameof(ReachMineFloorObjective.OnNewValue)),
+                    prefix: new HarmonyMethod(typeof(GamePatches), nameof(ReachMineFloorObjective_OnNewValue_Prefix)),
                     postfix: new HarmonyMethod(typeof(GamePatches), nameof(ReachMineFloorObjective_OnNewValue_Postfix))
                 );
             }
@@ -68,7 +71,7 @@ namespace SpecialOrderNotifications.Framework
                 CodeMatcher matcher = new(instructions, generator);
 
                 matcher.Start()
-                .MatchEndForward(new CodeMatch[]{
+                .MatchStartForward(new CodeMatch[]{
                     new(OpCodes.Brtrue_S),
                     new(OpCodes.Ldarg_0),
                     new(OpCodes.Ldarg_2),
@@ -77,11 +80,14 @@ namespace SpecialOrderNotifications.Framework
                     new(OpCodes.Leave_S)
                 })
                 .InsertAndAdvance(new CodeInstruction[]{
+                    new(OpCodes.Ldarg_0), new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.IsComplete))),
+                    new(OpCodes.Or)
+                })
+                .Advance(5)
+                .Insert(new CodeInstruction[]{
                     new(OpCodes.Ldarg_2),
-                    new(OpCodes.Ldarg_0),
-                    new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetCount))),
-                    new(OpCodes.Ldarg_0),
-                    new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetMaxCount))),
+                    new(OpCodes.Ldarg_0), new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetCount))),
+                    new(OpCodes.Ldarg_0), new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetMaxCount))),
                     new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(QuestPingHelper), nameof(QuestPingHelper.PingItem)))
                 });
 
@@ -102,20 +108,16 @@ namespace SpecialOrderNotifications.Framework
 
                 matcher.Start()
                 .MatchEndForward(new CodeMatch[]{
+                    new(OpCodes.Brfalse_S),
                     new(OpCodes.Ldarg_0),
                     new(OpCodes.Ldc_I4_1),
                     new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.IncrementCount))),
-                    new(OpCodes.Leave_S)
+                    // new(OpCodes.Leave_S)
                 })
                 .InsertAndAdvance(new CodeInstruction[]{
                     new(OpCodes.Ldarg_2),
-                    new(OpCodes.Ldarg_0),
-                    new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetCount))),
-                    new(OpCodes.Ldarg_0),
-                    new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetMaxCount))),
-                    new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(QuestPingHelper), nameof(QuestPingHelper.PingMonster)))
-                });
-
+                })
+                .SetInstruction(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(GamePatches), nameof(SlayObjectiveIncrementCount))));
                 return matcher.Instructions();
             }
             catch (Exception err)
@@ -123,6 +125,14 @@ namespace SpecialOrderNotifications.Framework
                 ModEntry.Log($"Error in SlayObjective_OnMonsterSlain_Transpiler:\n{err}", LogLevel.Error);
                 return instructions;
             }
+        }
+
+        private static void SlayObjectiveIncrementCount(SlayObjective objective, int count, Monster monster)
+        {
+            if (objective.IsComplete())
+                return;
+            objective.IncrementCount(count);
+            QuestPingHelper.PingMonster(monster, objective.GetCount(), objective.GetMaxCount());
         }
 
         private static IEnumerable<CodeInstruction> GiftObjective_OnGiftGiven_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -138,20 +148,49 @@ namespace SpecialOrderNotifications.Framework
                     new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.IncrementCount))),
                     new(OpCodes.Ret)
                 })
-                .InsertAndAdvance(new CodeInstruction[]{
+                .CreateLabel(out Label lbl)
+                .Insert(new CodeInstruction[]{
                     new(OpCodes.Ldarg_0),
                     new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetCount))),
                     new(OpCodes.Ldarg_0),
                     new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetMaxCount))),
                     new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(QuestPingHelper), nameof(QuestPingHelper.PingGift)))
+                })
+                .Advance(-2)
+                .InsertAndAdvance(new CodeInstruction[]{
+                    // steal the existing Ldarg_0
+                    new(OpCodes.Callvirt, AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.IsComplete))),
+                    new(OpCodes.Brtrue_S, lbl),
+                    // return the Ldarg_0
+                    new(OpCodes.Ldarg_0)
                 });
+
+                ModEntry.Log($"====matcher at {matcher.Pos}====");
+
+                for (int i = -5; i < 5; i++)
+                {
+                    ModEntry.Log($"inst {i}: {matcher.InstructionAt(i)}");
+                }
 
                 return matcher.Instructions();
             }
             catch (Exception err)
             {
-                ModEntry.Log($"Error in CollectObjective_OnItemShipped_Transpiler:\n{err}", LogLevel.Error);
+                ModEntry.Log($"Error in GiftObjective_OnGiftGiven_Transpiler:\n{err}", LogLevel.Error);
                 return instructions;
+            }
+        }
+
+        private static bool JKScoreObjective_OnNewValue_Prefix(JKScoreObjective __instance, Farmer who, int new_value)
+        {
+            try
+            {
+                return !__instance.IsComplete();
+            }
+            catch (Exception err)
+            {
+                ModEntry.Log($"Error in JKScoreObjective_OnNewValue_Prefix:\n{err}", LogLevel.Error);
+                return true;
             }
         }
 
@@ -159,10 +198,7 @@ namespace SpecialOrderNotifications.Framework
         {
             try
             {
-                if (__instance.GetCount() == new_value)
-                {
-                    QuestPingHelper.PingJunimoKart(new_value, __instance.GetMaxCount());
-                }
+                QuestPingHelper.PingJunimoKart(new_value, __instance.GetMaxCount());
             }
             catch (Exception err)
             {
@@ -170,18 +206,28 @@ namespace SpecialOrderNotifications.Framework
             }
         }
 
+        private static bool ReachMineFloorObjective_OnNewValue_Prefix(JKScoreObjective __instance, Farmer who, int new_value)
+        {
+            try
+            {
+                return !__instance.IsComplete();
+            }
+            catch (Exception err)
+            {
+                ModEntry.Log($"Error in ReachMineFloorObjective_OnNewValue_Prefix:\n{err}", LogLevel.Error);
+                return true;
+            }
+        }
+
         private static void ReachMineFloorObjective_OnNewValue_Postfix(ReachMineFloorObjective __instance, Farmer who, int new_value)
         {
             try
             {
-                if (__instance.GetCount() == new_value)
-                {
-                    QuestPingHelper.PingMineLadder(new_value, __instance.GetMaxCount());
-                }
+                QuestPingHelper.PingMineLadder(new_value, __instance.GetMaxCount());
             }
             catch (Exception err)
             {
-                ModEntry.Log($"Error in JKScoreObjective_OnNewValue_Postfix:\n{err}", LogLevel.Error);
+                ModEntry.Log($"Error in ReachMineFloorObjective_OnNewValue_Postfix:\n{err}", LogLevel.Error);
             }
         }
 
@@ -199,13 +245,8 @@ namespace SpecialOrderNotifications.Framework
                     new(OpCodes.Ldc_I4_0),
                     new(OpCodes.Ble)
                 });
-
-                for (int i = -3; i < 2; i++)
-                {
-                    ModEntry.Log($"inst(b4): {matcher.InstructionAt(i)}");
-                }
-
                 Label lbl = (Label)matcher.Instruction.operand;
+
                 matcher
                 .Advance(1)
                 .InsertAndAdvance(new CodeInstruction[]{
@@ -217,11 +258,6 @@ namespace SpecialOrderNotifications.Framework
                     new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(QuestPingHelper), nameof(QuestPingHelper.DrawQuestPingBox))),
                     new(OpCodes.Br, lbl)
                 });
-
-                for (int i = -12; i < 2; i++)
-                {
-                    ModEntry.Log($"inst(af): {matcher.InstructionAt(i)}");
-                }
 
                 return matcher.Instructions();
             }

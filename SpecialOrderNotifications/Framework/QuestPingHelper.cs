@@ -6,6 +6,7 @@ using StardewValley;
 using StardewValley.GameData.HomeRenovations;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Monsters;
+using StardewValley.SpecialOrders.Objectives;
 
 namespace SpecialOrderNotifications.Framework
 {
@@ -169,7 +170,7 @@ namespace SpecialOrderNotifications.Framework
             SetQuestPing(
                 Game1.mouseCursors2,
                 new Rectangle(166, 174, 14, 12),
-                $"{current}/{max}"
+                current, max
             );
         }
 
