@@ -165,13 +165,6 @@ namespace SpecialOrderNotifications.Framework
                     new(OpCodes.Ldarg_0)
                 });
 
-                ModEntry.Log($"====matcher at {matcher.Pos}====");
-
-                for (int i = -5; i < 5; i++)
-                {
-                    ModEntry.Log($"inst {i}: {matcher.InstructionAt(i)}");
-                }
-
                 return matcher.Instructions();
             }
             catch (Exception err)
@@ -198,7 +191,8 @@ namespace SpecialOrderNotifications.Framework
         {
             try
             {
-                QuestPingHelper.PingJunimoKart(new_value, __instance.GetMaxCount());
+                if (new_value == __instance.GetCount())
+                    QuestPingHelper.PingJunimoKart(new_value, __instance.GetMaxCount());
             }
             catch (Exception err)
             {
@@ -223,7 +217,8 @@ namespace SpecialOrderNotifications.Framework
         {
             try
             {
-                QuestPingHelper.PingMineLadder(new_value, __instance.GetMaxCount());
+                if (new_value == __instance.GetCount())
+                    QuestPingHelper.PingMineLadder(new_value, __instance.GetMaxCount());
             }
             catch (Exception err)
             {
