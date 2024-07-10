@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomIntroductions", "Cust
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomBuildingEntry", "CustomBuildingEntry\CustomBuildingEntry.csproj", "{8D0C877A-DA62-47C6-BB25-41D14323A9E2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpecialOrderNotifications", "SpecialOrderNotifications\SpecialOrderNotifications.csproj", "{9C5EC529-6DE2-4339-BE0A-A1093C591D46}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{8D0C877A-DA62-47C6-BB25-41D14323A9E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D0C877A-DA62-47C6-BB25-41D14323A9E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D0C877A-DA62-47C6-BB25-41D14323A9E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C5EC529-6DE2-4339-BE0A-A1093C591D46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C5EC529-6DE2-4339-BE0A-A1093C591D46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C5EC529-6DE2-4339-BE0A-A1093C591D46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C5EC529-6DE2-4339-BE0A-A1093C591D46}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
