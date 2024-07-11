@@ -1,12 +1,9 @@
 using System.Reflection;
-using System.Reflection.Emit;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
-using StardewValley.GameData.HomeRenovations;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Monsters;
-using StardewValley.SpecialOrders.Objectives;
 
 namespace SpecialOrderNotifications.Framework
 {

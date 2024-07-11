@@ -3,7 +3,6 @@ using HarmonyLib;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
-using StardewValley.Monsters;
 using StardewValley.SpecialOrders.Objectives;
 
 namespace SpecialOrderNotifications.Framework
