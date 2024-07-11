@@ -6,6 +6,8 @@
     "MinimumGameVersion": "1.6.0",
     "Description": "Add notifications for special orders",
     "UniqueID": "mushymato.SpecialOrderNotifications",
-    "UpdateKeys": [],
+    "UpdateKeys": [
+        "Nexus:25999"
+    ],
     "EntryDll": "SpecialOrderNotifications.dll"
 }
