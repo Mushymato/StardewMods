@@ -1,0 +1,11 @@
+{
+    "Name": "Machine Output Tweaks",
+    "Author": "mushymato",
+    "Version": "1.0.0",
+    "MinimumApiVersion": "4.0.0",
+    "MinimumGameVersion": "1.6.0",
+    "Description": "Automatically tweak machine output rules to respect input item quality in some ways.",
+    "UniqueID": "mushymato.MachineOutputTweaks",
+    "UpdateKeys": [],
+    "EntryDll": "MachineOutputTweaks.dll"
+}

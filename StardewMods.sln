@@ -5,8 +5,6 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SprinklerAttachments", "SprinklerAttachments\SprinklerAttachments.csproj", "{FD7CAA9B-5205-402C-8190-A4DB022BC681}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompatibleArtisanGoodsKeepQuality", "CompatibleArtisanGoodsKeepQuality\CompatibleArtisanGoodsKeepQuality.csproj", "{0ED4665A-EB9A-440C-8275-B7B9C242BA3F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FullInventoryToolbar", "FullInventoryToolbar\FullInventoryToolbar.csproj", "{76B91146-15EA-447A-A39F-6BB0A1388046}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomIntroductions", "CustomIntroductions\CustomIntroductions.csproj", "{76FE0EB1-48E4-4A8C-93B6-C67E6E2BFB9A}"
@@ -14,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomBuildingEntry", "CustomBuildingEntry\CustomBuildingEntry.csproj", "{8D0C877A-DA62-47C6-BB25-41D14323A9E2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpecialOrderNotifications", "SpecialOrderNotifications\SpecialOrderNotifications.csproj", "{9C5EC529-6DE2-4339-BE0A-A1093C591D46}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MachineOutputTweaks", "MachineOutputTweaks\MachineOutputTweaks.csproj", "{D50AC760-05FB-45C5-A30C-F5DE99F26D7C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,10 +25,6 @@ Global
 		{FD7CAA9B-5205-402C-8190-A4DB022BC681}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD7CAA9B-5205-402C-8190-A4DB022BC681}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD7CAA9B-5205-402C-8190-A4DB022BC681}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0ED4665A-EB9A-440C-8275-B7B9C242BA3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0ED4665A-EB9A-440C-8275-B7B9C242BA3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0ED4665A-EB9A-440C-8275-B7B9C242BA3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0ED4665A-EB9A-440C-8275-B7B9C242BA3F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{76B91146-15EA-447A-A39F-6BB0A1388046}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{76B91146-15EA-447A-A39F-6BB0A1388046}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76B91146-15EA-447A-A39F-6BB0A1388046}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -45,6 +41,10 @@ Global
 		{9C5EC529-6DE2-4339-BE0A-A1093C591D46}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C5EC529-6DE2-4339-BE0A-A1093C591D46}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C5EC529-6DE2-4339-BE0A-A1093C591D46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D50AC760-05FB-45C5-A30C-F5DE99F26D7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D50AC760-05FB-45C5-A30C-F5DE99F26D7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D50AC760-05FB-45C5-A30C-F5DE99F26D7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D50AC760-05FB-45C5-A30C-F5DE99F26D7C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

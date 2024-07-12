@@ -12,7 +12,7 @@
             "Action": "EditMap",
             "Target": "Maps/Greenhouse",
             "MapProperties": {
-                "BuildingEntryLocation": "0 0"
+                "BuildingEntryLocation": "10 10"
             }
         }
     ]
