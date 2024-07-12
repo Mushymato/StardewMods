@@ -1,9 +1,11 @@
-﻿using StardewModdingAPI;
+﻿using System.Net;
+using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.GameData;
 using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
+using StardewObject = StardewValley.Object;
 
 namespace MachineOutputTweaks
 {
@@ -43,9 +45,21 @@ namespace MachineOutputTweaks
                         continue;
                     rule.OutputItem.ForEach(item =>
                     {
-                        if (item is null || item.OutputMethod != null || ItemRegistry.GetDataOrErrorItem(item.ItemId) is not ParsedItemData itemData)
+                        if (item is null || item.OutputMethod != null)
                             return;
-                        if (itemData.Category == StardewValley.Object.artisanGoodsCategory) // keep quality artisan recipes, 
+                        bool isArtisan = false;
+                        if (ItemRegistry.GetData(item.ItemId) is ParsedItemData itemData)
+                            isArtisan = itemData.Category == StardewObject.artisanGoodsCategory;
+                        else
+                        {
+                            string[] splitArgs = ArgUtility.SplitBySpace(item.ItemId);
+                            if (splitArgs.Length < 3)
+                                return;
+                            isArtisan = true;
+                            if (Utility.TryParseEnum<StardewObject.PreserveType>(splitArgs[1], out var type))
+                                isArtisan = type != StardewObject.PreserveType.Bait && type != StardewObject.PreserveType.Roe;
+                        }
+                        if (isArtisan) // keep quality artisan recipes, 
                         {
                             if (item.Quality == 2)
                             { // special case large milk/egg, copy quality, but produce 2
@@ -58,28 +72,21 @@ namespace MachineOutputTweaks
                                 item.Quality = -1;
                             }
                             item.CopyQuality = true;
-                            Monitor.Log($"Machine rule");
                         }
                         else // increase output depending on input quality
                         {
                             item.StackModifiers ??= new List<QuantityModifier>();
                             item.StackModifiers.Add(new()
                             {
-                                Condition = "ITEM_QUALITY Input 1 1",
+                                Condition = "ITEM_QUALITY Input 2 2",
                                 Modification = QuantityModifier.ModificationType.Add,
                                 Amount = 1
                             });
                             item.StackModifiers.Add(new()
                             {
-                                Condition = "ITEM_QUALITY Input 2 2",
-                                Modification = QuantityModifier.ModificationType.Add,
-                                Amount = 2
-                            });
-                            item.StackModifiers.Add(new()
-                            {
                                 Condition = "ITEM_QUALITY Input 4 4",
                                 Modification = QuantityModifier.ModificationType.Add,
-                                Amount = 3
+                                Amount = 2
                             });
                         }
                     });
