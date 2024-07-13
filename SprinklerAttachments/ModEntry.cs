@@ -14,6 +14,7 @@ namespace SprinklerAttachments
         public override void Entry(IModHelper helper)
         {
             mon = Monitor;
+            helper.Events.Input.ButtonsChanged += OnButtonsChanged;
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             helper.Events.GameLoop.DayEnding += OnDayEnding;
             helper.ConsoleCommands.Add(
@@ -71,6 +72,13 @@ namespace SprinklerAttachments
             }
             SprinklerAttachment.ApplySowingToAllSprinklers(verbose: true);
             Log($"OK, performed sowing for all sprinklers.", LogLevel.Info);
+        }
+
+        private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
+        {
+            if (!Context.IsWorldReady)
+                return;
+            SprinklerAttachment.OpenIntakeChest(e.Cursor);
         }
     }
 }

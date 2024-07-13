@@ -15,6 +15,7 @@ using StardewValley.TerrainFeatures;
 using StardewValley.GameData.Crops;
 using StardewObject = StardewValley.Object;
 using Microsoft.Xna.Framework.Content;
+using StardewModdingAPI.Utilities;
 
 namespace SprinklerAttachments.Framework
 {
@@ -114,6 +115,7 @@ namespace SprinklerAttachments.Framework
         public bool WaterOnPlanting { get; set; } = true;
         public bool EnableForGardenPots { get; set; } = true;
         public Trellis TrellisPattern { get; set; } = Trellis.Rows;
+        public KeybindList OpenIntakeChestKey { get; set; } = KeybindList.Parse($"{SButton.MouseRight}, {SButton.ControllerA}");
         public int IntakeChestSize { get; set; } = 9;
         public bool PlantOnChestClose { get; set; } = false;
         public bool InvisibleAttachments { get; set; } = false;
@@ -129,6 +131,7 @@ namespace SprinklerAttachments.Framework
             PlantOnChestClose = false;
             InvisibleAttachments = false;
             SeasonAwarePlanting = true;
+            OpenIntakeChestKey = KeybindList.Parse($"{SButton.MouseRight}, {SButton.ControllerA}"); // weh
         }
 
         public void Register(IModHelper helper, IManifest mod,
@@ -195,6 +198,13 @@ namespace SprinklerAttachments.Framework
                 name: () => helper.Translation.Get("config.SeasonAwarePlanting.name"),
                 tooltip: () => helper.Translation.Get("config.SeasonAwarePlanting.description")
             );
+            GMCM.AddKeybindList(
+                mod,
+                getValue: () => { return OpenIntakeChestKey; },
+                setValue: (value) => { OpenIntakeChestKey = value; },
+                name: () => helper.Translation.Get("config.OpenIntakeChestKey.name"),
+                tooltip: () => helper.Translation.Get("config.OpenIntakeChestKey.description")
+            );
             GMCM.AddNumberOption(
                 mod,
                 getValue: () => { return IntakeChestSize; },
@@ -234,7 +244,7 @@ namespace SprinklerAttachments.Framework
             {
                 if (helper.ModRegistry.IsLoaded(modId))
                 {
-                    ModEntry.Log($"Apply compatibility changes with BetterSprinklers ({modId})", LogLevel.Trace);
+                    ModEntry.Log($"Apply compatibility with BetterSprinklers ({modId})", LogLevel.Trace);
                     BetterSprinklersApi = helper.ModRegistry.GetApi<Integration.IBetterSprinklersApi>(modId);
                     if (BetterSprinklersApi != null)
                     {
@@ -246,7 +256,7 @@ namespace SprinklerAttachments.Framework
             // Ultimate Fertilizer
             if (helper.ModRegistry.IsLoaded(Integration.IUltimateFertilizerApi.ModId))
             {
-                ModEntry.Log($"Apply compatibility changes with UltimateFertilizer ({Integration.IUltimateFertilizerApi.ModId})", LogLevel.Trace);
+                ModEntry.Log($"Apply compatibility with UltimateFertilizer ({Integration.IUltimateFertilizerApi.ModId})", LogLevel.Trace);
                 UltimateFertilizerApi = helper.ModRegistry.GetApi<Integration.IUltimateFertilizerApi>(Integration.IUltimateFertilizerApi.ModId);
                 if (UltimateFertilizerApi != null)
                 {
@@ -365,15 +375,44 @@ namespace SprinklerAttachments.Framework
             }
         }
 
+
+        public static bool OpenIntakeChest(ICursorPosition cursor)
+        {
+            Vector2 tile;
+            if (Config!.OpenIntakeChestKey.JustPressed())
+            {
+                if (Config!.OpenIntakeChestKey.GetKeybindCurrentlyDown() is Keybind kb &&
+                    kb.Buttons.Any((SButton p) => p >= SButton.MouseLeft && p <= SButton.MouseX2))
+                    tile = cursor.Tile;
+                else
+                    tile = cursor.GrabTile;
+            }
+            else if (Game1.didPlayerJustRightClick())
+            {
+                tile = Game1.player.GetGrabTile();
+            }
+            else
+            {
+                return false;
+            }
+            StardewObject sprinkler = Game1.player.currentLocation.getObjectAtTile((int)tile.X, (int)tile.Y);
+            if (!TryGetIntakeChest(sprinkler, out StardewObject? attachment, out Chest? intakeChest))
+                return false;
+            intakeChest.GetMutex().RequestLock(delegate ()
+            {
+                ShowIntakeChestMenu(intakeChest);
+            });
+            return false;
+        }
+
         /// <summary>
         /// Open intake chest for attachments, if one exists on the sprinkler.
         /// <seealso cref="StardewObject.checkForAction(Farmer, bool)"/>
         /// </summary>
         /// <param name="sprinkler">possible sprinkler object</param>
-        /// <param name="who">player performing action, unused</param>
         /// <param name="justCheckingForActivity">dryrun</param>
         /// <returns>true if intake chest opened</returns>
-        public static bool CheckForAction(StardewObject sprinkler, Farmer who, bool justCheckingForActivity)
+        public static bool CheckForAction(StardewObject sprinkler, bool justCheckingForActivity = false)
         {
             if (!TryGetSprinklerAttachment(sprinkler, out StardewObject? attachment))
                 return false;
@@ -628,7 +667,9 @@ namespace SprinklerAttachments.Framework
         public static bool TryGetSprinklerAttachment(StardewObject sprinkler, [NotNullWhen(true)] out StardewObject? attachment)
         {
             attachment = null;
-            if (sprinkler.IsSprinkler() && sprinkler.heldObject.Value is StardewObject held && held.HasContextTag(ContentModId))
+            if (sprinkler != null &&
+                sprinkler.IsSprinkler() &&
+                sprinkler.heldObject.Value is StardewObject held && held.HasContextTag(ContentModId))
             {
                 attachment = held;
                 return true;
@@ -828,6 +869,7 @@ namespace SprinklerAttachments.Framework
                 if (chestItems[i].Stack <= 0)
                     chestItems[i] = null;
             }
+            chestItems.RemoveEmptySlots();
         }
 
         /// <summary>

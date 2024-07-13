@@ -21,10 +21,10 @@ namespace SprinklerAttachments.Framework
                     original: AccessTools.DeclaredMethod(typeof(StardewObject), nameof(StardewObject.performObjectDropInAction)),
                     postfix: new HarmonyMethod(typeof(GamePatches), nameof(Object_performObjectDropInAction_Postfix))
                 );
-                harmony.Patch(
-                    original: AccessTools.DeclaredMethod(typeof(StardewObject), nameof(StardewObject.checkForAction)),
-                    postfix: new HarmonyMethod(typeof(GamePatches), nameof(Object_checkForAction_Postfix))
-                );
+                // harmony.Patch(
+                //     original: AccessTools.DeclaredMethod(typeof(StardewObject), nameof(StardewObject.checkForAction)),
+                //     postfix: new HarmonyMethod(typeof(GamePatches), nameof(Object_checkForAction_Postfix))
+                // );
                 harmony.Patch(
                     original: AccessTools.DeclaredMethod(typeof(StardewObject), nameof(StardewObject.updateWhenCurrentLocation)),
                     postfix: new HarmonyMethod(typeof(GamePatches), nameof(Object_updateWhenCurrentLocation_Postfix))
@@ -66,7 +66,7 @@ namespace SprinklerAttachments.Framework
         {
             try
             {
-                if (!__result && SprinklerAttachment.CheckForAction(__instance, who, justCheckingForActivity))
+                if (!__result && SprinklerAttachment.CheckForAction(__instance, justCheckingForActivity))
                     __result = true;
             }
             catch (Exception err)

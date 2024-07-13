@@ -53,6 +53,7 @@ namespace MoreVisibleCaskRarity
             {
                 CodeMatcher matcher = new(instructions, generator);
 
+                // Find the arguments to Vector2 position = new Vector2(X, Y) and add our modded offset
                 matcher.Start()
                 .MatchEndForward(new CodeMatch[]{
                     new(OpCodes.Ldsfld, AccessTools.Field(typeof(Game1), nameof(Game1.viewport))),
@@ -62,6 +63,7 @@ namespace MoreVisibleCaskRarity
                     new(OpCodes.Conv_R4)
                 })
                 .InsertAndAdvance(new CodeInstruction[]{
+                    // Just gonna use a constant since no GMCM support anyways
                     // new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(ModEntry), nameof(GetOffsetX))),
                     new(OpCodes.Ldc_I4, config!.OffsetX),
                     new(OpCodes.Add)
@@ -75,6 +77,7 @@ namespace MoreVisibleCaskRarity
                     new(OpCodes.Conv_R4)
                 })
                 .InsertAndAdvance(new CodeInstruction[]{
+                    // Ditto
                     // new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(ModEntry), nameof(GetOffsetY))),
                     new(OpCodes.Ldc_I4, config!.OffsetY),
                     new(OpCodes.Add)
