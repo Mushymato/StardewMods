@@ -30,11 +30,23 @@ namespace SprinklerAttachments.Framework
         public const string Field_IsSowing = $"{SprinklerAttachment.ContentModId}.IsSowing";
         public const string Field_IsPressurize = $"{SprinklerAttachment.ContentModId}.IsPressurize";
 
+        /// <summary>
+        /// Get chest category defined for the attachment
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="ret"></param>
+        /// <returns></returns>
         public static bool TryGetIntakeChestAcceptCategory(ObjectData data, [NotNullWhen(true)] out string? ret)
         {
             return data.CustomFields.TryGetValue(Field_IntakeChestAcceptCategory, out ret);
         }
 
+        /// <summary>
+        /// Get 
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="ret"></param>
+        /// <returns></returns>
         public static bool TryGetModDataIntakeChestAcceptCategory(ModDataDictionary data, [NotNullWhen(true)] out List<int>? ret)
         {
             ret = null;
@@ -378,23 +390,21 @@ namespace SprinklerAttachments.Framework
 
         public static bool OpenIntakeChest(ICursorPosition cursor)
         {
-            Vector2 tile;
             if (Config!.OpenIntakeChestKey.JustPressed())
             {
                 if (Config!.OpenIntakeChestKey.GetKeybindCurrentlyDown() is Keybind kb &&
-                    kb.Buttons.Any((SButton p) => p >= SButton.MouseLeft && p <= SButton.MouseX2))
-                    tile = cursor.Tile;
-                else
-                    tile = cursor.GrabTile;
+                    kb.Buttons.Any((SButton p) => p >= SButton.MouseLeft && p <= SButton.MouseX2) &&
+                    OpenIntakeChestAtTile(cursor.Tile))
+                {
+                    return true;
+                }
+                return OpenIntakeChestAtTile(cursor.GrabTile);
             }
-            else if (Game1.didPlayerJustRightClick())
-            {
-                tile = Game1.player.GetGrabTile();
-            }
-            else
-            {
-                return false;
-            }
+            return false;
+        }
+
+        public static bool OpenIntakeChestAtTile(Vector2 tile)
+        {
             StardewObject sprinkler = Game1.player.currentLocation.getObjectAtTile((int)tile.X, (int)tile.Y);
             if (!TryGetIntakeChest(sprinkler, out StardewObject? attachment, out Chest? intakeChest))
                 return false;
