@@ -392,13 +392,15 @@ namespace SprinklerAttachments.Framework
         {
             if (Config!.OpenIntakeChestKey.JustPressed())
             {
+                ModEntry.Log($"cursor.Tile {cursor.Tile} cursor.GrabTile {cursor.GrabTile} Utility.clampToTile(Game1.player.GetToolLocation()) {Utility.clampToTile(Game1.player.GetToolLocation())}");
+
                 if (Config!.OpenIntakeChestKey.GetKeybindCurrentlyDown() is Keybind kb &&
                     kb.Buttons.Any((SButton p) => p >= SButton.MouseLeft && p <= SButton.MouseX2) &&
                     OpenIntakeChestAtTile(cursor.Tile))
                 {
                     return true;
                 }
-                return OpenIntakeChestAtTile(cursor.GrabTile);
+                return OpenIntakeChestAt(Game1.player.GetToolLocation());
             }
             return false;
         }
@@ -406,6 +408,18 @@ namespace SprinklerAttachments.Framework
         public static bool OpenIntakeChestAtTile(Vector2 tile)
         {
             StardewObject sprinkler = Game1.player.currentLocation.getObjectAtTile((int)tile.X, (int)tile.Y);
+            if (!TryGetIntakeChest(sprinkler, out StardewObject? attachment, out Chest? intakeChest))
+                return false;
+            intakeChest.GetMutex().RequestLock(delegate ()
+            {
+                ShowIntakeChestMenu(intakeChest);
+            });
+            return false;
+        }
+
+        public static bool OpenIntakeChestAt(Vector2 coord)
+        {
+            StardewObject sprinkler = Game1.player.currentLocation.getObjectAt((int)coord.X, (int)coord.Y);
             if (!TryGetIntakeChest(sprinkler, out StardewObject? attachment, out Chest? intakeChest))
                 return false;
             intakeChest.GetMutex().RequestLock(delegate ()
