@@ -392,11 +392,13 @@ namespace SprinklerAttachments.Framework
         {
             if (Config!.OpenIntakeChestKey.JustPressed())
             {
-                ModEntry.Log($"cursor.Tile {cursor.Tile} cursor.GrabTile {cursor.GrabTile} Utility.clampToTile(Game1.player.GetToolLocation()) {Utility.clampToTile(Game1.player.GetToolLocation())}");
-
                 if (Config!.OpenIntakeChestKey.GetKeybindCurrentlyDown() is Keybind kb &&
                     kb.Buttons.Any((SButton p) => p >= SButton.MouseLeft && p <= SButton.MouseX2) &&
                     OpenIntakeChestAtTile(cursor.Tile))
+                {
+                    return true;
+                }
+                if (OpenIntakeChestAtTile(cursor.GrabTile))
                 {
                     return true;
                 }

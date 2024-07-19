@@ -110,25 +110,44 @@ namespace SprinklerAttachments.Framework
                 // IL_0c7f: call bool Netcode.NetBool::op_Implicit(class Netcode.NetBool)
                 // IL_0c84: brfalse IL_0f33
 
+                // matcher = matcher.Start()
+                // .MatchStartForward(new CodeMatch[]{
+                //     // new(OpCodes.Ldarg_0),
+                //     // new(OpCodes.Call, AccessTools.PropertyGetter(typeof(Item), nameof(Item.SpecialVariable))),
+                //     // new(OpCodes.Ldc_I4, 999999),
+                //     // new(OpCodes.Bne_Un)
+                //     new(OpCodes.Ldarg_0),
+                //     new(OpCodes.Ldfld, AccessTools.DeclaredField(typeof(StardewObject), nameof(StardewObject.readyForHarvest))),
+                //     new(OpCodes.Call),
+                //     new(OpCodes.Brfalse)
+                // })
+                // .CreateLabel(out Label lbl1)
+                // .MatchEndBackwards(new CodeMatch[]{
+                //     new(OpCodes.Ldarg_0),
+                //     new(OpCodes.Ldfld, AccessTools.DeclaredField(typeof(StardewObject), nameof(StardewObject.heldObject))),
+                //     new(OpCodes.Callvirt),
+                //     new(OpCodes.Brfalse),
+                //     new(OpCodes.Call),
+                // })
+                // .Insert(new CodeInstruction[]{
+                //     new(OpCodes.Ldarg_0), // StardewObject __instance
+                //     new(OpCodes.Ldarg_1), // SpriteBatch spriteBatch
+                //     new(OpCodes.Ldarg_2), // int x
+                //     new(OpCodes.Ldarg_3), // int y
+                //     new(OpCodes.Ldarg_S, 4), // float alpha = 1f
+                //     new(OpCodes.Call, AccessTools.Method(typeof(SprinklerAttachment), nameof(SprinklerAttachment.DrawAttachment))),
+                //     new(OpCodes.Brtrue_S, lbl1)
+                // })
+                // ;
+
                 matcher = matcher.Start()
-                .MatchStartForward(new CodeMatch[]{
-                    // new(OpCodes.Ldarg_0),
-                    // new(OpCodes.Call, AccessTools.PropertyGetter(typeof(Item), nameof(Item.SpecialVariable))),
-                    // new(OpCodes.Ldc_I4, 999999),
-                    // new(OpCodes.Bne_Un)
+                .MatchEndForward(new CodeMatch[]{
                     new(OpCodes.Ldarg_0),
-                    new(OpCodes.Ldfld, AccessTools.DeclaredField(typeof(StardewObject), nameof(StardewObject.readyForHarvest))),
-                    new(OpCodes.Call),
+                    new(OpCodes.Callvirt, AccessTools.Method(typeof(StardewObject), nameof(StardewObject.IsSprinkler))),
                     new(OpCodes.Brfalse)
-                })
-                .CreateLabel(out Label lbl1)
-                .MatchEndBackwards(new CodeMatch[]{
-                    new(OpCodes.Ldarg_0),
-                    new(OpCodes.Ldfld, AccessTools.DeclaredField(typeof(StardewObject), nameof(StardewObject.heldObject))),
-                    new(OpCodes.Callvirt),
-                    new(OpCodes.Brfalse),
-                    new(OpCodes.Call),
-                })
+                });
+                Label lbl = (Label)matcher.Operand;
+                matcher.Advance(1)
                 .Insert(new CodeInstruction[]{
                     new(OpCodes.Ldarg_0), // StardewObject __instance
                     new(OpCodes.Ldarg_1), // SpriteBatch spriteBatch
@@ -136,9 +155,8 @@ namespace SprinklerAttachments.Framework
                     new(OpCodes.Ldarg_3), // int y
                     new(OpCodes.Ldarg_S, 4), // float alpha = 1f
                     new(OpCodes.Call, AccessTools.Method(typeof(SprinklerAttachment), nameof(SprinklerAttachment.DrawAttachment))),
-                    new(OpCodes.Brtrue_S, lbl1)
-                })
-                ;
+                    new(OpCodes.Brtrue_S, lbl)
+                });
 
                 return matcher.Instructions();
             }

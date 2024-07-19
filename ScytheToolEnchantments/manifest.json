@@ -1,0 +1,17 @@
+{
+    "Name": "Scythe Tool Enchantments",
+    "Author": "mushymato",
+    "Version": "1.0.0",
+    "MinimumApiVersion": "4.0.8",
+    "MinimumGameVersion": "1.6.8",
+    "Description": "Add enchantments to the scythe, with their own rules.",
+    "UniqueID": "mushymato.ScytheToolEnchantments",
+    "UpdateKeys": [],
+    "EntryDll": "ScytheToolEnchantments.dll",
+    "Dependencies": [
+        {
+            "UniqueID": "spacechase0.SpaceCore",
+            "MinimumVersion": "1.23.2"
+        }
+    ]
+}
