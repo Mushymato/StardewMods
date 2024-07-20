@@ -7,12 +7,17 @@ using StardewValley.Internal;
 
 namespace ScytheToolEnchantments.Framework.Enchantments
 {
-    [XmlType($"Mods_mushymato_{nameof(PaleologistEnchantment)}")]
-    public class PaleologistEnchantment : ScytheEnchantment
+    [XmlType($"Mods_mushymato_{nameof(PalaeontologistEnchantment)}")]
+    public class PalaeontologistEnchantment : ScytheEnchantment
     {
         public override string GetName()
         {
-            return I18n.Enchantment_Paleologist_Name();
+            return I18n.Enchantment_Palaeontologist_Name();
+        }
+
+        public override bool CanApplyTo(Item item)
+        {
+            return base.CanApplyTo(item) && ModEntry.Config!.EnablePalaeontologist;
         }
 
         public static bool TryGetRandomBoneItem([NotNullWhen(true)] out Item? boneItem)

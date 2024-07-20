@@ -4,9 +4,11 @@
     "Version": "1.0.0",
     "MinimumApiVersion": "4.0.8",
     "MinimumGameVersion": "1.6.8",
-    "Description": "Add enchantments to the scythe, with their own rules.",
+    "Description": "Add 4 new enchantment effects for the iridium scythe.",
     "UniqueID": "mushymato.ScytheToolEnchantments",
-    "UpdateKeys": [],
+    "UpdateKeys": [
+        "Nexus:26217"
+    ],
     "EntryDll": "ScytheToolEnchantments.dll",
     "Dependencies": [
         {

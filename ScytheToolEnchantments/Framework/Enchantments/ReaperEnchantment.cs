@@ -17,6 +17,11 @@ namespace ScytheToolEnchantments.Framework.Enchantments
             return I18n.Enchantment_Reaper_Name();
         }
 
+        public override bool CanApplyTo(Item item)
+        {
+            return base.CanApplyTo(item) && ModEntry.Config!.EnableReaper;
+        }
+
         protected override void _ApplyTo(Item item)
         {
             base._ApplyTo(item);
@@ -29,7 +34,8 @@ namespace ScytheToolEnchantments.Framework.Enchantments
                 {
                     weapon.minDamage.Value = data.MinDamage * 3 / 4;
                     weapon.maxDamage.Value = data.MinDamage * 3 / 4;
-                    weapon.critChance.Value = 0.1f + (data.CritChance - 0.1f);
+                    weapon.speed.Value = data.Speed;
+                    weapon.critChance.Value = Math.Max(0.02f, data.CritChance / 2f);
                 }
             }
         }
@@ -44,6 +50,7 @@ namespace ScytheToolEnchantments.Framework.Enchantments
                 {
                     weapon.minDamage.Value = data.MinDamage;
                     weapon.maxDamage.Value = data.MaxDamage;
+                    weapon.speed.Value = data.Speed;
                     weapon.critChance.Value = data.CritChance;
                 }
             }
@@ -58,7 +65,7 @@ namespace ScytheToolEnchantments.Framework.Enchantments
                 Vector2 playerPosition = Utility.PointToVector2(who.StandingPixel);
                 // Get another set of drops, like vanilla burglar's ring
                 List<string> objects = new();
-                string[] objectsSplit = ArgUtility.SplitBySpace(result);
+                string[] objectsSplit = ArgUtility.SplitBySpace(result.Split('/')[6]);
                 for (int l = 0; l < objectsSplit.Length; l += 2)
                 {
                     if (Random.Shared.NextDouble() < Convert.ToDouble(objectsSplit[l + 1]))

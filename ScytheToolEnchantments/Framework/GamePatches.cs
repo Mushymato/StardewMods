@@ -1,7 +1,5 @@
-using System.Text;
 using System.Reflection.Emit;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using HarmonyLib;
 using StardewModdingAPI;
 using StardewValley;
@@ -9,11 +7,11 @@ using StardewValley.Extensions;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
 using StardewValley.Enchantments;
-using StardewValley.Monsters;
 using StardewValley.Characters;
 using ScytheToolEnchantments.Framework.Enchantments;
 using StardewValley.ItemTypeDefinitions;
 using StardewObject = StardewValley.Object;
+using StardewValley.Objects;
 
 
 namespace ScytheToolEnchantments.Framework
@@ -53,15 +51,21 @@ namespace ScytheToolEnchantments.Framework
                 // enchant effects
                 harmony.Patch(
                     original: AccessTools.Method(typeof(Tree), nameof(Tree.performToolAction)),
-                    postfix: new HarmonyMethod(typeof(GamePatches), nameof(Tree_performToolAction_Postfix))
-                );
-                harmony.Patch(
-                    original: AccessTools.Method(typeof(Crop), nameof(Crop.harvest)),
-                    postfix: new HarmonyMethod(typeof(GamePatches), nameof(Crop_harvest_Postfix))
+                    prefix: new HarmonyMethod(typeof(GamePatches), nameof(Tree_performToolAction_Prefix))
                 );
                 harmony.Patch(
                     original: AccessTools.Method(typeof(Grass), nameof(Grass.TryDropItemsOnCut)),
                     postfix: new HarmonyMethod(typeof(GamePatches), nameof(Grass_TryDropItemsOnCut_Postfix))
+                );
+                harmony.Patch(
+                    original: AccessTools.Method(typeof(Crop), nameof(Crop.harvest)),
+                    // // plan A: postfix
+                    // postfix: new HarmonyMethod(typeof(GamePatches), nameof(Crop_harvest_Postfix))
+                    // // plan B: transpile
+                    // transpiler: new HarmonyMethod(typeof(GamePatches), nameof(Crop_harvest_Transpiler))
+                    // plan C: prefix save state, postfix make drops
+                    prefix: new HarmonyMethod(typeof(GamePatches), nameof(Crop_harvest_Prefix)),
+                    postfix: new HarmonyMethod(typeof(GamePatches), nameof(Crop_harvest_Postfix))
                 );
             }
             catch (Exception err)
@@ -85,9 +89,6 @@ namespace ScytheToolEnchantments.Framework
                     new(OpCodes.Callvirt, AccessTools.Method(typeof(Tool), nameof(Tool.isScythe))),
                     new(OpCodes.Brtrue)
                 })
-                // .SetOpcodeAndAdvance(OpCodes.Nop)
-                // .SetOpcodeAndAdvance(OpCodes.Nop)
-                // .SetOpcodeAndAdvance(OpCodes.Nop)
                 .Advance(1)
                 .SetInstruction(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(GamePatches), nameof(IsScytheAndNotIridium))))
                 ;
@@ -105,19 +106,12 @@ namespace ScytheToolEnchantments.Framework
         {
             try
             {
-                // vanilla calc for tooltip size is longer than it should be for some reason
                 CodeMatcher matcher = new(instructions, generator);
-                // IL_0091: ldarg.0
-                // IL_0092: callvirt instance bool StardewValley.Tool::isScythe()
-                // IL_0097: brtrue.s IL_00a6
                 matcher.MatchStartForward(new CodeMatch[]{
                     new(OpCodes.Ldarg_0),
                     new(OpCodes.Callvirt, AccessTools.Method(typeof(Tool), nameof(Tool.isScythe))),
                     new(OpCodes.Brtrue_S)
                 })
-                // .SetOpcodeAndAdvance(OpCodes.Nop)
-                // .SetOpcodeAndAdvance(OpCodes.Nop)
-                // .SetOpcodeAndAdvance(OpCodes.Nop)
                 .Advance(1)
                 .SetInstruction(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(GamePatches), nameof(IsScytheAndNotIridium))))
                 ;
@@ -135,16 +129,14 @@ namespace ScytheToolEnchantments.Framework
         {
             try
             {
-                // should technically check for iridium scythe here, but other scythes don't have enchantments to apply anyways
                 CodeMatcher matcher = new(instructions, generator);
                 matcher.MatchStartForward(new CodeMatch[]{
                     new(OpCodes.Ldarg_0),
                     new(OpCodes.Callvirt, AccessTools.Method(typeof(Tool), nameof(Tool.isScythe))),
                     new(OpCodes.Brfalse_S)
                 })
-                .SetOpcodeAndAdvance(OpCodes.Nop)
-                .SetOpcodeAndAdvance(OpCodes.Nop)
-                .SetOpcodeAndAdvance(OpCodes.Br_S)
+                .Advance(1)
+                .SetInstruction(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(GamePatches), nameof(IsScytheAndNotIridium))))
                 ;
 
                 return matcher.Instructions();
@@ -162,7 +154,7 @@ namespace ScytheToolEnchantments.Framework
             {
                 if (enchantmentsInit)
                     return;
-                __result.Add(new PaleologistEnchantment());
+                __result.Add(new PalaeontologistEnchantment());
                 __result.Add(new GathererEnchantment());
                 __result.Add(new HorticulturistEnchantment());
                 __result.Add(new ReaperEnchantment());
@@ -189,8 +181,8 @@ namespace ScytheToolEnchantments.Framework
                 {
                     if (tool.hasEnchantmentOfType<GathererEnchantment>() && Random.Shared.NextBool())
                         Game1.createItemDebris(ItemRegistry.Create("(O)178"), new Vector2(__instance.Tile.X * 64f + 32f, __instance.Tile.Y * 64f + 32f), -1);
-                    if (tool.hasEnchantmentOfType<PaleologistEnchantment>())
-                        PaleologistEnchantment.DropItems(__instance.Tile);
+                    if (tool.hasEnchantmentOfType<PalaeontologistEnchantment>())
+                        PalaeontologistEnchantment.DropItems(__instance.Tile);
                 }
             }
             catch (Exception err)
@@ -199,11 +191,14 @@ namespace ScytheToolEnchantments.Framework
             }
         }
 
-        private static void Tree_performToolAction_Postfix(Tree __instance, Tool t, int explosion, Vector2 tileLocation)
+        private static void Tree_performToolAction_Prefix(Tree __instance, Tool t, int explosion, Vector2 tileLocation)
         {
             try
             {
-                if (t.hasEnchantmentOfType<GathererEnchantment>() && __instance.growthStage.Value >= 5 && __instance.hasMoss.Value && Game1.random.NextBool())
+                if (t != null &&
+                    t.hasEnchantmentOfType<GathererEnchantment>() &&
+                    __instance.growthStage.Value >= 5 &&
+                    __instance.hasMoss.Value)
                 {
                     Item moss = ItemRegistry.Create("(O)Moss", 1);
                     Game1.createItemDebris(moss, new Vector2(tileLocation.X, tileLocation.Y - 1f) * 64f, -1, __instance.Location, Game1.player.StandingPixel.Y - 32);
@@ -215,23 +210,37 @@ namespace ScytheToolEnchantments.Framework
             }
         }
 
-        private static void Crop_harvest_Postfix(Crop __instance, bool __result, int xTile, int yTile, HoeDirt soil, JunimoHarvester junimoHarvester, bool isForcedScytheHarvest)
+        private static void Crop_harvest_Prefix(Crop __instance, ref int __state)
+        {
+            // save dayOfCurrentPhase to __state, for detecting regrow crops
+            __state = __instance.dayOfCurrentPhase.Value;
+        }
+
+        private static void Crop_harvest_Postfix(Crop __instance, bool __result, int __state, int xTile, int yTile, HoeDirt soil, JunimoHarvester junimoHarvester, bool isForcedScytheHarvest)
         {
             try
             {
-
-                if (__result && junimoHarvester == null && Game1.player.CurrentTool.hasEnchantmentOfType<HorticulturistEnchantment>())
+                if ((__result || __state != __instance.dayOfCurrentPhase.Value) &&
+                    isForcedScytheHarvest && junimoHarvester == null &&
+                    Game1.player.CurrentTool.hasEnchantmentOfType<HorticulturistEnchantment>())
                 {
-                    ParsedItemData obj = ItemRegistry.GetDataOrErrorItem(__instance.indexOfHarvest.Value);
-                    if (obj.Category == StardewObject.flowersCategory)
+                    string harvestIndex = __instance.indexOfHarvest.Value;
+                    // special case sunflower seeds
+                    if (harvestIndex == "431")
+                        harvestIndex = "421";
+                    ParsedItemData obj = ItemRegistry.GetDataOrErrorItem(harvestIndex);
+                    if (!obj.IsErrorItem && obj.Category == StardewObject.flowersCategory)
                     {
-                        Game1.createItemDebris(ItemRegistry.Create(__instance.indexOfHarvest.Value, 1), new Vector2(xTile * 64 + 32, yTile * 64 + 32), -1);
+                        Item harvestedItem = __instance.programColored.Value ?
+                            new ColoredObject(harvestIndex, 1, __instance.tintColor.Value) :
+                            ItemRegistry.Create(harvestIndex);
+                        Game1.createItemDebris(harvestedItem.getOne(), new Vector2(xTile * 64 + 32, yTile * 64 + 32), -1);
                     }
                 }
             }
             catch (Exception err)
             {
-                ModEntry.Log($"Error in Tree_performToolAction_Prefix:\n{err}", LogLevel.Error);
+                ModEntry.Log($"Error in Crop_harvest_Postfix:\n{err}", LogLevel.Error);
             }
         }
     }

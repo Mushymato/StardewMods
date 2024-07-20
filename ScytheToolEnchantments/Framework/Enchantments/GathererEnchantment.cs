@@ -13,6 +13,11 @@ namespace ScytheToolEnchantments.Framework.Enchantments
             return I18n.Enchantment_Gatherer_Name();
         }
 
+        public override bool CanApplyTo(Item item)
+        {
+            return base.CanApplyTo(item) && ModEntry.Config!.EnableGatherer;
+        }
+
         protected override void _OnCutWeed(Vector2 tile_location, GameLocation location, Farmer who)
         {
             base._OnCutWeed(tile_location, location, who);

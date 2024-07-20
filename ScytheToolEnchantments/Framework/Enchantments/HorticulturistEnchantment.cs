@@ -1,4 +1,5 @@
 using System.Xml.Serialization;
+using StardewValley;
 
 namespace ScytheToolEnchantments.Framework.Enchantments
 {
@@ -8,6 +9,11 @@ namespace ScytheToolEnchantments.Framework.Enchantments
         public override string GetName()
         {
             return I18n.Enchantment_Horticulturist_Name();
+        }
+
+        public override bool CanApplyTo(Item item)
+        {
+            return base.CanApplyTo(item) && ModEntry.Config!.EnableHorticulturist;
         }
     }
 }
