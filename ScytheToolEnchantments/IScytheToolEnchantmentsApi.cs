@@ -4,16 +4,32 @@ namespace ScytheToolEnchantments
 {
     public interface IScytheToolEnchantmentsApi
     {
-        /// <inheritdoc/>
+        /// <summary>
+        /// Checks if a Tool has GathererEnchantment.
+        /// </summary>
+        /// <param name="tool">Tool instance</param>
+        /// <returns>True if tool has given enchantment</returns>
         public bool HasGathererEnchantment(Tool tool);
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Checks if a Tool has HorticulturistEnchantment.
+        /// </summary>
+        /// <param name="tool">Tool instance</param>
+        /// <returns>True if tool has given enchantment</returns>
         public bool HasHorticulturistEnchantment(Tool tool);
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Checks if a Tool has PalaeontologistEnchantment.
+        /// </summary>
+        /// <param name="tool">Tool instance</param>
+        /// <returns>True if tool has given enchantment</returns>
         public bool HasPalaeontologistEnchantment(Tool tool);
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Checks if a Tool has ReaperEnchantment.
+        /// </summary>
+        /// <param name="tool">Tool instance</param>
+        /// <returns>True if tool has given enchantment</returns>
         public bool HasReaperEnchantment(Tool tool);
     }
 }
