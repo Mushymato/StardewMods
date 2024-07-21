@@ -36,6 +36,11 @@ namespace ScytheToolEnchantments
             mon!.Log(msg, level);
         }
 
+        public override object GetApi()
+        {
+            return new ScytheToolEnchantmentsApi();
+        }
+
         public void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
         {
             RegisterEnchantmentTypes();
