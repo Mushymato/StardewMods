@@ -5,8 +5,9 @@ using StardewValley.GameData;
 using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
 using StardewObject = StardewValley.Object;
+using HarmonyLib;
 
-namespace MachineOutputTweaks
+namespace MiscTweaks
 {
     public class ModEntry : Mod
     {
@@ -16,6 +17,7 @@ namespace MachineOutputTweaks
         public override void Entry(IModHelper helper)
         {
             helper.Events.Content.AssetRequested += OnAssetRequested;
+            AtravitaItemSortTweak.Patch(ModManifest.UniqueID);
         }
 
         private void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
@@ -35,6 +37,11 @@ namespace MachineOutputTweaks
                 MachineData machine = kv.Value;
                 if (machine.IsIncubator || machine.OutputRules == null || !machine.AllowFairyDust || ExcludedMachines.Contains(qItemId))
                     continue;
+
+                if (qItemId == "(BC)24")
+                {
+                    machine.OutputRules.RemoveAll((rule) => rule.Id == "wildflour.gourmetpantry_MayoMachine_butter");
+                }
 
                 foreach (MachineOutputRule rule in machine.OutputRules)
                 {
@@ -92,5 +99,6 @@ namespace MachineOutputTweaks
                 }
             }
         }
+
     }
 }
