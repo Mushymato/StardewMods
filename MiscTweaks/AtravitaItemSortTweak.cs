@@ -21,34 +21,33 @@ internal static class AtravitaItemSortTweak
             prefix: new HarmonyMethod(AccessTools.Method(typeof(AtravitaItemSortTweak), nameof(Item_CompareTo_Prefix)))
         );
 
-        patcher.Patch(
-            original: AccessTools.Method(typeof(Crop), nameof(Crop.harvest)),
-            prefix: new HarmonyMethod(typeof(AtravitaItemSortTweak), nameof(Test_Prefix)),
-            transpiler: new HarmonyMethod(typeof(AtravitaItemSortTweak), nameof(Test_Transpiler))
-        );
+        // patcher.Patch(
+        //     original: AccessTools.Method(typeof(Crop), nameof(Crop.harvest)),
+        //     prefix: new HarmonyMethod(typeof(AtravitaItemSortTweak), nameof(Test_Prefix)),
+        //     transpiler: new HarmonyMethod(typeof(AtravitaItemSortTweak), nameof(Test_Transpiler))
+        // );
     }
 
-    private static void Test_Prefix()
-    {
-        Console.WriteLine($"DEBUG: {Game1.player.professions.Contains(1)}");
-    }
+    // private static void Test_Prefix()
+    // {
+    //     Console.WriteLine($"DEBUG: {Game1.player.professions.Contains(1)}");
+    // }
 
-    private static IEnumerable<CodeInstruction> Test_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        CodeMatcher matcher = new(instructions, generator);
+    // private static IEnumerable<CodeInstruction> Test_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    // {
+    //     CodeMatcher matcher = new(instructions, generator);
 
-        matcher
-        .Start()
-        .MatchEndForward(new CodeMatch[]{
-            new(OpCodes.Call, AccessTools.PropertyGetter(typeof(Game1), nameof(Game1.player))),
-            new(OpCodes.Ldfld, AccessTools.Field(typeof(Farmer), nameof(Farmer.professions))),
-            new(OpCodes.Ldc_I4_S, (sbyte) 16),
-        })
-        .SetOperandAndAdvance((sbyte)1)
-        ;
+    //     matcher
+    //     .Start()
+    //     .MatchEndForward(new CodeMatch[]{
+    //         new(OpCodes.Call, AccessTools.PropertyGetter(typeof(Game1), nameof(Game1.player))),
+    //         new(OpCodes.Ldfld, AccessTools.Field(typeof(Farmer), nameof(Farmer.professions))),
+    //         new(OpCodes.Ldc_I4_S, (sbyte) 16),
+    //     });
+    //     matcher.Operand = (sbyte)1;
 
-        return matcher.Instructions();
-    }
+    //     return matcher.Instructions();
+    // }
 
     private static bool Item_CompareTo_Prefix(Item __instance, object other, ref int __result)
     {
