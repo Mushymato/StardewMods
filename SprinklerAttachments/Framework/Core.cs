@@ -961,7 +961,7 @@ namespace SprinklerAttachments.Framework
             if (!Crop.TryGetData(itemId, out cropData) || cropData.Seasons.Count == 0)
                 return false;
             Point tilePos = Utility.Vector2ToPoint(dirt.Tile);
-            bool isGardenPot = location.objects.TryGetValue(dirt.Tile, out StardewObject obj) && obj is IndoorPot;
+            bool isGardenPot = dirt.Pot is not null;
 
             if (!isGardenPot)
             {
