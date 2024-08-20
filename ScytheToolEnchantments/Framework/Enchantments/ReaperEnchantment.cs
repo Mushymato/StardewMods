@@ -56,12 +56,12 @@ namespace ScytheToolEnchantments.Framework.Enchantments
             }
         }
 
-        protected override void _OnMonsterSlay(Monster m, GameLocation location, Farmer who)
+        public override void OnMonsterSlay(Monster monster, GameLocation location, Farmer who, bool slainByBomb)
         {
-            base._OnMonsterSlay(m, location, who);
-            if (DataLoader.Monsters(Game1.content).TryGetValue(m.Name, out var result))
+            base.OnMonsterSlay(monster, location, who, slainByBomb);
+            if (DataLoader.Monsters(Game1.content).TryGetValue(monster.Name, out var result))
             {
-                Vector2 monsterPosition = Utility.PointToVector2(m.StandingPixel);
+                Vector2 monsterPosition = Utility.PointToVector2(monster.StandingPixel);
                 Vector2 playerPosition = Utility.PointToVector2(who.StandingPixel);
                 // Get another set of drops, like vanilla burglar's ring
                 List<string> objects = new();
@@ -79,11 +79,11 @@ namespace ScytheToolEnchantments.Framework.Enchantments
                     string objectToAdd = objects[k];
                     if (objectToAdd != null && objectToAdd.StartsWith('-') && int.TryParse(objectToAdd, out var parsedIndex))
                     {
-                        location.debris.Add(m.ModifyMonsterLoot(new Debris(Math.Abs(parsedIndex), Random.Shared.Next(1, 4), monsterPosition, playerPosition)));
+                        location.debris.Add(monster.ModifyMonsterLoot(new Debris(Math.Abs(parsedIndex), Random.Shared.Next(1, 4), monsterPosition, playerPosition)));
                     }
                     else
                     {
-                        location.debris.Add(m.ModifyMonsterLoot(new Debris(objectToAdd, monsterPosition, playerPosition)));
+                        location.debris.Add(monster.ModifyMonsterLoot(new Debris(objectToAdd, monsterPosition, playerPosition)));
                     }
                 }
             }

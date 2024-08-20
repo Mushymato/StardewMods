@@ -1,12 +1,12 @@
 // https://github.com/atravita-mods/StardewMods/blob/1db0a9587f1f5963a2f7e09ebd40824f351326c4/ExperimentalLagReduction/HarmonyPatches/MiniChanges/ItemSortRewrite.cs
 using HarmonyLib;
-using System.Reflection.Emit;
 
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Extensions;
 using StardewValley.Menus;
 using StardewValley.Objects;
+using StardewValley.Objects.Trinkets;
 using SObject = StardewValley.Object;
 
 namespace MiscTweaks;
@@ -95,7 +95,7 @@ internal static class AtravitaItemSortTweak
             TrinketEffect myData = me.GetEffect();
             TrinketEffect otherData = otherTrinket.GetEffect();
 
-            __result = myData.general_stat_1 - otherData.general_stat_1;
+            __result = myData.GeneralStat - otherData.GeneralStat;
             if (__result != 0)
             {
                 return false;
