@@ -1,5 +1,4 @@
 ﻿using System.Reflection.Emit;
-using Microsoft.Xna.Framework;
 using HarmonyLib;
 using StardewModdingAPI;
 using StardewValley;
