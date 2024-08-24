@@ -390,7 +390,7 @@ namespace SprinklerAttachments.Framework
 
         public static bool OpenIntakeChest(ICursorPosition cursor)
         {
-            if (Config!.OpenIntakeChestKey.JustPressed())
+            if (Game1.activeClickableMenu == null && Config!.OpenIntakeChestKey.JustPressed())
             {
                 if (Config!.OpenIntakeChestKey.GetKeybindCurrentlyDown() is Keybind kb &&
                     kb.Buttons.Any((SButton p) => p >= SButton.MouseLeft && p <= SButton.MouseX2) &&
