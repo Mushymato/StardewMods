@@ -1,0 +1,12 @@
+﻿{
+  "Name": "CustomBuilderTileAction",
+  "Author": "mushymato",
+  "Version": "0.1.0",
+  "Description": "Description of the mod",
+  "UniqueID": "mushymato.CustomBuilderTileAction",
+  "EntryDll": "CustomBuilderTileAction.dll",
+  "MinimumApiVersion": "4.0.5",
+  "UpdateKeys": [
+    "Nexus:???",
+  ]
+}

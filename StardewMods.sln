@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScytheToolEnchantments", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiscTweaks", "MiscTweaks\MiscTweaks.csproj", "{E067A665-52E1-424E-BD51-826AB892ED26}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomBuilderTileAction", "CustomBuilderTileAction\CustomBuilderTileAction.csproj", "{B232C335-80C5-46D4-BB01-1A9BF835F0C0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{E067A665-52E1-424E-BD51-826AB892ED26}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E067A665-52E1-424E-BD51-826AB892ED26}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E067A665-52E1-424E-BD51-826AB892ED26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B232C335-80C5-46D4-BB01-1A9BF835F0C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B232C335-80C5-46D4-BB01-1A9BF835F0C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B232C335-80C5-46D4-BB01-1A9BF835F0C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B232C335-80C5-46D4-BB01-1A9BF835F0C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
