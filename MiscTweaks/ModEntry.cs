@@ -5,7 +5,6 @@ using StardewValley.GameData;
 using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
 using StardewObject = StardewValley.Object;
-using HarmonyLib;
 
 namespace MiscTweaks
 {

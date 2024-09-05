@@ -78,18 +78,15 @@ namespace SpecialOrderNotifications.Framework
             }
             else
             {
-                int extraM = (int)Math.Floor(stringSize.X / 4 - 15);
+                int extraM = Math.Max(0, (int)Math.Floor(stringSize.X / 4 - 15));
                 basePosition.X -= extraM * 4;
                 // left (square) and first segment
                 b.Draw(Game1.mouseCursors_1_6, basePosition, new(257, 228, 31, 18), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.9f);
                 b.Draw(questPingTexture, basePosition + new Vector2(1f, 1f) * 4f, questPingSourceRect, Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.91f);
-                // extra middle segments
+                // extra middle segment
                 Vector2 offset = new(31f, 0f);
-                for (int i = 0; i < extraM; i++)
-                {
-                    b.Draw(Game1.mouseCursors_1_6, basePosition + offset * 4f, new(287, 228, 1, 18), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.9f);
-                    offset.X += 1;
-                }
+                b.Draw(Game1.mouseCursors_1_6, basePosition + offset * 4f, new(287, 228, 1, 18), Color.White, 0f, Vector2.Zero, new Vector2(4f * extraM, 4f), SpriteEffects.None, 0.9f);
+                offset.X += extraM;
                 // tail
                 b.Draw(Game1.mouseCursors_1_6, basePosition + offset * 4f, new(288, 228, 8, 18), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.9f);
                 basePosition.X += extraM / 2;
