@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiscTweaks", "MiscTweaks\Mi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomBuilderTileAction", "CustomBuilderTileAction\CustomBuilderTileAction.csproj", "{B232C335-80C5-46D4-BB01-1A9BF835F0C0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MachineControlPanel", "MachineControlPanel\MachineControlPanel.csproj", "{1FDE4431-768F-4E33-B112-6B7D85630FAF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{B232C335-80C5-46D4-BB01-1A9BF835F0C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B232C335-80C5-46D4-BB01-1A9BF835F0C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B232C335-80C5-46D4-BB01-1A9BF835F0C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1FDE4431-768F-4E33-B112-6B7D85630FAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FDE4431-768F-4E33-B112-6B7D85630FAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FDE4431-768F-4E33-B112-6B7D85630FAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FDE4431-768F-4E33-B112-6B7D85630FAF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,9 @@
+{
+    "config.control-panel-key.name": "Control Panel Key",
+    "config.control-panel-key.description": "Key used to show the control panel on a machine",
+    "rule-list.title": "Machine Rules",
+    "rule-list.inputs": "Input",
+    "rule-list.output": "Output",
+    "rule-list.same-as-input": "Same as Input",
+    "rule-list.complex-input": "Complex Input"
+}

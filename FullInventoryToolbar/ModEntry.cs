@@ -7,7 +7,6 @@ using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
 using System.Reflection.Emit;
-using System.Globalization;
 using StardewValley.Inventories;
 
 

@@ -1,0 +1,11 @@
+{
+    "Name": "Machine Control Panel",
+    "Author": "mushymato",
+    "Version": "1.0.0",
+    "MinimumApiVersion": "4.0.0",
+    "MinimumGameVersion": "1.6.0",
+    "Description": "A control panel for machine rules.",
+    "UniqueID": "mushymato.MachineControlPanel",
+    "UpdateKeys": [],
+    "EntryDll": "MachineControlPanel.dll"
+}
