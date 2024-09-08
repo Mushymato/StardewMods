@@ -39,7 +39,7 @@ namespace MachineControlPanel.Framework.UI
 
         internal static IconEdge QuestionIcon => new(new(Game1.mouseCursors, new Rectangle(240, 192, 16, 16)), Edges.NONE);
         // internal static Sprite GreenStar => new(Game1.mouseCursors_1_6, new Rectangle(457, 298, 11, 11));
-        internal static IconEdge EmojiX => new(new(ChatBox.emojiTexture, new Rectangle(45, 81, 9, 9)), new(14, 14), 4f);
+        internal static IconEdge EmojiX => new(new(ChatBox.emojiTexture, new Rectangle(45, 81, 9, 9)), new(14), 4f);
         internal static IconEdge EmojiExclaim => new(new(ChatBox.emojiTexture, new Rectangle(54, 81, 9, 9)), new(0, 37, 0, 0), 3f);
         internal static IconEdge EmojiNote => new(new(ChatBox.emojiTexture, new Rectangle(81, 81, 9, 9)), Edges.NONE, 3f);
         internal static IconEdge EmojiBolt => new(new(ChatBox.emojiTexture, new Rectangle(36, 63, 9, 9)), new(37, 0, 0, 0), 3f);
@@ -227,6 +227,7 @@ namespace MachineControlPanel.Framework.UI
                 {
                     if (ItemRegistry.Create(realTag[21..]) is Item item)
                     {
+                        // sturgeon >:(
                         return new Tuple<Color, string>(
                             item.QualifiedItemId == "(O)698" ? new Color(61, 55, 42) : TailoringMenu.GetDyeColor(item) ?? Color.Orange,
                             item.DisplayName

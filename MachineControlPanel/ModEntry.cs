@@ -1,7 +1,9 @@
-﻿using MachineControlPanel.Framework;
-using StardewModdingAPI;
+﻿using StardewModdingAPI;
 using StardewModdingAPI.Events;
+using StardewValley;
 using StardewUI;
+using MachineControlPanel.Framework;
+using MachineControlPanel.Framework.UI;
 
 namespace MachineControlPanel
 {
@@ -16,6 +18,12 @@ namespace MachineControlPanel
             helper.Events.Input.ButtonsChanged += OnButtonsChanged;
 
             Logger.Monitor = Monitor;
+
+            helper.ConsoleCommands.Add(
+                "show_focus_test",
+                "Show focus test.",
+                ConsoleShowFocusTest
+            );
         }
 
         private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
@@ -32,5 +40,9 @@ namespace MachineControlPanel
             machineControl = new MachineControl(Helper, Monitor, config);
         }
 
+        public static void ConsoleShowFocusTest(string command, string[] args)
+        {
+            Game1.activeClickableMenu = new FocusTestMenu();
+        }
     }
 }

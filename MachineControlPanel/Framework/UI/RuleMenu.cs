@@ -1,5 +1,4 @@
 using StardewUI;
-using StardewValley.GameData.Machines;
 
 namespace MachineControlPanel.Framework.UI
 {
