@@ -5,6 +5,7 @@ using StardewValley.GameData;
 using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
 using StardewObject = StardewValley.Object;
+using HarmonyLib;
 
 namespace MiscTweaks
 {
@@ -16,7 +17,8 @@ namespace MiscTweaks
         public override void Entry(IModHelper helper)
         {
             helper.Events.Content.AssetRequested += OnAssetRequested;
-            AtravitaItemSortTweak.Patch(ModManifest.UniqueID);
+            Harmony patcher = new(ModManifest.UniqueID);
+            AtravitaItemSortTweak.Patch(patcher);
         }
 
         private void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
