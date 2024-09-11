@@ -1,3 +1,4 @@
+global using RuleIdent = System.Tuple<string, string, int>;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
 using StardewValley;
@@ -10,7 +11,7 @@ using StardewValley.Menus;
 using StardewValley.TokenizableStrings;
 
 
-namespace MachineControlPanel.Framework.UI
+namespace MachineControlPanel.Framework
 {
     internal record IconEdge(
         Sprite Img,
@@ -25,11 +26,13 @@ namespace MachineControlPanel.Framework.UI
     );
 
     internal record RuleEntry(
-        string BC_Id,
-        string Id,
+        RuleIdent Ident,
         List<RuleItem> Inputs,
         List<RuleItem> Outputs
-    );
+    )
+    {
+        internal string Repr => $"{Ident.Item2}.{Ident.Item3}";
+    };
 
     internal class RuleHelper(SObject bigCraftable, MachineData machine)
     {
@@ -40,9 +43,9 @@ namespace MachineControlPanel.Framework.UI
         internal static IconEdge QuestionIcon => new(new(Game1.mouseCursors, new Rectangle(240, 192, 16, 16)), Edges.NONE);
         // internal static Sprite GreenStar => new(Game1.mouseCursors_1_6, new Rectangle(457, 298, 11, 11));
         internal static IconEdge EmojiX => new(new(ChatBox.emojiTexture, new Rectangle(45, 81, 9, 9)), new(14), 4f);
-        internal static IconEdge EmojiExclaim => new(new(ChatBox.emojiTexture, new Rectangle(54, 81, 9, 9)), new(0, 37, 0, 0), 3f);
+        internal static IconEdge EmojiExclaim => new(new(ChatBox.emojiTexture, new Rectangle(54, 81, 9, 9)), new(Top: 37), 3f);
         internal static IconEdge EmojiNote => new(new(ChatBox.emojiTexture, new Rectangle(81, 81, 9, 9)), Edges.NONE, 3f);
-        internal static IconEdge EmojiBolt => new(new(ChatBox.emojiTexture, new Rectangle(36, 63, 9, 9)), new(37, 0, 0, 0), 3f);
+        internal static IconEdge EmojiBolt => new(new(ChatBox.emojiTexture, new Rectangle(36, 63, 9, 9)), new(Left: 37), 3f);
         internal static IEnumerable<IconEdge> Number(int num)
         {
             int offset = 44;
@@ -197,12 +200,11 @@ namespace MachineControlPanel.Framework.UI
                     }
                 }
 
-
+                int seq = 0;
                 foreach (List<RuleItem> inputLine in inputs)
                 {
                     entries.Add(new RuleEntry(
-                        bigCraftable.QualifiedItemId,
-                        rule.Id,
+                        new(bigCraftable.QualifiedItemId, rule.Id, seq++),
                         inputLine,
                         outputLine
                     ));
