@@ -6,7 +6,7 @@ using StardewValley;
 using StardewValley.Extensions;
 using StardewValley.Menus;
 using StardewValley.Objects;
-using StardewValley.Objects.Trinkets;
+// using StardewValley.Objects.Trinkets;
 using SObject = StardewValley.Object;
 
 namespace MiscTweaks;
@@ -61,18 +61,18 @@ internal static class AtravitaItemSortTweak
             return false;
         }
 
-        // sort by level for trinkets
-        if (__instance is Trinket me && otherItem is Trinket otherTrinket)
-        {
-            TrinketEffect myData = me.GetEffect();
-            TrinketEffect otherData = otherTrinket.GetEffect();
+        // // sort by level for trinkets
+        // if (__instance is Trinket me && otherItem is Trinket otherTrinket)
+        // {
+        //     TrinketEffect myData = me.GetEffect();
+        //     TrinketEffect otherData = otherTrinket.GetEffect();
 
-            __result = myData.GeneralStat - otherData.GeneralStat;
-            if (__result != 0)
-            {
-                return false;
-            }
-        }
+        //     __result = myData.GeneralStat - otherData.GeneralStat;
+        //     if (__result != 0)
+        //     {
+        //         return false;
+        //     }
+        // }
 
         // sort by preserve ID for preserves.
         if (__instance is SObject myObj && myObj.HasTypeObject() && otherItem is SObject otherObj && otherObj.HasTypeObject())

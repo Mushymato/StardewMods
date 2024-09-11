@@ -11,14 +11,22 @@ namespace MiscTweaks
 {
     public class ModEntry : Mod
     {
+        private static IMonitor? mon = null;
         private static readonly string[] ExcludedMachines = {
             "(BC)20", // recycling machine
         };
         public override void Entry(IModHelper helper)
         {
+            mon = Monitor;
             helper.Events.Content.AssetRequested += OnAssetRequested;
             Harmony patcher = new(ModManifest.UniqueID);
             AtravitaItemSortTweak.Patch(patcher);
+            StackCountChanges.Patch(patcher);
+        }
+
+        public static void Log(string msg, LogLevel level = LogLevel.Debug)
+        {
+            mon!.Log(msg, level);
         }
 
         private void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
