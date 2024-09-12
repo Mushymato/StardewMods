@@ -43,22 +43,12 @@ namespace MachineControlPanel
         {
             saveData = Helper.Data.ReadSaveData<ModSaveData>(SAVEDATA) ?? new();
             saveData.Version = ModManifest.Version;
-            Console.WriteLine("OnSaveLoaded");
-            foreach (var d in saveData.Disabled)
-            {
-                Console.WriteLine(d);
-            }
         }
 
         private void OnDayEnding(object? sender, DayEndingEventArgs e)
         {
             if (saveData != null)
             {
-                Console.WriteLine("OnSaving");
-                foreach (var d in saveData.Disabled)
-                {
-                    Console.WriteLine(d);
-                }
                 Helper.Data.WriteSaveData(SAVEDATA, saveData);
             }
             else
@@ -72,25 +62,12 @@ namespace MachineControlPanel
             ShowPanel();
         }
 
-        private void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
-        {
-            if (e.Name.IsEquivalentTo("Data/Machines"))
-            {
-                e.Edit(EditDataMachines, AssetEditPriority.Late);
-            }
-        }
-
         private void SaveMachineRules(HashSet<RuleIdent> enabled, HashSet<RuleIdent> disabled)
         {
             if (saveData != null)
             {
                 saveData.Disabled.ExceptWith(enabled);
                 saveData.Disabled.UnionWith(disabled);
-                Console.WriteLine("SaveMachineRules");
-                foreach (var d in saveData.Disabled)
-                {
-                    Console.WriteLine(d);
-                }
                 Helper.Data.WriteSaveData(SAVEDATA, saveData);
                 return;
             }
@@ -134,15 +111,6 @@ namespace MachineControlPanel
             );
 
             return true;
-        }
-
-        private void EditDataMachines(IAssetData asset)
-        {
-
-            IDictionary<string, MachineData> data = asset.AsDictionary<string, MachineData>().Data;
-            foreach (KeyValuePair<string, MachineData> kv in data)
-            {
-            }
         }
 
         internal static void Log(string msg, LogLevel level = LogLevel.Debug)

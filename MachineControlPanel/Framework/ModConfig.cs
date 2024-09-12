@@ -5,7 +5,7 @@ namespace MachineControlPanel.Framework
 {
     internal sealed class ModConfig
     {
-        public KeybindList ControlPanelKey { get; set; } = KeybindList.Parse($"{SButton.LeftControl}+{SButton.M}");
+        public KeybindList ControlPanelKey { get; set; } = KeybindList.Parse($"{SButton.Tab}+{SButton.Q}");
 
         private void Reset()
         {

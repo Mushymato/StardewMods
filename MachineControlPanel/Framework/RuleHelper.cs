@@ -1,6 +1,7 @@
 global using RuleIdent = System.Tuple<string, string, string>;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
@@ -13,6 +14,7 @@ using StardewValley.TokenizableStrings;
 
 namespace MachineControlPanel.Framework
 {
+    // suspect i ought to just use sprite with nineslice stuff unclear
     internal record IconEdge(
         Sprite Img,
         Edges Edg,
@@ -39,7 +41,7 @@ namespace MachineControlPanel.Framework
     {
         internal const string PLACEHOLDER_TRIGGER = "PLACEHOLDER_TRIGGER";
 
-        internal static Dictionary<string, Sprite> contextTagSpriteCache = [];
+        internal static Dictionary<string, RuleItem?> contextTagSpriteCache = [];
 
         internal string Name => bigCraftable.DisplayName;
 
@@ -64,6 +66,15 @@ namespace MachineControlPanel.Framework
                 offset -= 12;
                 num /= 10;
             }
+        }
+        internal static IconEdge Quality(int quality)
+        {
+            return new(
+                new(Game1.mouseCursors,
+                (quality < 4) ? new Rectangle(338 + (quality - 1) * 8, 400, 8, 8) : new Rectangle(346, 392, 8, 8)),
+                new(Top: 37),
+                3
+            );
         }
 
         private readonly SObject bigCraftable;
@@ -130,6 +141,11 @@ namespace MachineControlPanel.Framework
                                 icons.Add(EmojiExclaim);
                                 tooltip.AddRange(output.Condition.Split(','));
                             }
+                            icons.AddRange(Number(res.Item.Stack));
+                            if (output.Quality > 0)
+                            {
+                                icons.Add(Quality(output.Quality));
+                            }
                             tooltip.Add(itemData.DisplayName);
                             outputLine.Add(new RuleItem(icons, tooltip));
                         }
@@ -178,25 +194,33 @@ namespace MachineControlPanel.Framework
                             }
                         }
                     }
+                    List<string> negateTags = [];
                     if (trigger.RequiredTags != null)
                     {
-                        inputLine.AddRange(GetContextTagRuleItem(trigger.RequiredTags, context));
+                        inputLine.AddRange(GetContextTagRuleItem(trigger.RequiredTags, context, ref negateTags));
                     }
                     if (inputLine.Count > 0)
                     {
+                        bool needExclaim = false;
+                        if (negateTags.Count > 0)
+                        {
+                            inputLine.Last().Tooltip.InsertRange(0, negateTags);
+                            needExclaim = true;
+                        }
                         if (trigger.Condition != null)
                         {
-                            inputLine.Last().Icons.Add(EmojiExclaim);
                             inputLine.Last().Tooltip.InsertRange(0, trigger.Condition.Split(','));
+                            needExclaim = true;
                         }
+                        if (needExclaim)
+                            inputLine.Last().Icons.Add(EmojiExclaim);
+
                         if (trigger.RequiredCount > 0)
-                        {
                             inputLine.Last().Icons.AddRange(Number(trigger.RequiredCount));
-                        }
+
                         if (sharedFuel.Count > 0)
-                        {
                             inputLine.AddRange(sharedFuel);
-                        }
+
                         inputs.Add(new(
                             trigger.Id,
                             trigger.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine),
@@ -259,19 +283,26 @@ namespace MachineControlPanel.Framework
             return null;
         }
 
-        internal static List<RuleItem> GetContextTagRuleItem(List<string> tags, ItemQueryContext context)
+        internal static List<RuleItem> GetContextTagRuleItem(List<string> tags, ItemQueryContext context, ref List<string> negateTags)
         {
             List<RuleItem> rules = [];
+            List<RuleItem> negateRules = [];
             foreach (string tag in tags)
             {
-                List<IconEdge> icons = [];
                 bool negate = tag.StartsWith('!');
                 string realTag = negate ? tag[1..] : tag;
-                bool showNote = true;
-                string tooltip = realTag;
-                float alpha = 0.5f;
-                if (!contextTagSpriteCache.TryGetValue(realTag, out Sprite? icon))
+                if (contextTagSpriteCache.TryGetValue(tag, out RuleItem? ctxTag))
                 {
+                    // tag was resolved before, and no valid item was found
+                    if (ctxTag == null)
+                        continue;
+                }
+                else
+                {
+                    bool showNote = true;
+                    string tooltip = realTag;
+                    float alpha = 0.5f;
+
                     ParsedItemData? itemData = null;
                     // id based tags
                     if (realTag.StartsWith("id_"))
@@ -301,26 +332,52 @@ namespace MachineControlPanel.Framework
                         itemData = ItemRegistry.GetData(item.QualifiedItemId);
                     }
                     if (itemData == null)
+                    {
+                        contextTagSpriteCache[realTag] = null;
                         continue;
+                    }
 
-                    icon = new Sprite(itemData.GetTexture(), itemData.GetSourceRect());
-                    contextTagSpriteCache[realTag] = icon;
+                    // ctxTag = new(icon, showNote, tooltip, alpha);
+                    // contextTagSpriteCache[realTag] = ctxTag;
+
+                    List<IconEdge> icons = [];
+                    icons.Add(new(new(itemData.GetTexture(), itemData.GetSourceRect()), Edges.NONE, Tint: Color.White * alpha));
+                    if (showNote)
+                        icons.Add(EmojiNote);
+
+                    if (negate)
+                    {
+                        icons.Add(EmojiX);
+                        ctxTag = new RuleItem(icons, [$"NOT {tooltip}"]);
+                    }
+                    else
+                    {
+                        ctxTag = new RuleItem(icons, [tooltip]);
+                    }
+
                 }
 
-                icons.Add(new(icon, Edges.NONE, Tint: Color.White * alpha));
-                if (showNote)
-                    icons.Add(EmojiNote);
                 if (negate)
                 {
-                    icons.Add(EmojiX);
-                    rules.Insert(0, new RuleItem(icons, [$"NOT {tooltip}"]));
+                    negateRules.Add(ctxTag);
                 }
                 else
                 {
-                    rules.Add(new RuleItem(icons, [tooltip]));
+                    rules.Add(ctxTag);
                 }
-
             }
+
+
+            if (negateRules.Count > 0)
+            {
+                if (rules.Count == 0)
+                    return negateRules;
+                foreach (RuleItem ctxTag in negateRules)
+                {
+                    negateTags.AddRange(ctxTag.Tooltip);
+                }
+            }
+
             return rules;
         }
     }
