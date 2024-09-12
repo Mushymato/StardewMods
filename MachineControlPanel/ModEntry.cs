@@ -7,6 +7,7 @@ using StardewValley;
 using MachineControlPanel.Framework;
 using MachineControlPanel.Framework.UI;
 using SObject = StardewValley.Object;
+using HarmonyLib;
 
 namespace MachineControlPanel
 {
@@ -14,7 +15,9 @@ namespace MachineControlPanel
     {
         private const string SAVEDATA = "save-machine-rules";
         private ModConfig? config = null;
-        private ModSaveData? saveData = null;
+        private static IMonitor? mon = null;
+        private static ModSaveData? saveData = null;
+        internal static ModSaveData SaveData => saveData!;
 
         public override void Entry(IModHelper helper)
         {
@@ -25,25 +28,20 @@ namespace MachineControlPanel
             helper.Events.Input.ButtonsChanged += OnButtonsChanged;
 
             Logger.Monitor = Monitor;
+            mon = Monitor;
         }
 
         private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
         {
             config = Helper.ReadConfig<ModConfig>();
             config.Register(Helper, ModManifest);
+            Harmony harmony = new(ModManifest.UniqueID);
+            GamePatches.Apply(harmony);
         }
 
         private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
         {
-            saveData = Helper.Data.ReadSaveData<ModSaveData>(SAVEDATA);
-            if (saveData == null)
-            {
-                saveData = new()
-                {
-                    Version = ModManifest.Version
-                };
-                return;
-            }
+            saveData = Helper.Data.ReadSaveData<ModSaveData>(SAVEDATA) ?? new();
             saveData.Version = ModManifest.Version;
             Console.WriteLine("OnSaveLoaded");
             foreach (var d in saveData.Disabled)
@@ -101,7 +99,7 @@ namespace MachineControlPanel
 
         private bool ShowPanel()
         {
-            if (Game1.activeClickableMenu == null && config!.ControlPanelKey.JustPressed())
+            if (Game1.IsMasterGame && Game1.activeClickableMenu == null && config!.ControlPanelKey.JustPressed())
             {
                 // ICursorPosition.GrabTile is unreliable with gamepad controls. Instead recreate game logic.
                 Vector2 cursorTile = Game1.currentCursorTile;
@@ -125,9 +123,12 @@ namespace MachineControlPanel
             if (machine.IsIncubator || machine.OutputRules == null || !machine.AllowFairyDust)
                 return false;
 
-            // DebugPrintMachineRules(machine);
+            RuleHelper ruleHelper = new(bigCraftable, machine);
+            if (ruleHelper.RuleEntries.Count == 0)
+                return false;
+
             Game1.activeClickableMenu = new RuleMenu(
-                new RuleHelper(bigCraftable, machine),
+                ruleHelper,
                 saveData!.Disabled,
                 SaveMachineRules
             );
@@ -144,9 +145,9 @@ namespace MachineControlPanel
             }
         }
 
-        internal void Log(string msg, LogLevel level = LogLevel.Debug)
+        internal static void Log(string msg, LogLevel level = LogLevel.Debug)
         {
-            Monitor.Log(msg, level);
+            mon!.Log(msg, level);
         }
     }
 }

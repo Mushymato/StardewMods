@@ -10,7 +10,7 @@ namespace MachineControlPanel.Framework.UI
         private const int GUTTER_HEIGHT = 350;
         private static Sprite RightCaret => new(Game1.mouseCursors, new(448, 96, 24, 32));
         private static LayoutParameters IconLayout => LayoutParameters.FixedSize(64, 64);
-        private static readonly List<RuleCheckbox> RuleCheckboxes = [];
+        private static readonly List<RuleCheckBox> RuleCheckboxes = [];
 
         protected override IView CreateView()
         {
@@ -34,13 +34,15 @@ namespace MachineControlPanel.Framework.UI
 
         protected IView CreateSaveButtons()
         {
-            TextButton saveLabel = new()
+
+
+            Button saveLabel = new(hoverBackgroundSprite: UiSprites.ButtonLight)
             {
                 Text = I18n.RuleList_Save()
             };
             saveLabel.Click += OnSaveClick;
 
-            TextButton resetLabel = new()
+            Button resetLabel = new(hoverBackgroundSprite: UiSprites.ButtonLight)
             {
                 Text = I18n.RuleList_Reset()
             };
@@ -56,12 +58,12 @@ namespace MachineControlPanel.Framework.UI
 
         private void OnSaveClick(object? sender, ClickEventArgs e)
         {
-            if (sender is not Banner)
+            if (sender is not Button)
                 return;
 
             HashSet<RuleIdent> newEnabled = [];
             HashSet<RuleIdent> newDisabled = [];
-            foreach (RuleCheckbox checkbox in RuleCheckboxes)
+            foreach (RuleCheckBox checkbox in RuleCheckboxes)
             {
                 if (checkbox.IsChecked)
                     newEnabled.Add(checkbox.Ident);
@@ -73,12 +75,12 @@ namespace MachineControlPanel.Framework.UI
 
         private void OnResetClick(object? sender, ClickEventArgs e)
         {
-            if (sender is not Banner)
+            if (sender is not Button)
                 return;
 
             HashSet<RuleIdent> newEnabled = [];
             HashSet<RuleIdent> newDisabled = [];
-            foreach (RuleCheckbox checkbox in RuleCheckboxes)
+            foreach (RuleCheckBox checkbox in RuleCheckboxes)
             {
                 newEnabled.Add(checkbox.Ident);
                 checkbox.IsChecked = true;
@@ -89,7 +91,7 @@ namespace MachineControlPanel.Framework.UI
         protected IView CreateRulesList()
         {
             // var entries = rule.GetRuleEntries().Select(CreateRuleListEntry).ToList();
-            var rules = ruleHelper.GetRuleEntries();
+            var rules = ruleHelper.RuleEntries;
             int inputSize = rules.Max((rule) => rule.Inputs.Count);
             int outputSize = rules.Max((rule) => rule.Outputs.Count);
             LayoutParameters inputLayout = new() { Width = Length.Px((64 + ROW_MARGIN * 2) * inputSize + ROW_MARGIN * 2), Height = Length.Content() };
@@ -106,11 +108,26 @@ namespace MachineControlPanel.Framework.UI
 
         protected IView CreateRuleListEntry(RuleEntry rule, LayoutParameters inputLayout, LayoutParameters outputLayout)
         {
-            RuleCheckbox checkbox = new(rule, !disabled.Contains(rule.Ident))
+            IView firstView;
+            if (rule.CanCheck)
             {
-                Margin = new Edges(ROW_MARGIN * 2, ROW_MARGIN),
-            };
-            RuleCheckboxes.Add(checkbox);
+                RuleCheckBox checkbox = new(rule)
+                {
+                    IsChecked = !disabled.Contains(rule.Ident),
+                };
+                RuleCheckboxes.Add(checkbox);
+                firstView = checkbox;
+            }
+            else
+            {
+                firstView = new Image()
+                {
+                    Sprite = UiSprites.CheckboxChecked,
+                    Tint = Color.White * 0.5f,
+                    Layout = LayoutParameters.FitContent(),
+                    IsFocusable = false
+                };
+            }
 
             Lane inputs = FormRuleItemLane(rule.Inputs, $"{rule.Repr}.Inputs");
             inputs.HorizontalContentAlignment = Alignment.End;
@@ -131,7 +148,8 @@ namespace MachineControlPanel.Framework.UI
                 Name = $"{rule.Repr}.Lane",
                 Layout = LayoutParameters.FitContent(),
                 Orientation = Orientation.Horizontal,
-                Children = [checkbox, inputs, arrow, outputs],
+                Children = [firstView, inputs, arrow, outputs],
+                Margin = new(Left: 12),
                 HorizontalContentAlignment = Alignment.Start,
                 VerticalContentAlignment = Alignment.Middle,
             };

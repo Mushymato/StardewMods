@@ -1,4 +1,4 @@
-global using RuleIdent = System.Tuple<string, string, int>;
+global using RuleIdent = System.Tuple<string, string, string>;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
 using StardewValley;
@@ -27,6 +27,7 @@ namespace MachineControlPanel.Framework
 
     internal record RuleEntry(
         RuleIdent Ident,
+        bool CanCheck,
         List<RuleItem> Inputs,
         List<RuleItem> Outputs
     )
@@ -34,8 +35,10 @@ namespace MachineControlPanel.Framework
         internal string Repr => $"{Ident.Item2}.{Ident.Item3}";
     };
 
-    internal class RuleHelper(SObject bigCraftable, MachineData machine)
+    internal class RuleHelper
     {
+        internal const string PLACEHOLDER_TRIGGER = "PLACEHOLDER_TRIGGER";
+
         internal static Dictionary<string, Sprite> contextTagSpriteCache = [];
 
         internal string Name => bigCraftable.DisplayName;
@@ -63,7 +66,19 @@ namespace MachineControlPanel.Framework
             }
         }
 
-        internal IList<RuleEntry> GetRuleEntries()
+        private readonly SObject bigCraftable;
+        private readonly MachineData machine;
+        internal IList<RuleEntry> RuleEntries;
+
+
+        internal RuleHelper(SObject bigCraftable, MachineData machine)
+        {
+            this.bigCraftable = bigCraftable;
+            this.machine = machine;
+            RuleEntries = GetRuleEntries();
+        }
+
+        private IList<RuleEntry> GetRuleEntries()
         {
             List<RuleEntry> entries = [];
             ItemQueryContext context = new();
@@ -121,7 +136,7 @@ namespace MachineControlPanel.Framework
                     }
                 }
                 // rule inputs (triggers)
-                List<List<RuleItem>> inputs = [];
+                List<Tuple<string, bool, List<RuleItem>>> inputs = [];
                 RuleItem? placeholder = null;
                 foreach (MachineOutputTriggerRule trigger in rule.Triggers)
                 {
@@ -182,7 +197,11 @@ namespace MachineControlPanel.Framework
                         {
                             inputLine.AddRange(sharedFuel);
                         }
-                        inputs.Add(inputLine);
+                        inputs.Add(new(
+                            trigger.Id,
+                            trigger.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine),
+                            inputLine
+                        ));
                     }
                 }
                 if (inputs.Count == 0)
@@ -192,19 +211,19 @@ namespace MachineControlPanel.Framework
                         string invalidMsg = machine.InvalidItemMessage == null ?
                             I18n.RuleList_ComplexInput() :
                             TokenParser.ParseText(machine.InvalidItemMessage);
-                        inputs.Add([new RuleItem([QuestionIcon], [invalidMsg])]);
+                        inputs.Add(new(PLACEHOLDER_TRIGGER, false, [new RuleItem([QuestionIcon], [invalidMsg])]));
                     }
                     else if (placeholder != null)
                     {
-                        inputs.Add([placeholder]);
+                        inputs.Add(new(PLACEHOLDER_TRIGGER, false, [placeholder]));
                     }
                 }
 
-                int seq = 0;
-                foreach (List<RuleItem> inputLine in inputs)
+                foreach ((string triggerId, bool canCheck, List<RuleItem> inputLine) in inputs)
                 {
                     entries.Add(new RuleEntry(
-                        new(bigCraftable.QualifiedItemId, rule.Id, seq++),
+                        new(bigCraftable.QualifiedItemId, rule.Id, triggerId),
+                        canCheck,
                         inputLine,
                         outputLine
                     ));
@@ -259,9 +278,12 @@ namespace MachineControlPanel.Framework
                     {
                         string[] parts = realTag.Split('_');
                         itemData = ItemRegistry.GetData(parts.Last());
-                        showNote = false;
-                        tooltip = itemData.DisplayName;
-                        alpha = 1f;
+                        if (itemData != null)
+                        {
+                            showNote = false;
+                            tooltip = itemData.DisplayName;
+                            alpha = 1f;
+                        }
                     }
                     // special case preserve item, skip bc we are doing it outside
                     else if (realTag.StartsWith("preserve_sheet_index_"))

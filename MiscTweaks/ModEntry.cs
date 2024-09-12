@@ -47,11 +47,6 @@ namespace MiscTweaks
                 if (machine.IsIncubator || machine.OutputRules == null || !machine.AllowFairyDust || ExcludedMachines.Contains(qItemId))
                     continue;
 
-                if (qItemId == "(BC)24")
-                {
-                    machine.OutputRules.RemoveAll((rule) => rule.Id == "wildflour.gourmetpantry_MayoMachine_butter");
-                }
-
                 foreach (MachineOutputRule rule in machine.OutputRules)
                 {
                     if (rule.OutputItem == null)
