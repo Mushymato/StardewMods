@@ -1,13 +1,10 @@
-global using RuleIdent = System.Tuple<string, string, string, int>;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Internal;
 using StardewUI;
-using SObject = StardewValley.Object;
 using StardewValley.Menus;
 using StardewValley.TokenizableStrings;
 
@@ -151,6 +148,9 @@ namespace MachineControlPanel.Framework
                         }
                     }
                 }
+                if (outputLine.Count == 0)
+                    continue;
+
                 // rule inputs (triggers)
                 List<Tuple<string, int, bool, List<RuleItem>>> inputs = [];
                 RuleItem? placeholder = null;
@@ -185,7 +185,6 @@ namespace MachineControlPanel.Framework
                                      Edges.NONE, Tint: preserve.Item1)],
                                     [$"{itemData.DisplayName} ({preserve.Item2})"]
                                 ));
-
                             }
                             else
                             {

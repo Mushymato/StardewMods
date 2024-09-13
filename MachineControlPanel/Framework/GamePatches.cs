@@ -3,7 +3,6 @@ using StardewValley;
 using StardewModdingAPI;
 using System.Reflection.Emit;
 using StardewValley.GameData.Machines;
-using SObject = StardewValley.Object;
 
 namespace MachineControlPanel.Framework
 {

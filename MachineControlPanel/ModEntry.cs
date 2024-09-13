@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿global using SObject = StardewValley.Object;
+global using RuleIdent = System.Tuple<string, string, string, int>;
+using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewUI;
@@ -6,7 +8,6 @@ using StardewValley.GameData.Machines;
 using StardewValley;
 using MachineControlPanel.Framework;
 using MachineControlPanel.Framework.UI;
-using SObject = StardewValley.Object;
 using HarmonyLib;
 
 namespace MachineControlPanel
@@ -21,14 +22,19 @@ namespace MachineControlPanel
 
         public override void Entry(IModHelper helper)
         {
-            I18n.Init(helper.Translation);
-            helper.Events.GameLoop.GameLaunched += OnGameLaunched;
-            helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
-            helper.Events.GameLoop.DayEnding += OnDayEnding;
-            helper.Events.Input.ButtonsChanged += OnButtonsChanged;
-
             Logger.Monitor = Monitor;
             mon = Monitor;
+            I18n.Init(helper.Translation);
+
+            // shared events
+            helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+            helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
+            helper.Events.Input.ButtonsChanged += OnButtonsChanged;
+
+            // host only events
+            helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
+            helper.Events.GameLoop.DayEnding += OnDayEnding;
+            helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
 
             helper.ConsoleCommands.Add(
                 "mcp_reset_savedata",
@@ -45,21 +51,56 @@ namespace MachineControlPanel
             GamePatches.Apply(harmony);
         }
 
+        private void OnPeerConnected(object? sender, PeerConnectedEventArgs e)
+        {
+            if (!Game1.IsMasterGame)
+                return;
+
+            if (saveData != null)
+            {
+                Helper.Multiplayer.SendMessage(
+                    saveData, SAVEDATA,
+                    modIDs: [ModManifest.UniqueID],
+                    playerIDs: [e.Peer.PlayerID]
+                );
+            }
+        }
+
+        private void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
+        {
+            if (e.FromModID == ModManifest.UniqueID && e.Type == SAVEDATA)
+            {
+                saveData = e.ReadAs<ModSaveData>() ?? new() { Version = ModManifest.Version };
+                Log("Disabled machine rules (from host):");
+                foreach (var ident in saveData.Disabled)
+                {
+                    Log($"- {ident}");
+                }
+            }
+        }
+
         private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
         {
+            if (!Game1.IsMasterGame)
+                return;
+
             saveData = Helper.Data.ReadSaveData<ModSaveData>(SAVEDATA) ?? new() { Version = ModManifest.Version };
-            LogOnce("Disabled machine rules:");
+            Log("Disabled machine rules:");
             foreach (var ident in saveData.Disabled)
             {
-                LogOnce($"- {ident}");
+                Log($"- {ident}");
             }
-            saveData.Version = ModManifest.Version;
         }
 
         private void OnDayEnding(object? sender, DayEndingEventArgs e)
         {
+            if (!Game1.IsMasterGame)
+                return;
+
             if (saveData != null)
             {
+                saveData.Version = ModManifest.Version;
+                Helper.Multiplayer.SendMessage(saveData, SAVEDATA, modIDs: [ModManifest.UniqueID]);
                 Helper.Data.WriteSaveData(SAVEDATA, saveData);
             }
             else
@@ -79,6 +120,8 @@ namespace MachineControlPanel
             {
                 saveData.Disabled.ExceptWith(enabled);
                 saveData.Disabled.UnionWith(disabled);
+                saveData.Version = ModManifest.Version;
+                Helper.Multiplayer.SendMessage(saveData, SAVEDATA, modIDs: [ModManifest.UniqueID]);
                 Helper.Data.WriteSaveData(SAVEDATA, saveData);
                 return;
             }
@@ -87,7 +130,7 @@ namespace MachineControlPanel
 
         private bool ShowPanel()
         {
-            if (Game1.IsMasterGame && Game1.activeClickableMenu == null && config!.ControlPanelKey.JustPressed())
+            if (Game1.activeClickableMenu == null && config!.ControlPanelKey.JustPressed())
             {
                 // ICursorPosition.GrabTile is unreliable with gamepad controls. Instead recreate game logic.
                 Vector2 cursorTile = Game1.currentCursorTile;
@@ -135,14 +178,34 @@ namespace MachineControlPanel
             saveData = new() { Version = ModManifest.Version };
         }
 
+#if DEBUG
         internal static void Log(string msg, LogLevel level = LogLevel.Debug)
+#else
+        internal static void Log(string msg, LogLevel level = LogLevel.Trace)
+#endif
         {
             mon!.Log(msg, level);
         }
 
+#if DEBUG
         internal static void LogOnce(string msg, LogLevel level = LogLevel.Debug)
+#else
+        internal static void LogOnce(string msg, LogLevel level = LogLevel.Trace)
+#endif
         {
             mon!.LogOnce(msg, level);
+        }
+
+        internal static void LogSaveData()
+        {
+            if (saveData == null)
+                return;
+            if (Game1.IsMasterGame)
+                Log("Disabled machine rules:");
+            else
+                Log("Disabled machine rules (from host):");
+            foreach (var ident in saveData.Disabled)
+                Log($"- {ident}");
         }
     }
 }

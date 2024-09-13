@@ -28,7 +28,7 @@ namespace MachineControlPanel.Framework.UI
                 ContentLayout = fitWidth,
                 Title = $"{I18n.RuleList_Title()} [{ruleHelper.Name}]",
                 Content = CreateRulesList(),
-                Footer = CreateSaveButtons(),
+                Footer = Game1.IsMasterGame ? CreateSaveButtons() : null,
             };
         }
 
@@ -94,7 +94,6 @@ namespace MachineControlPanel.Framework.UI
 
         protected IView CreateRulesList()
         {
-            // var entries = rule.GetRuleEntries().Select(CreateRuleListEntry).ToList();
             var rules = ruleHelper.RuleEntries;
             int inputSize = rules.Max((rule) => rule.Inputs.Count);
             int outputSize = rules.Max((rule) => rule.Outputs.Count);
@@ -113,7 +112,7 @@ namespace MachineControlPanel.Framework.UI
         protected IView CreateRuleListEntry(RuleEntry rule, LayoutParameters inputLayout, LayoutParameters outputLayout)
         {
             IView firstView;
-            if (rule.CanCheck)
+            if (Game1.IsMasterGame && rule.CanCheck)
             {
                 RuleCheckBox checkbox = new(rule)
                 {
@@ -126,7 +125,7 @@ namespace MachineControlPanel.Framework.UI
             {
                 firstView = new Image()
                 {
-                    Sprite = UiSprites.CheckboxChecked,
+                    Sprite = disabled.Contains(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
                     Tint = Color.White * 0.5f,
                     Layout = LayoutParameters.FitContent(),
                     IsFocusable = false
@@ -146,7 +145,6 @@ namespace MachineControlPanel.Framework.UI
                 Padding = new(20, 16),
                 Sprite = RightCaret
             };
-            // Lane ruleLane = new()
             return new Lane()
             {
                 Name = $"{rule.Repr}.Lane",
