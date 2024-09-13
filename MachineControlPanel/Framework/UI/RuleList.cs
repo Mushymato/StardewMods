@@ -115,7 +115,6 @@ namespace MachineControlPanel.Framework.UI
             IView firstView;
             if (rule.CanCheck)
             {
-                ModEntry.Log($"{rule.Ident}: {disabled.Contains(rule.Ident)}");
                 RuleCheckBox checkbox = new(rule)
                 {
                     IsChecked = !disabled.Contains(rule.Ident),

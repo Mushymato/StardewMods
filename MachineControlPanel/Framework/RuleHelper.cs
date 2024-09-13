@@ -1,4 +1,4 @@
-global using RuleIdent = System.Tuple<string, string, string>;
+global using RuleIdent = System.Tuple<string, string, string, int>;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -152,10 +152,12 @@ namespace MachineControlPanel.Framework
                     }
                 }
                 // rule inputs (triggers)
-                List<Tuple<string, bool, List<RuleItem>>> inputs = [];
+                List<Tuple<string, int, bool, List<RuleItem>>> inputs = [];
                 RuleItem? placeholder = null;
+                int seq = -1;
                 foreach (MachineOutputTriggerRule trigger in rule.Triggers)
                 {
+                    seq++;
                     List<RuleItem> inputLine = [];
                     // no item input
                     if (!trigger.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine))
@@ -223,6 +225,7 @@ namespace MachineControlPanel.Framework
 
                         inputs.Add(new(
                             trigger.Id,
+                            seq,
                             trigger.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine),
                             inputLine
                         ));
@@ -235,18 +238,18 @@ namespace MachineControlPanel.Framework
                         string invalidMsg = machine.InvalidItemMessage == null ?
                             I18n.RuleList_ComplexInput() :
                             TokenParser.ParseText(machine.InvalidItemMessage);
-                        inputs.Add(new(PLACEHOLDER_TRIGGER, false, [new RuleItem([QuestionIcon], [invalidMsg])]));
+                        inputs.Add(new(PLACEHOLDER_TRIGGER, -1, false, [new RuleItem([QuestionIcon], [invalidMsg])]));
                     }
                     else if (placeholder != null)
                     {
-                        inputs.Add(new(PLACEHOLDER_TRIGGER, false, [placeholder]));
+                        inputs.Add(new(PLACEHOLDER_TRIGGER, -1, false, [placeholder]));
                     }
                 }
 
-                foreach ((string triggerId, bool canCheck, List<RuleItem> inputLine) in inputs)
+                foreach ((string triggerId, int idx, bool canCheck, List<RuleItem> inputLine) in inputs)
                 {
                     entries.Add(new RuleEntry(
-                        new(bigCraftable.QualifiedItemId, rule.Id, triggerId),
+                        new(bigCraftable.QualifiedItemId, rule.Id, triggerId, idx),
                         canCheck,
                         inputLine,
                         outputLine

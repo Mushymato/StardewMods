@@ -29,6 +29,12 @@ namespace MachineControlPanel
 
             Logger.Monitor = Monitor;
             mon = Monitor;
+
+            helper.ConsoleCommands.Add(
+                "mcp_reset_savedata",
+                "Reset save data associated with this mod.",
+                ConsoleResetSaveData
+            );
         }
 
         private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -41,7 +47,12 @@ namespace MachineControlPanel
 
         private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
         {
-            saveData = Helper.Data.ReadSaveData<ModSaveData>(SAVEDATA) ?? new();
+            saveData = Helper.Data.ReadSaveData<ModSaveData>(SAVEDATA) ?? new() { Version = ModManifest.Version };
+            LogOnce("Disabled machine rules:");
+            foreach (var ident in saveData.Disabled)
+            {
+                LogOnce($"- {ident}");
+            }
             saveData.Version = ModManifest.Version;
         }
 
@@ -111,6 +122,17 @@ namespace MachineControlPanel
             );
 
             return true;
+        }
+
+        private void ConsoleResetSaveData(string command, string[] args)
+        {
+            if (!Context.IsWorldReady)
+            {
+                Log("Must load save first.", LogLevel.Error);
+                return;
+            }
+            Helper.Data.WriteSaveData<ModSaveData>(SAVEDATA, null);
+            saveData = new() { Version = ModManifest.Version };
         }
 
         internal static void Log(string msg, LogLevel level = LogLevel.Debug)

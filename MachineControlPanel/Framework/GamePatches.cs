@@ -26,9 +26,9 @@ namespace MachineControlPanel.Framework
             }
         }
 
-        private static bool CheckRuleDisabled(SObject machine, MachineOutputRule rule, MachineOutputTriggerRule trigger2, Item inputItem)
+        private static bool CheckRuleDisabled(SObject machine, MachineOutputRule rule, MachineOutputTriggerRule trigger2, int idx, Item inputItem)
         {
-            RuleIdent ident = new(machine.QualifiedItemId, rule.Id, trigger2.Id);
+            RuleIdent ident = new(machine.QualifiedItemId, rule.Id, trigger2.Id, idx);
             if (!trigger2.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine))
                 return false;
             if (ModEntry.SaveData.Disabled.Contains(ident))
@@ -45,6 +45,13 @@ namespace MachineControlPanel.Framework
             {
                 CodeMatcher matcher = new(instructions, generator);
 
+                // track enumeration index
+                // starting at -1 out of laziness
+                LocalBuilder idx = generator.DeclareLocal(typeof(int));
+                matcher.Start().Insert([
+                    new(OpCodes.Ldc_I4, -1),
+                    new(OpCodes.Stloc, idx)
+                ]);
 
                 CodeMatch ldlocAny = new(OpCodes.Ldloc_0);
                 ldlocAny.opcodes.Add(OpCodes.Ldloc_1);
@@ -65,22 +72,40 @@ namespace MachineControlPanel.Framework
                 ]);
                 Label lbl = (Label)matcher.Operand;
                 matcher.Advance(1);
-                CodeInstruction ldloc = matcher.Instruction;
+                CodeInstruction ldloc = new(matcher.Opcode, matcher.Operand);
 
                 matcher.Insert([
                     new(OpCodes.Ldarg_0), // Object machine
                     new(OpCodes.Ldarg_1), // MachineOutputRule rule
-                    new(ldloc.opcode, ldloc.operand), // MachineOutputTriggerRule trigger2
+                    ldloc, // MachineOutputTriggerRule trigger2
+                    new(OpCodes.Ldloc, idx), // foreach idx
                     new(OpCodes.Ldarg_3), // Item inputItem
                     new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(GamePatches), nameof(CheckRuleDisabled))),
                     new(OpCodes.Brtrue, lbl)
                 ]);
 
-                ModEntry.Log($"====matcher at {matcher.Pos}====");
-                for (int i = -10; i < 10; i++)
-                {
-                    ModEntry.Log($"inst {i}: {matcher.InstructionAt(i)}");
-                }
+                // IL_00f0: ldloca.s 0
+                // IL_00f2: call instance bool valuetype [System.Collections]System.Collections.Generic.List`1/Enumerator<class [StardewValley.GameData]StardewValley.GameData.Machines.MachineOutputTriggerRule>::MoveNext()
+                // IL_00f7: brtrue IL_0023
+                var moveNext = AccessTools.EnumeratorMoveNext(
+                    AccessTools.Method(
+                        typeof(List<MachineOutputTriggerRule>),
+                        nameof(List<MachineOutputTriggerRule>.GetEnumerator)
+                    )
+                );
+                matcher.MatchStartForward([
+                    new(OpCodes.Call, moveNext),
+                ]).Advance(-1);
+
+                CodeInstruction ldloca = new(matcher.Opcode, matcher.Operand);
+                matcher.SetAndAdvance(OpCodes.Ldloc, idx);
+                matcher.Insert([
+                    new(OpCodes.Ldc_I4, 1),
+                    new(OpCodes.Add),
+                    new(OpCodes.Stloc, idx),
+                    ldloca
+                ]);
+
 
                 return matcher.Instructions();
             }
