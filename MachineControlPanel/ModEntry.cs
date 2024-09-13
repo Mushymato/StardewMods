@@ -117,5 +117,10 @@ namespace MachineControlPanel
         {
             mon!.Log(msg, level);
         }
+
+        internal static void LogOnce(string msg, LogLevel level = LogLevel.Debug)
+        {
+            mon!.LogOnce(msg, level);
+        }
     }
 }

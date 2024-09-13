@@ -33,7 +33,7 @@ namespace MachineControlPanel.Framework
                 return false;
             if (ModEntry.SaveData.Disabled.Contains(ident))
             {
-                ModEntry.Log($"Rule {ident} disabled.", LogLevel.Debug);
+                ModEntry.LogOnce($"Rule {ident} disabled.", LogLevel.Trace);
                 return true;
             }
             return false;
@@ -73,7 +73,7 @@ namespace MachineControlPanel.Framework
                     new(ldloc.opcode, ldloc.operand), // MachineOutputTriggerRule trigger2
                     new(OpCodes.Ldarg_3), // Item inputItem
                     new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(GamePatches), nameof(CheckRuleDisabled))),
-                    new(OpCodes.Brtrue_S, lbl)
+                    new(OpCodes.Brtrue, lbl)
                 ]);
 
                 ModEntry.Log($"====matcher at {matcher.Pos}====");
