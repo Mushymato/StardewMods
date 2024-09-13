@@ -142,9 +142,9 @@ namespace MachineControlPanel.Framework
                                 tooltip.AddRange(output.Condition.Split(','));
                             }
                             icons.AddRange(Number(res.Item.Stack));
-                            if (output.Quality > 0)
+                            if (res.Item.Quality > 0)
                             {
-                                icons.Add(Quality(output.Quality));
+                                icons.Add(Quality(res.Item.Quality));
                             }
                             tooltip.Add(itemData.DisplayName);
                             outputLine.Add(new RuleItem(icons, tooltip));

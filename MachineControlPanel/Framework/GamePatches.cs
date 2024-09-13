@@ -33,7 +33,7 @@ namespace MachineControlPanel.Framework
                 return false;
             if (ModEntry.SaveData.Disabled.Contains(ident))
             {
-                ModEntry.Log($"Rule {ident} disabled.", LogLevel.Trace);
+                ModEntry.Log($"Rule {ident} disabled.", LogLevel.Debug);
                 return true;
             }
             return false;
@@ -54,11 +54,14 @@ namespace MachineControlPanel.Framework
                 ldlocAny.opcodes.Add(OpCodes.Ldloc_S);
 
                 // compiler is pretty free spirited about continue, may explode in later builds
+                // patching early to not deal with jumps as much
+                // foreach (MachineOutputTriggerRule trigger2 in rule.Triggers)
+                // if (!trigger2.Trigger.HasFlag(trigger) [PATCH HERE] || (trigger2.Condition != null ...
                 matcher.Start()
                 .MatchStartForward([
-                    new(OpCodes.Brfalse_S),
+                    new(OpCodes.Brfalse),
                     ldlocAny,
-                    new(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(MachineOutputTriggerRule), nameof(MachineOutputTriggerRule.RequiredTags)))
+                    new(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(MachineOutputTriggerRule), nameof(MachineOutputTriggerRule.Condition)))
                 ]);
                 Label lbl = (Label)matcher.Operand;
                 matcher.Advance(1);
@@ -72,6 +75,12 @@ namespace MachineControlPanel.Framework
                     new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(GamePatches), nameof(CheckRuleDisabled))),
                     new(OpCodes.Brtrue_S, lbl)
                 ]);
+
+                ModEntry.Log($"====matcher at {matcher.Pos}====");
+                for (int i = -10; i < 10; i++)
+                {
+                    ModEntry.Log($"inst {i}: {matcher.InstructionAt(i)}");
+                }
 
                 return matcher.Instructions();
             }

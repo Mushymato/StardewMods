@@ -71,6 +71,8 @@ namespace MachineControlPanel.Framework.UI
                     newDisabled.Add(checkbox.Ident);
             }
             saveMachineRules(newEnabled, newDisabled);
+
+            Game1.playSound("bigSelect");
         }
 
         private void OnResetClick(object? sender, ClickEventArgs e)
@@ -86,6 +88,8 @@ namespace MachineControlPanel.Framework.UI
                 checkbox.IsChecked = true;
             }
             saveMachineRules(newEnabled, newDisabled);
+
+            Game1.playSound("bigDeSelect");
         }
 
         protected IView CreateRulesList()
@@ -111,6 +115,7 @@ namespace MachineControlPanel.Framework.UI
             IView firstView;
             if (rule.CanCheck)
             {
+                ModEntry.Log($"{rule.Ident}: {disabled.Contains(rule.Ident)}");
                 RuleCheckBox checkbox = new(rule)
                 {
                     IsChecked = !disabled.Contains(rule.Ident),
