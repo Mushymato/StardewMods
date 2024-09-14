@@ -7,24 +7,28 @@ using StardewValley.Internal;
 using StardewUI;
 using StardewValley.Menus;
 using StardewValley.TokenizableStrings;
+using Force.DeepCloner;
+using System.Data;
+using StardewValley.Objects;
+using StardewValley.GameData.Objects;
 
 
 namespace MachineControlPanel.Framework
 {
     // suspect i ought to just use sprite with nineslice stuff unclear
-    internal record IconEdge(
+    internal sealed record IconEdge(
         Sprite Img,
         Edges Edg,
         float Scale = 4f,
         Color? Tint = null
     );
 
-    internal record RuleItem(
+    internal sealed record RuleItem(
         List<IconEdge> Icons,
         List<string> Tooltip
     );
 
-    internal record RuleEntry(
+    internal sealed record RuleEntry(
         RuleIdent Ident,
         bool CanCheck,
         List<RuleItem> Inputs,
@@ -37,6 +41,7 @@ namespace MachineControlPanel.Framework
     internal class RuleHelper
     {
         internal const string PLACEHOLDER_TRIGGER = "PLACEHOLDER_TRIGGER";
+        internal static Integration.IExtraMachineConfigApi? EMC { get; set; } = null;
 
         internal static Dictionary<string, RuleItem?> contextTagSpriteCache = [];
 
@@ -76,7 +81,7 @@ namespace MachineControlPanel.Framework
 
         private readonly SObject bigCraftable;
         private readonly MachineData machine;
-        internal IList<RuleEntry> RuleEntries;
+        internal List<RuleEntry> RuleEntries;
 
 
         internal RuleHelper(SObject bigCraftable, MachineData machine)
@@ -86,10 +91,54 @@ namespace MachineControlPanel.Framework
             RuleEntries = GetRuleEntries();
         }
 
-        private IList<RuleEntry> GetRuleEntries()
+        /// <summary>
+        /// Two outputs are similar enough if we arent doing anything fun icon wise
+        /// </summary>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <returns></returns>
+        private static bool SimilarEnough(MachineItemOutput first, MachineItemOutput second)
+        {
+            return (
+                first.ItemId == second.ItemId &&
+                first.RandomItemId == second.RandomItemId &&
+                first.PreserveId == second.PreserveId &&
+                first.Quality == second.Quality &&
+                first.MinStack == second.MinStack &&
+                first.MaxStack == second.MaxStack
+            );
+        }
+
+        private static List<MachineItemOutput> PrunedMachineItemOutput(List<MachineItemOutput> outputItem)
+        {
+            List<MachineItemOutput> pruned = [];
+
+            foreach (MachineItemOutput out1 in outputItem)
+            {
+                int i = 0;
+                for (; i < pruned.Count; i++)
+                {
+                    if (SimilarEnough(out1, pruned[i]))
+                    {
+                        pruned[i] = out1;
+                        break;
+                    }
+                }
+                if (i == pruned.Count)
+                {
+                    pruned.Add(out1);
+                }
+            }
+
+            return pruned;
+        }
+
+        private List<RuleEntry> GetRuleEntries()
         {
             List<RuleEntry> entries = [];
             ItemQueryContext context = new();
+
+            // Fuel
             List<RuleItem> sharedFuel = [];
             if (machine.AdditionalConsumedItems != null)
             {
@@ -104,22 +153,26 @@ namespace MachineControlPanel.Framework
                     ));
                 }
             }
+
             foreach (MachineOutputRule rule in machine.OutputRules)
             {
                 bool hasComplex = false;
+
                 // rule outputs
+                List<Tuple<List<RuleItem>, List<RuleItem>>> withEmcFuel = [];
                 List<RuleItem> outputLine = [];
-                foreach (MachineItemOutput output in rule.OutputItem)
+                foreach (MachineItemOutput output in PrunedMachineItemOutput(rule.OutputItem))
                 {
+                    List<RuleItem> optLine = [];
                     if (output.OutputMethod != null) // complex method
                     {
                         string methodName = output.OutputMethod.Split(':').Last();
-                        outputLine.Add(new RuleItem([QuestionIcon], [$"SPECIAL {methodName}"]));
+                        optLine.Add(new RuleItem([QuestionIcon], [$"SPECIAL {methodName}"]));
                         hasComplex = true;
                     }
                     if (output.ItemId == "DROP_IN")
                     {
-                        outputLine.Add(new RuleItem([QuestionIcon], [I18n.RuleList_SameAsInput()]));
+                        optLine.Add(new RuleItem([QuestionIcon], [I18n.RuleList_SameAsInput()]));
                     }
                     else if (output.ItemId != null)
                     {
@@ -144,11 +197,49 @@ namespace MachineControlPanel.Framework
                                 icons.Add(Quality(res.Item.Quality));
                             }
                             tooltip.Add(itemData.DisplayName);
-                            outputLine.Add(new RuleItem(icons, tooltip));
+                            optLine.Add(new RuleItem(icons, tooltip));
                         }
                     }
+                    if (optLine.Count == 0)
+                        continue;
+
+                    if (EMC != null)
+                    {
+                        List<RuleItem> emcFuel = [];
+                        // var extraReq = EMC.GetExtraRequirements(output);
+                        // if (extraReq.Count > 0)
+                        // {
+                        //     outputs
+                        // }
+                        var extraTagReq = EMC.GetExtraTagsRequirements(output);
+                        if (extraTagReq.Count > 0)
+                        {
+                            foreach ((string tag, int count) in extraTagReq)
+                            {
+                                var results = GetContextTagRuleItems(tag.Split(','), context, out List<string> negateTags, out IconEdge? qualityIcon);
+                                if (results != null)
+                                {
+                                    foreach (var res in results)
+                                    {
+                                        res.Tooltip.InsertRange(0, negateTags);
+                                        res.Icons.Add(EmojiBolt);
+                                        res.Icons.AddRange(Number(count));
+                                        if (qualityIcon != null)
+                                            res.Icons.Add(qualityIcon);
+                                        emcFuel.Add(res);
+                                    }
+                                }
+                            }
+                        }
+                        if (emcFuel.Count > 0)
+                        {
+                            withEmcFuel.Add(new(optLine, emcFuel));
+                            continue;
+                        }
+                    }
+                    outputLine.AddRange(optLine);
                 }
-                if (outputLine.Count == 0)
+                if (outputLine.Count == 0 && withEmcFuel.Count == 0)
                     continue;
 
                 // rule inputs (triggers)
@@ -177,14 +268,10 @@ namespace MachineControlPanel.Framework
                         ParsedItemData itemData = ItemRegistry.GetData(trigger.RequiredItemId);
                         if (itemData != null)
                         {
-                            Tuple<Color, string>? preserve = GetPreservedColorAndName(trigger.RequiredTags);
+                            RuleItem? preserve = GetPreservedColorAndName(trigger.RequiredTags, itemData, context);
                             if (preserve != null)
                             {
-                                inputLine.Add(new RuleItem(
-                                    [new(new(itemData.GetTexture(), itemData.GetSourceRect(1)),
-                                     Edges.NONE, Tint: preserve.Item1)],
-                                    [$"{itemData.DisplayName} ({preserve.Item2})"]
-                                ));
+                                inputLine.Add(preserve);
                             }
                             else
                             {
@@ -196,9 +283,10 @@ namespace MachineControlPanel.Framework
                         }
                     }
                     List<string> negateTags = [];
+                    IconEdge? qualityIcon = null;
                     if (trigger.RequiredTags != null)
                     {
-                        inputLine.AddRange(GetContextTagRuleItem(trigger.RequiredTags, context, ref negateTags));
+                        inputLine.AddRange(GetContextTagRuleItems(trigger.RequiredTags, context, out negateTags, out qualityIcon));
                     }
                     if (inputLine.Count > 0)
                     {
@@ -207,6 +295,10 @@ namespace MachineControlPanel.Framework
                         {
                             inputLine.Last().Tooltip.InsertRange(0, negateTags);
                             needExclaim = true;
+                        }
+                        if (qualityIcon != null)
+                        {
+                            inputLine.Last().Icons.Add(qualityIcon);
                         }
                         if (trigger.Condition != null)
                         {
@@ -245,14 +337,36 @@ namespace MachineControlPanel.Framework
                     }
                 }
 
-                foreach ((string triggerId, int idx, bool canCheck, List<RuleItem> inputLine) in inputs)
+                if (withEmcFuel.Count > 0)
                 {
-                    entries.Add(new RuleEntry(
-                        new(bigCraftable.QualifiedItemId, rule.Id, triggerId, idx),
-                        canCheck,
-                        inputLine,
-                        outputLine
-                    ));
+                    foreach ((List<RuleItem> optLine, List<RuleItem> emcFuel) in withEmcFuel)
+                    {
+                        foreach ((string triggerId, int idx, bool canCheck, List<RuleItem> inputLine) in inputs)
+                        {
+                            List<RuleItem> ipt = [.. inputLine, .. emcFuel];
+
+                            entries.Add(new RuleEntry(
+                                new(bigCraftable.QualifiedItemId, rule.Id, triggerId, idx),
+                                canCheck,
+                                ipt,
+                                optLine
+                            ));
+                        }
+                    }
+                }
+
+                if (outputLine.Count > 0)
+                {
+                    foreach ((string triggerId, int idx, bool canCheck, List<RuleItem> inputLine) in inputs)
+                    {
+                        var ipt = inputLine;
+                        entries.Add(new RuleEntry(
+                            new(bigCraftable.QualifiedItemId, rule.Id, triggerId, idx),
+                            canCheck,
+                            ipt,
+                            outputLine
+                        ));
+                    }
                 }
 
             }
@@ -260,7 +374,7 @@ namespace MachineControlPanel.Framework
             return entries;
         }
 
-        internal static Tuple<Color, string>? GetPreservedColorAndName(List<string>? tags)
+        internal static RuleItem? GetPreservedColorAndName(List<string>? tags, ParsedItemData baseItem, ItemQueryContext context)
         {
             if (tags == null)
             {
@@ -272,103 +386,79 @@ namespace MachineControlPanel.Framework
                 string realTag = negate ? tag[1..] : tag;
                 if (realTag.StartsWith("preserve_sheet_index_"))
                 {
-                    if (ItemRegistry.Create(realTag[21..]) is Item item)
+                    // id_o_itemid resolves but preserved_item_index_itemid cus that gets added for Object
+                    string idTag = $"id_o_{realTag[21..]}";
+                    if (ItemQueryResolver.TryResolve(
+                        "ALL_ITEMS",
+                        context,
+                        ItemQuerySearchMode.FirstOfTypeItem,
+                        $"ITEM_CONTEXT_TAG Target {idTag}"
+                    ).FirstOrDefault()?.Item is Item preserveItem)
                     {
-                        // sturgeon >:(
-                        return new Tuple<Color, string>(
-                            item.QualifiedItemId == "(O)698" ? new Color(61, 55, 42) : TailoringMenu.GetDyeColor(item) ?? Color.Orange,
-                            item.DisplayName
-                        );
+                        SObject.PreserveType? preserveType = baseItem.QualifiedItemId switch
+                        {
+                            "(O)348" => SObject.PreserveType.Wine,
+                            "(O)344" => SObject.PreserveType.Jelly,
+                            "(O)342" => SObject.PreserveType.Pickle,
+                            "(O)350" => SObject.PreserveType.Juice,
+                            "(O)812" => SObject.PreserveType.Roe,
+                            "(O)447" => SObject.PreserveType.AgedRoe,
+                            "(O)340" => SObject.PreserveType.Honey,
+                            "(O)685" => SObject.PreserveType.Bait,
+                            "(O)DriedFruit" => SObject.PreserveType.DriedFruit,
+                            "(O)DriedMushrooms" => SObject.PreserveType.DriedMushroom,
+                            "(O)SmokedFish" => SObject.PreserveType.SmokedFish,
+                            _ => null
+                        };
+                        if (preserveType == null)
+                        {
+                            return null;
+                        }
+                        if (ItemQueryResolver.TryResolve(
+                            $"FLAVORED_ITEM {preserveType} {preserveItem.ItemId}",
+                            context
+                        ).FirstOrDefault()?.Item is ColoredObject preserve)
+                        {
+                            List<IconEdge> icons = [];
+                            // drawing with layder 
+                            if (preserve.ColorSameIndexAsParentSheetIndex)
+                            {
+                                icons.Add(new(new(baseItem.GetTexture(), baseItem.GetSourceRect()), Edges.NONE, Tint: preserve.color.Value));
+                            }
+                            else
+                            {
+                                icons.Add(new(new(baseItem.GetTexture(), baseItem.GetSourceRect()), Edges.NONE));
+                                icons.Add(new(new(baseItem.GetTexture(), baseItem.GetSourceRect(1)), Edges.NONE, Tint: preserve.color.Value));
+                            }
+                            return new RuleItem(
+                                icons,
+                                [preserve.DisplayName]
+                            );
+                        }
                     }
                 }
             }
             return null;
         }
 
-        internal static List<RuleItem> GetContextTagRuleItem(List<string> tags, ItemQueryContext context, ref List<string> negateTags)
+        internal static List<RuleItem> GetContextTagRuleItems(IEnumerable<string> tags, ItemQueryContext context, out List<string> negateTags, out IconEdge? qualityIcon)
         {
             List<RuleItem> rules = [];
             List<RuleItem> negateRules = [];
+            negateTags = [];
+            qualityIcon = null;
             foreach (string tag in tags)
             {
-                bool negate = tag.StartsWith('!');
-                string realTag = negate ? tag[1..] : tag;
-                if (contextTagSpriteCache.TryGetValue(tag, out RuleItem? ctxTag))
+                var result = GetContextTagRuleItem(tag, context, out qualityIcon);
+                if (result != null)
                 {
-                    // tag was resolved before, and no valid item was found
-                    if (ctxTag == null)
-                        continue;
-                }
-                else
-                {
-                    bool showNote = true;
-                    string tooltip = realTag;
-                    float alpha = 0.5f;
-
-                    ParsedItemData? itemData = null;
-                    // id based tags
-                    if (realTag.StartsWith("id_"))
-                    {
-                        string[] parts = realTag.Split('_');
-                        itemData = ItemRegistry.GetData(parts.Last());
-                        if (itemData != null)
-                        {
-                            showNote = false;
-                            tooltip = itemData.DisplayName;
-                            alpha = 1f;
-                        }
-                    }
-                    // special case preserve item, skip bc we are doing it outside
-                    else if (realTag.StartsWith("preserve_sheet_index_"))
-                    {
-                        continue;
-                    }
-                    // get first item found with this tag
-                    else if (ItemQueryResolver.TryResolve(
-                            "ALL_ITEMS",
-                            context,
-                            ItemQuerySearchMode.FirstOfTypeItem,
-                            $"ITEM_CONTEXT_TAG Target {realTag}"
-                        ).FirstOrDefault()?.Item is Item item)
-                    {
-                        itemData = ItemRegistry.GetData(item.QualifiedItemId);
-                    }
-                    if (itemData == null)
-                    {
-                        contextTagSpriteCache[realTag] = null;
-                        continue;
-                    }
-
-                    // ctxTag = new(icon, showNote, tooltip, alpha);
-                    // contextTagSpriteCache[realTag] = ctxTag;
-
-                    List<IconEdge> icons = [];
-                    icons.Add(new(new(itemData.GetTexture(), itemData.GetSourceRect()), Edges.NONE, Tint: Color.White * alpha));
-                    if (showNote)
-                        icons.Add(EmojiNote);
-
+                    (RuleItem ctxTag, bool negate) = result;
                     if (negate)
-                    {
-                        icons.Add(EmojiX);
-                        ctxTag = new RuleItem(icons, [$"NOT {tooltip}"]);
-                    }
+                        negateRules.Add(ctxTag);
                     else
-                    {
-                        ctxTag = new RuleItem(icons, [tooltip]);
-                    }
-
-                }
-
-                if (negate)
-                {
-                    negateRules.Add(ctxTag);
-                }
-                else
-                {
-                    rules.Add(ctxTag);
+                        rules.Add(ctxTag);
                 }
             }
-
 
             if (negateRules.Count > 0)
             {
@@ -381,6 +471,93 @@ namespace MachineControlPanel.Framework
             }
 
             return rules;
+        }
+
+        internal static Tuple<RuleItem, bool>? GetContextTagRuleItem(string tag, ItemQueryContext context, out IconEdge? qualityIcon)
+        {
+            // need to handle quality_* items
+            tag = tag.Trim();
+            bool negate = tag.StartsWith('!');
+            string realTag = negate ? tag[1..] : tag;
+
+            qualityIcon = null;
+
+            if (contextTagSpriteCache.TryGetValue(tag, out RuleItem? ctxTag))
+            {
+                // tag was resolved before, and no valid item was found
+                if (ctxTag == null)
+                    return null;
+            }
+            else
+            {
+                bool showNote = true;
+                string tooltip = realTag;
+                float alpha = 0.5f;
+
+                ParsedItemData? itemData = null;
+                // skip preserve sheet index tag
+                if (realTag.StartsWith("preserve_sheet_index_"))
+                {
+                    contextTagSpriteCache[tag] = null;
+                    return null;
+                }
+                // quality based tag
+                else if (GetContextTagQuality(tag) is int quality)
+                {
+                    qualityIcon = Quality(quality);
+                    return null;
+                }
+                // get first item found with this tag
+                else if (ItemQueryResolver.TryResolve(
+                    "ALL_ITEMS",
+                    context,
+                    ItemQuerySearchMode.FirstOfTypeItem,
+                    $"ITEM_CONTEXT_TAG Target {realTag}"
+                ).FirstOrDefault()?.Item is Item item)
+                {
+                    itemData = ItemRegistry.GetData(item.QualifiedItemId);
+                    if (realTag.StartsWith("id_"))
+                    {
+                        showNote = false;
+                        tooltip = itemData.DisplayName;
+                        alpha = 1f;
+                    }
+                }
+                if (itemData == null)
+                {
+                    contextTagSpriteCache[tag] = null;
+                    return null;
+                }
+
+                List<IconEdge> icons = [];
+                icons.Add(new(new(itemData.GetTexture(), itemData.GetSourceRect()), Edges.NONE, Tint: Color.White * alpha));
+                if (showNote)
+                    icons.Add(EmojiNote);
+                if (negate)
+                {
+                    icons.Add(EmojiX);
+                    ctxTag = new RuleItem(icons, [$"NOT {tooltip}"]);
+                }
+                else
+                {
+                    ctxTag = new RuleItem(icons, [tooltip]);
+                }
+                contextTagSpriteCache[tag] = ctxTag;
+            }
+
+            return new(new(ctxTag.Icons, ctxTag.Tooltip.DeepClone()), negate);
+        }
+
+        internal static int? GetContextTagQuality(string tag)
+        {
+            return tag switch
+            {
+                "quality_none" => 0,
+                "quality_silver" => 1,
+                "quality_gold" => 2,
+                "quality_iridium" => 4,
+                _ => null
+            };
         }
     }
 }

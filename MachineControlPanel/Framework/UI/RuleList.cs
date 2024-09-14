@@ -9,6 +9,17 @@ namespace MachineControlPanel.Framework.UI
         private const int ROW_MARGIN = 4;
         private const int GUTTER_HEIGHT = 350;
         private static Sprite RightCaret => new(Game1.mouseCursors, new(448, 96, 24, 32));
+        /// <summary>
+        /// Modified 9-slice sprite used for the menu's horizontal divider, meant to be drawn over top of the
+        /// <see cref="MenuBorder"/> to denote separate "sub-panels" or "sections" of the menu to group logically very
+        /// different menu functions (as opposed to lines on a grid).
+        /// </summary>
+        public static Sprite ThinVDivider =>
+            new(
+                Game1.menuTexture,
+                SourceRect: new(156, 384, 8, 54)
+            );
+
         private static LayoutParameters IconLayout => LayoutParameters.FixedSize(64, 64);
         private static readonly List<RuleCheckBox> RuleCheckboxes = [];
 
@@ -94,18 +105,60 @@ namespace MachineControlPanel.Framework.UI
 
         protected IView CreateRulesList()
         {
-            var rules = ruleHelper.RuleEntries;
-            int inputSize = rules.Max((rule) => rule.Inputs.Count);
-            int outputSize = rules.Max((rule) => rule.Outputs.Count);
-            LayoutParameters inputLayout = new() { Width = Length.Px((64 + ROW_MARGIN * 2) * inputSize + ROW_MARGIN * 2), Height = Length.Content() };
-            LayoutParameters outputLayout = new() { Width = Length.Px((64 + ROW_MARGIN * 2) * outputSize + ROW_MARGIN * 2), Height = Length.Content() };
+            List<RuleEntry> rules = ruleHelper.RuleEntries;
+
+            List<List<RuleEntry>> rulesColumns;
+            if (rules.Count < 13)
+            {
+                rulesColumns = [rules];
+            }
+            else
+            {
+                int colS = (int)Math.Ceiling(rules.Count / Math.Min(rules.Count / 12f, 3));
+                // rulesColumns = [
+                //     rules.GetRange(0, mid),
+                //     rules.GetRange(mid, rules.Count - mid),
+                // ];
+                rulesColumns = [];
+                for (int i = 0; i < rules.Count; i += colS)
+                {
+                    rulesColumns.Add(rules.GetRange(i, Math.Min(colS, rules.Count - i)));
+                }
+            }
+
+            List<IView> columns = [];
+            int seq = 0;
+            foreach (var rulesC in rulesColumns)
+            {
+
+                int inputSize = rulesC.Max((rule) => rule.Inputs.Count);
+                int outputSize = rulesC.Max((rule) => rule.Outputs.Count);
+                LayoutParameters inputLayout = new() { Width = Length.Px((64 + ROW_MARGIN * 2) * inputSize + ROW_MARGIN * 2), Height = Length.Content() };
+                LayoutParameters outputLayout = new() { Width = Length.Px((64 + ROW_MARGIN * 2) * outputSize + ROW_MARGIN * 2), Height = Length.Content() };
+
+                if (columns.Count > 0)
+                {
+                    columns.Add(new Image()
+                    {
+                        Layout = new() { Width = Length.Px(ThinVDivider.Size.X), Height = Length.Stretch() },
+                        Fit = ImageFit.Stretch,
+                        Sprite = ThinVDivider,
+                    });
+                }
+                columns.Add(new Lane()
+                {
+                    Name = $"RuleListColumn_{++seq}",
+                    Orientation = Orientation.Vertical,
+                    Children = rulesC.Select((rule) => CreateRuleListEntry(rule, inputLayout, outputLayout)).ToList(),
+                    Margin = new Edges(6),
+                });
+            }
 
             return new Lane()
             {
                 Name = "RuleList",
-                Orientation = Orientation.Vertical,
-                Children = rules.Select((rule) => CreateRuleListEntry(rule, inputLayout, outputLayout)).ToList(),
-                Margin = new Edges(6),
+                Orientation = Orientation.Horizontal,
+                Children = columns,
             };
         }
 
@@ -191,6 +244,7 @@ namespace MachineControlPanel.Framework.UI
             return new Lane()
             {
                 Name = prefix,
+                Layout = LayoutParameters.FitContent(),
                 Orientation = Orientation.Horizontal,
                 VerticalContentAlignment = Alignment.Middle,
                 Children = content

@@ -8,6 +8,7 @@ using StardewValley.GameData.Machines;
 using StardewValley;
 using MachineControlPanel.Framework;
 using MachineControlPanel.Framework.UI;
+using MachineControlPanel.Framework.Integration;
 using HarmonyLib;
 
 namespace MachineControlPanel
@@ -22,9 +23,10 @@ namespace MachineControlPanel
 
         public override void Entry(IModHelper helper)
         {
-            Logger.Monitor = Monitor;
             mon = Monitor;
             I18n.Init(helper.Translation);
+            UI.Initialize(helper, Monitor);
+
 
             // shared events
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
@@ -45,10 +47,16 @@ namespace MachineControlPanel
 
         private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
         {
-            config = Helper.ReadConfig<ModConfig>();
-            config.Register(Helper, ModManifest);
             Harmony harmony = new(ModManifest.UniqueID);
             GamePatches.Apply(harmony);
+
+            config = Helper.ReadConfig<ModConfig>();
+            config.Register(Helper, ModManifest);
+            var EMC = Helper.ModRegistry.GetApi<IExtraMachineConfigApi>("selph.ExtraMachineConfig");
+            if (EMC != null)
+            {
+                RuleHelper.EMC = EMC;
+            }
         }
 
         private void OnPeerConnected(object? sender, PeerConnectedEventArgs e)
@@ -190,7 +198,7 @@ namespace MachineControlPanel
 #if DEBUG
         internal static void LogOnce(string msg, LogLevel level = LogLevel.Debug)
 #else
-        internal static void LogOnce(string msg, LogLevel level = LogLevel.Trace)
+        internal static void Log(string msg, LogLevel level = LogLevel.Trace)
 #endif
         {
             mon!.LogOnce(msg, level);
