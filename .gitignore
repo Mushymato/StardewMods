@@ -1,6 +1,8 @@
 .vscode/
-*/bin/
+*/bin
 */obj
+jail/*/bin
+jail/**/obj
 notes.txt
 */config.json
 debug.csproj

@@ -1,7 +1,7 @@
 {
     "Name": "[CP] Sprinkler Attachments",
     "Author": "mushymato",
-    "Version": "1.1.0",
+    "Version": "1.1.1",
     "MinimumApiVersion": "4.0.0",
     "MinimumGameVersion": "1.6.0",
     "Description": "Add items supported by mushymato.SprinklerAttachments.",
@@ -15,7 +15,7 @@
     "Dependencies": [
         {
             "UniqueID": "mushymato.SprinklerAttachments",
-            "MinimumVersion": "1.1.0"
+            "MinimumVersion": "1.1.1"
         }
     ]
 }

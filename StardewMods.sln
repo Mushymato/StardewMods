@@ -7,10 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SprinklerAttachments", "Spr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FullInventoryToolbar", "FullInventoryToolbar\FullInventoryToolbar.csproj", "{76B91146-15EA-447A-A39F-6BB0A1388046}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomIntroductions", "CustomIntroductions\CustomIntroductions.csproj", "{76FE0EB1-48E4-4A8C-93B6-C67E6E2BFB9A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomBuildingEntry", "CustomBuildingEntry\CustomBuildingEntry.csproj", "{8D0C877A-DA62-47C6-BB25-41D14323A9E2}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpecialOrderNotifications", "SpecialOrderNotifications\SpecialOrderNotifications.csproj", "{9C5EC529-6DE2-4339-BE0A-A1093C591D46}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreVisibleCaskRarity", "MoreVisibleCaskRarity\MoreVisibleCaskRarity.csproj", "{4C2DDA44-CAAD-4772-8AD0-AE282FA1F732}"
@@ -18,8 +14,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScytheToolEnchantments", "ScytheToolEnchantments\ScytheToolEnchantments.csproj", "{AC4868C7-DDC4-4F06-8DEA-7BB95E6F99C2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiscTweaks", "MiscTweaks\MiscTweaks.csproj", "{E067A665-52E1-424E-BD51-826AB892ED26}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomBuilderTileAction", "CustomBuilderTileAction\CustomBuilderTileAction.csproj", "{B232C335-80C5-46D4-BB01-1A9BF835F0C0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MachineControlPanel", "MachineControlPanel\MachineControlPanel.csproj", "{1FDE4431-768F-4E33-B112-6B7D85630FAF}"
 EndProject
@@ -37,14 +31,6 @@ Global
 		{76B91146-15EA-447A-A39F-6BB0A1388046}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76B91146-15EA-447A-A39F-6BB0A1388046}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76B91146-15EA-447A-A39F-6BB0A1388046}.Release|Any CPU.Build.0 = Release|Any CPU
-		{76FE0EB1-48E4-4A8C-93B6-C67E6E2BFB9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{76FE0EB1-48E4-4A8C-93B6-C67E6E2BFB9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{76FE0EB1-48E4-4A8C-93B6-C67E6E2BFB9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{76FE0EB1-48E4-4A8C-93B6-C67E6E2BFB9A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8D0C877A-DA62-47C6-BB25-41D14323A9E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8D0C877A-DA62-47C6-BB25-41D14323A9E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8D0C877A-DA62-47C6-BB25-41D14323A9E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8D0C877A-DA62-47C6-BB25-41D14323A9E2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9C5EC529-6DE2-4339-BE0A-A1093C591D46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9C5EC529-6DE2-4339-BE0A-A1093C591D46}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C5EC529-6DE2-4339-BE0A-A1093C591D46}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -61,10 +47,6 @@ Global
 		{E067A665-52E1-424E-BD51-826AB892ED26}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E067A665-52E1-424E-BD51-826AB892ED26}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E067A665-52E1-424E-BD51-826AB892ED26}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B232C335-80C5-46D4-BB01-1A9BF835F0C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B232C335-80C5-46D4-BB01-1A9BF835F0C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B232C335-80C5-46D4-BB01-1A9BF835F0C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B232C335-80C5-46D4-BB01-1A9BF835F0C0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1FDE4431-768F-4E33-B112-6B7D85630FAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1FDE4431-768F-4E33-B112-6B7D85630FAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1FDE4431-768F-4E33-B112-6B7D85630FAF}.Release|Any CPU.ActiveCfg = Release|Any CPU

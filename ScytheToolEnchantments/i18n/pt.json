@@ -1,0 +1,12 @@
+{
+    "enchantment.Gatherer.name": "Colecionador",
+    "enchantment.Horticulturist.name": "Horticultor",
+    "enchantment.Palaeontologist.name": "Paleontólogo",
+    "enchantment.Reaper.name": "Ceifador",
+    "enchantment.Gatherer.description": "50% de chance de obter 1 fibra a mais ao cortar ervas daninhas, 50% de chance de obter 1 feno a mais ao cortar grama e 50% de chance de obter 1 musgo a mais das árvores.",
+    "enchantment.Horticulturist.description": "Obtenha mais 1 flor (qualidade normal) ao colher plantações de flores. Nenhum efeito em sementes de forragem.",
+    "enchantment.Palaeontologist.description": "50% de chance de obter 1 fragmento de osso cortando ervas daninhas ou grama, e 5% de obter 1 fóssil aleatório cortando ervas daninhas ou grama.",
+    "enchantment.Reaper.description": "Aumenta o dano e a chance de acerto crítico. Monstros mortos deixam cair itens extras.",
+    "config.AvailableScytheEnchantments.name": "Encantamentos de foice disponíveis",
+    "config.AvailableScytheEnchantments.description": "Defina quais encantamentos estarão disponíveis por meio da forja com um fragmento prismático, sem efeito nos encantamentos existentes."
+}
