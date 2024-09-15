@@ -1,19 +1,22 @@
+using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 using StardewUI;
 using StardewValley;
+using xTile.Dimensions;
 
 namespace MachineControlPanel.Framework.UI
 {
-    internal class RuleListView(RuleHelper ruleHelper, HashSet<RuleIdent> disabled, Action<HashSet<RuleIdent>, HashSet<RuleIdent>> saveMachineRules) : WrapperView
+    internal sealed record ContentChangeArgs(IView? Nextview);
+
+    internal sealed class RuleListView(RuleHelper ruleHelper, HashSet<RuleIdent> disabled, Action<HashSet<RuleIdent>, HashSet<RuleIdent>> saveMachineRules) : WrapperView
     {
         private const int ROW_MARGIN = 4;
-        private const int GUTTER_HEIGHT = 350;
+        private const int COL_MARGIN = 6;
+        private const int ROW_W = 64 + ROW_MARGIN * 2;
+        private const int BOX_W = ROW_MARGIN * 3;
+        private const int MIN_HEIGHT = 400;
+        private const int GUTTER_HEIGHT = 400;
         private static Sprite RightCaret => new(Game1.mouseCursors, new(448, 96, 24, 32));
-        /// <summary>
-        /// Modified 9-slice sprite used for the menu's horizontal divider, meant to be drawn over top of the
-        /// <see cref="MenuBorder"/> to denote separate "sub-panels" or "sections" of the menu to group logically very
-        /// different menu functions (as opposed to lines on a grid).
-        /// </summary>
         public static Sprite ThinVDivider =>
             new(
                 Game1.menuTexture,
@@ -21,108 +24,141 @@ namespace MachineControlPanel.Framework.UI
             );
 
         private static LayoutParameters IconLayout => LayoutParameters.FixedSize(64, 64);
-        private static readonly List<RuleCheckBox> RuleCheckboxes = [];
+        internal readonly Dictionary<RuleIdent, RuleCheckBox> ruleCheckboxes = [];
+        private ScrollableFrameView? container = null;
+        private Lane? rulesList = null;
+        private Lane? footer = null;
 
         protected override IView CreateView()
         {
-            var viewportSize = Game1.uiViewport.Size;
-            // var menuWidth = MathF.Min(720, viewportSize.Width);
-            var menuHeight = MathF.Min(720, viewportSize.Height - GUTTER_HEIGHT);
+            Size viewportSize = Game1.uiViewport.Size;
+            float menuHeight = MathF.Max(MIN_HEIGHT, viewportSize.Height - GUTTER_HEIGHT);
             // var itemSelector = CreateSidebar(menuHeight);
+            var rules = CreateRulesList(viewportSize, ref menuHeight);
             LayoutParameters fitWidth = new() { Width = Length.Content(), Height = Length.Px(menuHeight) };
-            RuleCheckboxes.Clear();
 
-            return new ScrollableFrameView()
+            container = new ScrollableFrameView()
             {
                 Name = "RuleListRoot",
                 FrameLayout = fitWidth,
                 ContentLayout = fitWidth,
                 Title = $"{I18n.RuleList_Title()} [{ruleHelper.Name}]",
-                Content = CreateRulesList(),
+                Content = rules,
                 Footer = Game1.IsMasterGame ? CreateSaveButtons() : null,
             };
+            return container;
         }
 
-        protected IView CreateSaveButtons()
+        private IView CreateSaveButtons()
         {
-
-
             Button saveLabel = new(hoverBackgroundSprite: UiSprites.ButtonLight)
             {
                 Text = I18n.RuleList_Save()
             };
-            saveLabel.Click += OnSaveClick;
+            saveLabel.Click += SaveRules;
 
             Button resetLabel = new(hoverBackgroundSprite: UiSprites.ButtonLight)
             {
                 Text = I18n.RuleList_Reset()
             };
-            resetLabel.Click += OnResetClick;
+            resetLabel.Click += ResetRules;
 
-            return new Lane()
+            footer = new Lane()
             {
                 Layout = LayoutParameters.FitContent(),
                 Orientation = Orientation.Horizontal,
                 Children = [saveLabel, resetLabel]
             };
+            return footer;
         }
 
-        private void OnSaveClick(object? sender, ClickEventArgs e)
+        private void SaveRules(object? sender, ClickEventArgs e)
         {
             if (sender is not Button)
                 return;
 
             HashSet<RuleIdent> newEnabled = [];
             HashSet<RuleIdent> newDisabled = [];
-            foreach (RuleCheckBox checkbox in RuleCheckboxes)
+            foreach (var kv in ruleCheckboxes)
             {
-                if (checkbox.IsChecked)
-                    newEnabled.Add(checkbox.Ident);
+                Console.WriteLine($"{kv.Key}: {kv.Value.IsChecked}");
+                if (kv.Value.IsChecked)
+                    newEnabled.Add(kv.Key);
                 else
-                    newDisabled.Add(checkbox.Ident);
+                    newDisabled.Add(kv.Key);
             }
             saveMachineRules(newEnabled, newDisabled);
 
             Game1.playSound("bigSelect");
         }
 
-        private void OnResetClick(object? sender, ClickEventArgs e)
+        private void ResetRules(object? sender, ClickEventArgs e)
         {
             if (sender is not Button)
                 return;
 
             HashSet<RuleIdent> newEnabled = [];
             HashSet<RuleIdent> newDisabled = [];
-            foreach (RuleCheckBox checkbox in RuleCheckboxes)
+            foreach (var kv in ruleCheckboxes)
             {
-                newEnabled.Add(checkbox.Ident);
-                checkbox.IsChecked = true;
+                newEnabled.Add(kv.Key);
+                kv.Value.IsChecked = true;
             }
             saveMachineRules(newEnabled, newDisabled);
 
             Game1.playSound("bigDeSelect");
         }
 
-        protected IView CreateRulesList()
+        private void ShowItemGrid(object? sender, ClickEventArgs e)
         {
-            List<RuleEntry> rules = ruleHelper.RuleEntries;
-
-            List<List<RuleEntry>> rulesColumns;
-            if (rules.Count < 13)
+            if (sender is InputShowButton button)
             {
+                InputItemGrid itemGrid = button.ItemGrid;
+                itemGrid.backButton.Click += ShowRuleList;
+                container!.Content = itemGrid;
+                container!.Footer = itemGrid.backButton;
+                Game1.playSound("bigSelect");
+            }
+        }
+
+        private void ShowRuleList(object? sender, ClickEventArgs e)
+        {
+            if (sender is Button)
+            {
+                container!.Content = rulesList;
+                container!.Footer = footer;
+                Game1.playSound("bigDeSelect");
+            }
+        }
+
+        private IView CreateRulesList(Size viewportSize, ref float menuHeight)
+        {
+            ruleCheckboxes.Clear();
+            List<RuleEntry> rules = ruleHelper.RuleEntries;
+            List<List<RuleEntry>> rulesColumns;
+            int colSize = (int)((menuHeight - BOX_W) / ROW_W);
+            if (rules.Count <= colSize)
+            {
+                menuHeight = ROW_W * rules.Count + BOX_W;
                 rulesColumns = [rules];
             }
             else
             {
-                int colS = (int)Math.Ceiling(rules.Count / Math.Min(rules.Count / 12f, 3));
-                // rulesColumns = [
-                //     rules.GetRange(0, mid),
-                //     rules.GetRange(mid, rules.Count - mid),
-                // ];
-                rulesColumns = [];
-                for (int i = 0; i < rules.Count; i += colS)
+                float colByWidth = MathF.Ceiling(viewportSize.Width / 640);
+                float colByCount = MathF.Ceiling(rules.Count / colSize) + 1;
+                if (colByCount > colByWidth)
                 {
-                    rulesColumns.Add(rules.GetRange(i, Math.Min(colS, rules.Count - i)));
+                    colSize = (int)MathF.Ceiling(rules.Count / colByWidth);
+                }
+                else
+                {
+                    colSize = (int)MathF.Ceiling(rules.Count / colByCount);
+                    menuHeight = ROW_W * colSize + BOX_W;
+                }
+                rulesColumns = [];
+                for (int i = 0; i < rules.Count; i += colSize)
+                {
+                    rulesColumns.Add(rules.GetRange(i, Math.Min(colSize, rules.Count - i)));
                 }
             }
 
@@ -133,8 +169,8 @@ namespace MachineControlPanel.Framework.UI
 
                 int inputSize = rulesC.Max((rule) => rule.Inputs.Count);
                 int outputSize = rulesC.Max((rule) => rule.Outputs.Count);
-                LayoutParameters inputLayout = new() { Width = Length.Px((64 + ROW_MARGIN * 2) * inputSize + ROW_MARGIN * 2), Height = Length.Content() };
-                LayoutParameters outputLayout = new() { Width = Length.Px((64 + ROW_MARGIN * 2) * outputSize + ROW_MARGIN * 2), Height = Length.Content() };
+                LayoutParameters inputLayout = new() { Width = Length.Px(ROW_W * inputSize + ROW_MARGIN * 2), Height = Length.Content() };
+                LayoutParameters outputLayout = new() { Width = Length.Px(ROW_W * outputSize + ROW_MARGIN * 2), Height = Length.Content() };
 
                 if (columns.Count > 0)
                 {
@@ -150,47 +186,68 @@ namespace MachineControlPanel.Framework.UI
                     Name = $"RuleListColumn_{++seq}",
                     Orientation = Orientation.Vertical,
                     Children = rulesC.Select((rule) => CreateRuleListEntry(rule, inputLayout, outputLayout)).ToList(),
-                    Margin = new Edges(6),
+                    Margin = new(COL_MARGIN),
                 });
             }
 
-            return new Lane()
+            rulesList = new Lane()
             {
                 Name = "RuleList",
+                // Layout = new() { Width = Length.Content(), Height = Length.Stretch() },
                 Orientation = Orientation.Horizontal,
                 Children = columns,
             };
+            return rulesList;
         }
 
-        protected IView CreateRuleListEntry(RuleEntry rule, LayoutParameters inputLayout, LayoutParameters outputLayout)
+        private IView CreateRuleListEntry(RuleEntry rule, LayoutParameters inputLayout, LayoutParameters outputLayout)
         {
-            IView firstView;
+            List<IView> children = [];
             if (Game1.IsMasterGame && rule.CanCheck)
             {
-                RuleCheckBox checkbox = new(rule)
+                // InputShowButton openItems = new(rule);
+                // openItems.Click += ShowItemGrid;
+                // children.Add(openItems);
+                // if (ruleCheckboxes.ContainsKey(rule.Ident))
+
+                if (ruleCheckboxes.TryGetValue(rule.Ident, out RuleCheckBox? existing))
                 {
-                    IsChecked = !disabled.Contains(rule.Ident),
-                };
-                RuleCheckboxes.Add(checkbox);
-                firstView = checkbox;
+                    // children.Add(new Image()
+                    // {
+                    //     Sprite = disabled.Contains(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
+                    //     Tint = Color.White * 0.0f,
+                    //     Layout = LayoutParameters.FitContent(),
+                    //     IsFocusable = false
+                    // });
+                    children.Add(existing);
+                }
+                else
+                {
+                    RuleCheckBox checkBox = new(rule)
+                    {
+                        IsChecked = !disabled.Contains(rule.Ident),
+                        // Tooltip = rule.Ident.ToString()
+                    };
+                    ruleCheckboxes[rule.Ident] = checkBox;
+                    children.Add(checkBox);
+                }
             }
             else
             {
-                firstView = new Image()
+                children.Add(new Image()
                 {
                     Sprite = disabled.Contains(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
                     Tint = Color.White * 0.5f,
                     Layout = LayoutParameters.FitContent(),
                     IsFocusable = false
-                };
+                });
             }
 
             Lane inputs = FormRuleItemLane(rule.Inputs, $"{rule.Repr}.Inputs");
             inputs.HorizontalContentAlignment = Alignment.End;
             inputs.Layout = inputLayout;
-            Lane outputs = FormRuleItemLane(rule.Outputs, $"{rule.Repr}.Outputs");
-            outputs.Layout = outputLayout;
-            outputs.HorizontalContentAlignment = Alignment.Start;
+            children.Add(inputs);
+
             Image arrow = new()
             {
                 Name = $"{rule.Repr}.Arrow",
@@ -198,19 +255,26 @@ namespace MachineControlPanel.Framework.UI
                 Padding = new(20, 16),
                 Sprite = RightCaret
             };
+            children.Add(arrow);
+
+            Lane outputs = FormRuleItemLane(rule.Outputs, $"{rule.Repr}.Outputs");
+            outputs.Layout = outputLayout;
+            outputs.HorizontalContentAlignment = Alignment.Start;
+            children.Add(outputs);
+
             return new Lane()
             {
                 Name = $"{rule.Repr}.Lane",
                 Layout = LayoutParameters.FitContent(),
                 Orientation = Orientation.Horizontal,
-                Children = [firstView, inputs, arrow, outputs],
+                Children = children,
                 Margin = new(Left: 12),
                 HorizontalContentAlignment = Alignment.Start,
                 VerticalContentAlignment = Alignment.Middle,
             };
         }
 
-        protected static Lane FormRuleItemLane(List<RuleItem> ruleItems, string prefix)
+        private static Lane FormRuleItemLane(List<RuleItem> ruleItems, string prefix)
         {
             List<IView> content = [];
             int i = 0;

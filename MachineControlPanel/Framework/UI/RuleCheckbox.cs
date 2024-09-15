@@ -2,7 +2,7 @@ using StardewUI;
 
 namespace MachineControlPanel.Framework.UI
 {
-    internal class RuleCheckBox : CheckBox
+    internal sealed class RuleCheckBox : CheckBox
     {
         private readonly RuleEntry rule;
         public RuleIdent Ident => rule.Ident;

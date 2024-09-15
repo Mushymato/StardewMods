@@ -1,4 +1,5 @@
 ﻿global using SObject = StardewValley.Object;
+// BigCraftable Id, MachineOutputRule Id, MachineOutputTriggerRule Id, MachineOutputTriggerRule idx
 global using RuleIdent = System.Tuple<string, string, string, int>;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -13,7 +14,7 @@ using HarmonyLib;
 
 namespace MachineControlPanel
 {
-    public class ModEntry : Mod
+    internal sealed class ModEntry : Mod
     {
         private const string SAVEDATA = "save-machine-rules";
         private ModConfig? config = null;
@@ -79,11 +80,7 @@ namespace MachineControlPanel
             if (e.FromModID == ModManifest.UniqueID && e.Type == SAVEDATA)
             {
                 saveData = e.ReadAs<ModSaveData>() ?? new() { Version = ModManifest.Version };
-                Log("Disabled machine rules (from host):");
-                foreach (var ident in saveData.Disabled)
-                {
-                    Log($"- {ident}");
-                }
+                LogSaveData();
             }
         }
 
@@ -93,11 +90,7 @@ namespace MachineControlPanel
                 return;
 
             saveData = Helper.Data.ReadSaveData<ModSaveData>(SAVEDATA) ?? new() { Version = ModManifest.Version };
-            Log("Disabled machine rules:");
-            foreach (var ident in saveData.Disabled)
-            {
-                Log($"- {ident}");
-            }
+            LogSaveData();
         }
 
         private void OnDayEnding(object? sender, DayEndingEventArgs e)
@@ -110,6 +103,7 @@ namespace MachineControlPanel
                 saveData.Version = ModManifest.Version;
                 Helper.Multiplayer.SendMessage(saveData, SAVEDATA, modIDs: [ModManifest.UniqueID]);
                 Helper.Data.WriteSaveData(SAVEDATA, saveData);
+                LogSaveData();
             }
             else
                 Log("Failed to write machine rules save data.", LogLevel.Warn);
@@ -131,6 +125,7 @@ namespace MachineControlPanel
                 saveData.Version = ModManifest.Version;
                 Helper.Multiplayer.SendMessage(saveData, SAVEDATA, modIDs: [ModManifest.UniqueID]);
                 Helper.Data.WriteSaveData(SAVEDATA, saveData);
+                LogSaveData();
                 return;
             }
             Log("Attempted to save machine rules without save loaded", LogLevel.Warn);
