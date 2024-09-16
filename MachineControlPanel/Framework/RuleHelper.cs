@@ -27,14 +27,16 @@ namespace MachineControlPanel.Framework
 
     internal sealed record RuleItem(
         List<IconEdge> Icons,
-        List<string> Tooltip
+        List<string> Tooltip,
+        string? QId = null
     )
     {
         internal RuleItem Copy()
         {
             return new RuleItem(
                 [.. Icons],
-                [.. Tooltip]
+                [.. Tooltip],
+                QId: QId
             );
         }
     };
@@ -159,7 +161,8 @@ namespace MachineControlPanel.Framework
                             [new(new(itemData.GetTexture(), itemData.GetSourceRect())),
                              EmojiBolt,
                              ..Number(fuel.RequiredCount)],
-                            [itemData.DisplayName]
+                            [itemData.DisplayName],
+                            QId: itemData.QualifiedItemId
                         ));
                     }
                 }
@@ -207,7 +210,7 @@ namespace MachineControlPanel.Framework
                                 icons.Add(Quality(res.Item.Quality));
                             }
                             tooltip.Add(itemData.DisplayName);
-                            optLine.Add(new RuleItem(icons, tooltip));
+                            optLine.Add(new RuleItem(icons, tooltip, QId: itemData.QualifiedItemId));
                         }
                     }
                     if (optLine.Count == 0)
@@ -228,7 +231,8 @@ namespace MachineControlPanel.Framework
                                         [new(new(itemData.GetTexture(), itemData.GetSourceRect())),
                                         EmojiBolt,
                                         ..Number(count)],
-                                        [itemData.DisplayName]
+                                        [itemData.DisplayName],
+                                        QId: itemData.QualifiedItemId
                                     ));
                                 }
                             }
@@ -299,7 +303,8 @@ namespace MachineControlPanel.Framework
                             {
                                 inputLine.Add(new RuleItem(
                                     [new(new(itemData.GetTexture(), itemData.GetSourceRect()))],
-                                    [itemData.DisplayName]
+                                    [itemData.DisplayName],
+                                    QId: itemData.QualifiedItemId
                                 ));
                                 ValidInputs[itemData.QualifiedItemId] = inputLine.Last().Copy();
                             }
@@ -454,7 +459,8 @@ namespace MachineControlPanel.Framework
                             }
                             return new RuleItem(
                                 icons,
-                                [preserve.DisplayName]
+                                [preserve.DisplayName],
+                                $"{preserve.QualifiedItemId}/{preserveItem.QualifiedItemId}"
                             );
                         }
                     }
@@ -475,7 +481,8 @@ namespace MachineControlPanel.Framework
                         {
                             ValidInputs[itemData.QualifiedItemId] = new RuleItem(
                                 [new(new(itemData.GetTexture(), itemData.GetSourceRect()))],
-                                [itemData.DisplayName]
+                                [itemData.DisplayName],
+                                QId: itemData.QualifiedItemId
                             );
                         }
                     }

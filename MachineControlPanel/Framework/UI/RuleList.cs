@@ -15,7 +15,7 @@ namespace MachineControlPanel.Framework.UI
         private const int BOX_W = ROW_MARGIN * 3;
         private const int MIN_HEIGHT = 400;
         private const int GUTTER_HEIGHT = 400;
-        private const int INPUT_GRID_COUNT = 8;
+        private const int INPUT_GRID_COUNT = 12;
         private static Sprite RightCaret => new(Game1.mouseCursors, new(448, 96, 24, 32));
         private static Sprite ThinVDivider =>
             new(
@@ -25,7 +25,8 @@ namespace MachineControlPanel.Framework.UI
         private static Sprite TabButton => new(Game1.mouseCursors2, new(0, 224, 16, 12), FixedEdges: new(0, 4));
 
         private static LayoutParameters IconLayout => LayoutParameters.FixedSize(64, 64);
-        internal readonly Dictionary<RuleIdent, RuleCheckBox> ruleCheckboxes = [];
+        internal readonly Dictionary<RuleIdent, CheckBox> ruleCheckBoxes = [];
+        internal readonly Dictionary<RuleIdent, Panel> inputChecks = [];
         private ScrollableFrameView? container = null;
         private Lane? rulesList = null;
         private Grid? inputsGrid = null;
@@ -56,24 +57,26 @@ namespace MachineControlPanel.Framework.UI
 
         private IView CreateSideBar()
         {
-            Button showRulesBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
+            Button rulesBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
             {
-                Name = "ShowRulesButton",
-                Text = I18n.RuleList_ShowRules()
+                Name = "RulesBtn",
+                Text = I18n.RuleList_Rules(),
+                Layout = IconLayout
             };
-            showRulesBtn.Click += ShowRules;
+            rulesBtn.LeftClick += ShowRules;
 
-            Button showInputsBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
+            Button inputsBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
             {
-                Name = "ShowInputsBtn",
-                Text = I18n.RuleList_ShowInputs()
+                Name = "InputsBtn",
+                Text = I18n.RuleList_Inputs(),
+                Layout = IconLayout
             };
-            showInputsBtn.Click += ShowInputs;
+            inputsBtn.LeftClick += ShowInputs;
             return new Lane()
             {
                 Layout = LayoutParameters.FitContent(),
                 Orientation = Orientation.Vertical,
-                Children = [showRulesBtn, showInputsBtn]
+                Children = [rulesBtn, inputsBtn]
             };
         }
 
@@ -91,8 +94,30 @@ namespace MachineControlPanel.Framework.UI
             if (sender is Button)
             {
                 container!.Content = inputsGrid;
-                Game1.playSound("bigSelect");
+                Game1.playSound("smallSelect");
             }
+        }
+
+        public bool NextTab()
+        {
+            if (container!.Content == rulesList)
+            {
+                container!.Content = inputsGrid;
+                Game1.playSound("smallSelect");
+                return true;
+            }
+            return false;
+        }
+
+        public bool PreviousTab()
+        {
+            if (container!.Content == inputsGrid)
+            {
+                container!.Content = rulesList;
+                Game1.playSound("smallSelect");
+                return true;
+            }
+            return false;
         }
 
         private IView CreateSaveButtons()
@@ -102,14 +127,14 @@ namespace MachineControlPanel.Framework.UI
                 Name = "SaveBtn",
                 Text = I18n.RuleList_Save()
             };
-            saveBtn.Click += SaveRules;
+            saveBtn.LeftClick += SaveRules;
 
             Button resetBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
             {
                 Name = "ResetBtn",
                 Text = I18n.RuleList_Reset()
             };
-            resetBtn.Click += ResetRules;
+            resetBtn.LeftClick += ResetRules;
 
             return new Lane()
             {
@@ -126,7 +151,7 @@ namespace MachineControlPanel.Framework.UI
 
             HashSet<RuleIdent> newEnabled = [];
             HashSet<RuleIdent> newDisabled = [];
-            foreach (var kv in ruleCheckboxes)
+            foreach (var kv in ruleCheckBoxes)
             {
                 Console.WriteLine($"{kv.Key}: {kv.Value.IsChecked}");
                 if (kv.Value.IsChecked)
@@ -146,7 +171,7 @@ namespace MachineControlPanel.Framework.UI
 
             HashSet<RuleIdent> newEnabled = [];
             HashSet<RuleIdent> newDisabled = [];
-            foreach (var kv in ruleCheckboxes)
+            foreach (var kv in ruleCheckBoxes)
             {
                 newEnabled.Add(kv.Key);
                 kv.Value.IsChecked = true;
@@ -159,19 +184,27 @@ namespace MachineControlPanel.Framework.UI
         {
             int i = 0;
             // int count = (int)MathF.Floor(viewportSize.Width / (2 * ROW_W));
+            List<IView> inputPanels = [];
+            foreach (var kv in ruleHelper.ValidInputs)
+            {
+                InputCheckable inputPanel = new(FormRuleItemPanel(kv.Value, $"Inputs.{++i}"))
+                {
+                    IsChecked = false
+                };
+                inputPanels.Add(inputPanel.Content);
+            }
             inputsGrid = new Grid()
             {
                 Name = "InputsGrid",
-                // Layout = new() { Width = Length.Px(count * ROW_W), Height = Length.Stretch() },
                 Layout = new() { Width = Length.Px(INPUT_GRID_COUNT * ROW_W), Height = Length.Content() },
                 ItemLayout = GridItemLayout.Count(INPUT_GRID_COUNT),
-                Children = ruleHelper.ValidInputs.Select((kv) => (IView)FormRuleItemPanel(kv.Value, $"Inputs.{++i}")).ToList()
+                Children = inputPanels
             };
         }
 
         private void CreateRulesList(Size viewportSize, ref float menuHeight)
         {
-            ruleCheckboxes.Clear();
+            ruleCheckBoxes.Clear();
             List<RuleEntry> rules = ruleHelper.RuleEntries;
             List<List<RuleEntry>> rulesColumns;
             int colSize = (int)((menuHeight - BOX_W) / ROW_W) - 2;
@@ -242,12 +275,12 @@ namespace MachineControlPanel.Framework.UI
             if (Game1.IsMasterGame && rule.CanCheck)
             {
                 // InputShowButton openItems = new(rule);
-                // openItems.Click += ShowItemGrid;
+                // openItems.LeftClick += ShowItemGrid;
                 // children.Add(openItems);
-                // if (ruleCheckboxes.ContainsKey(rule.Ident))
+                // if (ruleCheckBoxes.ContainsKey(rule.Ident))
 
-                // if (ruleCheckboxes.TryGetValue(rule.Ident, out RuleCheckBox? existing))
-                if (ruleCheckboxes.ContainsKey(rule.Ident))
+                // if (ruleCheckBoxes.TryGetValue(rule.Ident, out CheckBox? existing))
+                if (ruleCheckBoxes.ContainsKey(rule.Ident))
                 {
                     children.Add(new Image()
                     {
@@ -260,12 +293,12 @@ namespace MachineControlPanel.Framework.UI
                 }
                 else
                 {
-                    RuleCheckBox checkBox = new(rule)
+                    CheckBox checkBox = new()
                     {
                         IsChecked = !disabled.Contains(rule.Ident),
                         // Tooltip = rule.Ident.ToString()
                     };
-                    ruleCheckboxes[rule.Ident] = checkBox;
+                    ruleCheckBoxes[rule.Ident] = checkBox;
                     children.Add(checkBox);
                 }
             }
@@ -354,16 +387,6 @@ namespace MachineControlPanel.Framework.UI
                 Tooltip = string.Join('\n', ruleItem.Tooltip.Select((tip) => tip.Trim())),
                 IsFocusable = true
             };
-        }
-
-        public bool NextTab()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool PreviousTab()
-        {
-            throw new NotImplementedException();
         }
     }
 }

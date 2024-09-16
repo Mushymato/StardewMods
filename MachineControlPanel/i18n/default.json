@@ -6,6 +6,6 @@
     "rule-list.complex-input": "Complex Input",
     "rule-list.save": "Save",
     "rule-list.reset": "Reset",
-    "rule-list.show-rules": "Show Rules",
-    "rule-list.show-inputs": "Show Inputs"
+    "rule-list.rules": "Rules",
+    "rule-list.inputs": "Inputs"
 }
