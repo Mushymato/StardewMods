@@ -1,0 +1,57 @@
+{
+  "Format": "2.0.0",
+  "Changes": [
+    {
+      "Action": "EditMap",
+      "Target": "Maps/Coop",
+      "MapProperties": {
+        "mushymato.MMAP_BuildingEntryLocation": "2 3"
+      },
+      "MapTiles": [
+        {
+          "Position": {
+            "X": 1,
+            "Y": 3
+          },
+          "Layer": "Back",
+          "SetProperties": {
+            "mushymato.MMAP_AnimalSpot": "T"
+          }
+        },
+        {
+          "Position": {
+            "X": 1,
+            "Y": 4
+          },
+          "Layer": "Back",
+          "SetProperties": {
+            "mushymato.MMAP_AnimalSpot": "T"
+          }
+        }
+      ]
+    },
+    {
+      "Action": "EditMap",
+      "Target": "Maps/Greenhouse",
+      "MapProperties": {
+        "mushymato.MMAP_BuildingEntry": "10 10"
+      }
+    },
+    {
+      "Action": "EditMap",
+      "Target": "Maps/BusStop",
+      "MapTiles": [
+        {
+          "Position": {
+            "X": 26,
+            "Y": 21
+          },
+          "Layer": "Buildings",
+          "SetProperties": {
+            "Action": "mushymato.MMAP_Builder Wizard"
+          }
+        }
+      ]
+    }
+  ]
+}

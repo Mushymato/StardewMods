@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiscTweaks", "MiscTweaks\Mi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MachineControlPanel", "MachineControlPanel\MachineControlPanel.csproj", "{1FDE4431-768F-4E33-B112-6B7D85630FAF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiscMapActionsProperties", "MiscMapActionsProperties\MiscMapActionsProperties.csproj", "{6D382641-C254-4F18-A01D-B9617D0E76DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{1FDE4431-768F-4E33-B112-6B7D85630FAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1FDE4431-768F-4E33-B112-6B7D85630FAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FDE4431-768F-4E33-B112-6B7D85630FAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D382641-C254-4F18-A01D-B9617D0E76DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D382641-C254-4F18-A01D-B9617D0E76DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D382641-C254-4F18-A01D-B9617D0E76DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D382641-C254-4F18-A01D-B9617D0E76DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

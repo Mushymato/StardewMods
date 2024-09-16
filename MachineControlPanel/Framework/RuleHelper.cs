@@ -17,22 +17,33 @@ namespace MachineControlPanel.Framework
     // suspect i ought to just use sprite with nineslice stuff unclear
     internal sealed record IconEdge(
         Sprite Img,
-        Edges Edg,
+        Edges? Edg = null,
         float Scale = 4f,
         Color? Tint = null
-    );
+    )
+    {
+        internal Edges Edge => Edg ?? Edges.NONE;
+    };
 
     internal sealed record RuleItem(
         List<IconEdge> Icons,
         List<string> Tooltip
-    );
+    )
+    {
+        internal RuleItem Copy()
+        {
+            return new RuleItem(
+                [.. Icons],
+                [.. Tooltip]
+            );
+        }
+    };
 
     internal sealed record RuleEntry(
         RuleIdent Ident,
         bool CanCheck,
         List<RuleItem> Inputs,
-        List<RuleItem> Outputs,
-        Func<IEnumerable<RuleItem>>? GetValidItems = null
+        List<RuleItem> Outputs
     )
     {
         internal string Repr => $"{Ident.Item2}.{Ident.Item3}";
@@ -42,13 +53,12 @@ namespace MachineControlPanel.Framework
     {
         internal const string PLACEHOLDER_TRIGGER = "PLACEHOLDER_TRIGGER";
         internal static Integration.IExtraMachineConfigApi? EMC { get; set; } = null;
-        internal static ConditionalWeakTable<string, RuleItem?> contextTagSpriteCache = [];
         internal string Name => bigCraftable.DisplayName;
-        internal static IconEdge QuestionIcon => new(new(Game1.mouseCursors, new Rectangle(240, 192, 16, 16)), Edges.NONE);
+        internal static IconEdge QuestionIcon => new(new(Game1.mouseCursors, new Rectangle(240, 192, 16, 16)));
         // internal static Sprite GreenStar => new(Game1.mouseCursors_1_6, new Rectangle(457, 298, 11, 11));
         internal static IconEdge EmojiX => new(new(ChatBox.emojiTexture, new Rectangle(45, 81, 9, 9)), new(14), 4f);
         internal static IconEdge EmojiExclaim => new(new(ChatBox.emojiTexture, new Rectangle(54, 81, 9, 9)), new(Top: 37), 3f);
-        internal static IconEdge EmojiNote => new(new(ChatBox.emojiTexture, new Rectangle(81, 81, 9, 9)), Edges.NONE, 3f);
+        internal static IconEdge EmojiNote => new(new(ChatBox.emojiTexture, new Rectangle(81, 81, 9, 9)), Scale: 3f);
         internal static IconEdge EmojiBolt => new(new(ChatBox.emojiTexture, new Rectangle(36, 63, 9, 9)), new(Left: 37), 3f);
         internal static IEnumerable<IconEdge> Number(int num)
         {
@@ -75,17 +85,18 @@ namespace MachineControlPanel.Framework
                 3
             );
         }
-
+        internal readonly List<RuleEntry> RuleEntries = [];
+        internal readonly Dictionary<string, RuleItem> ValidInputs = [];
         private readonly SObject bigCraftable;
         private readonly MachineData machine;
-        internal List<RuleEntry> RuleEntries;
-
+        private static readonly ConditionalWeakTable<string, RuleItem?> contextTagSpriteCache = [];
+        private static readonly ConditionalWeakTable<string, List<ParsedItemData>?> contextTagItemDataCache = [];
 
         internal RuleHelper(SObject bigCraftable, MachineData machine)
         {
             this.bigCraftable = bigCraftable;
             this.machine = machine;
-            RuleEntries = GetRuleEntries();
+            GetRuleEntriesAndItemList();
         }
 
         /// <summary>
@@ -130,9 +141,10 @@ namespace MachineControlPanel.Framework
             return pruned;
         }
 
-        private List<RuleEntry> GetRuleEntries()
+        private void GetRuleEntriesAndItemList()
         {
-            List<RuleEntry> entries = [];
+            RuleEntries.Clear();
+            ValidInputs.Clear();
             ItemQueryContext context = new();
 
             // Fuel
@@ -144,7 +156,7 @@ namespace MachineControlPanel.Framework
                     if (ItemRegistry.GetData(fuel.ItemId) is ParsedItemData itemData)
                     {
                         sharedFuel.Add(new RuleItem(
-                            [new(new(itemData.GetTexture(), itemData.GetSourceRect()), Edges.NONE),
+                            [new(new(itemData.GetTexture(), itemData.GetSourceRect())),
                              EmojiBolt,
                              ..Number(fuel.RequiredCount)],
                             [itemData.DisplayName]
@@ -182,7 +194,7 @@ namespace MachineControlPanel.Framework
                         foreach (ItemQueryResult res in itemQueryResults)
                         {
                             if (ItemRegistry.GetData(res.Item.QualifiedItemId) is not ParsedItemData itemData) continue;
-                            List<IconEdge> icons = [new(new(itemData.GetTexture(), itemData.GetSourceRect()), Edges.NONE)];
+                            List<IconEdge> icons = [new(new(itemData.GetTexture(), itemData.GetSourceRect()))];
                             List<string> tooltip = [];
                             if (output.Condition != null)
                             {
@@ -213,7 +225,7 @@ namespace MachineControlPanel.Framework
                                 if (ItemRegistry.GetData(tag) is ParsedItemData itemData)
                                 {
                                     emcFuel.Add(new RuleItem(
-                                        [new(new(itemData.GetTexture(), itemData.GetSourceRect()), Edges.NONE),
+                                        [new(new(itemData.GetTexture(), itemData.GetSourceRect())),
                                         EmojiBolt,
                                         ..Number(count)],
                                         [itemData.DisplayName]
@@ -277,17 +289,19 @@ namespace MachineControlPanel.Framework
                     {
                         if (ItemRegistry.GetData(trigger.RequiredItemId) is ParsedItemData itemData)
                         {
-                            RuleItem? preserve = GetPreserveRuleItem(trigger.RequiredTags, itemData, context);
+                            RuleItem? preserve = GetPreserveRuleItem(trigger.RequiredTags, itemData, context, out string preserveTag);
                             if (preserve != null)
                             {
                                 inputLine.Add(preserve);
+                                ValidInputs[$"{trigger.RequiredItemId}/{preserveTag}"] = preserve.Copy();
                             }
                             else
                             {
                                 inputLine.Add(new RuleItem(
-                                    [new(new(itemData.GetTexture(), itemData.GetSourceRect()), Edges.NONE)],
+                                    [new(new(itemData.GetTexture(), itemData.GetSourceRect()))],
                                     [itemData.DisplayName]
                                 ));
+                                ValidInputs[itemData.QualifiedItemId] = inputLine.Last().Copy();
                             }
                         }
                     }
@@ -295,6 +309,7 @@ namespace MachineControlPanel.Framework
                     IconEdge? qualityIcon = null;
                     if (trigger.RequiredTags != null)
                     {
+                        PopulateContextTagValidInputs(trigger.RequiredTags, context);
                         inputLine.AddRange(GetContextTagRuleItems(trigger.RequiredTags, context, out negateTags));
                         qualityIcon = GetContextTagQuality(trigger.RequiredTags);
                     }
@@ -354,7 +369,7 @@ namespace MachineControlPanel.Framework
                         foreach ((List<RuleItem> optLine, List<RuleItem> emcFuel) in withEmcFuel)
                         {
                             List<RuleItem> ipt = [.. inputLine, .. emcFuel];
-                            entries.Add(new RuleEntry(
+                            RuleEntries.Add(new RuleEntry(
                                 new(bigCraftable.QualifiedItemId, rule.Id, triggerId, idx),
                                 canCheck,
                                 ipt,
@@ -369,7 +384,7 @@ namespace MachineControlPanel.Framework
                     foreach ((string triggerId, int idx, bool canCheck, List<RuleItem> inputLine) in inputs)
                     {
                         var ipt = inputLine;
-                        entries.Add(new RuleEntry(
+                        RuleEntries.Add(new RuleEntry(
                             new(bigCraftable.QualifiedItemId, rule.Id, triggerId, idx),
                             canCheck,
                             ipt,
@@ -379,12 +394,11 @@ namespace MachineControlPanel.Framework
                 }
 
             }
-
-            return entries;
         }
 
-        internal static RuleItem? GetPreserveRuleItem(List<string>? tags, ParsedItemData baseItem, ItemQueryContext context)
+        internal static RuleItem? GetPreserveRuleItem(List<string>? tags, ParsedItemData baseItem, ItemQueryContext context, out string preserveTag)
         {
+            preserveTag = "none";
             if (tags == null)
             {
                 return null;
@@ -395,6 +409,7 @@ namespace MachineControlPanel.Framework
                 string realTag = negate ? tag[1..] : tag;
                 if (realTag.StartsWith("preserve_sheet_index_"))
                 {
+                    preserveTag = tag;
                     // id_o_itemid resolves but preserved_item_index_itemid cus that gets added for Object
                     string idTag = $"id_o_{realTag[21..]}";
                     if (ItemQueryResolver.TryResolve(
@@ -430,12 +445,12 @@ namespace MachineControlPanel.Framework
                             // drawing with layder 
                             if (preserve.ColorSameIndexAsParentSheetIndex)
                             {
-                                icons.Add(new(new(baseItem.GetTexture(), baseItem.GetSourceRect()), Edges.NONE, Tint: preserve.color.Value));
+                                icons.Add(new(new(baseItem.GetTexture(), baseItem.GetSourceRect()), Tint: preserve.color.Value));
                             }
                             else
                             {
-                                icons.Add(new(new(baseItem.GetTexture(), baseItem.GetSourceRect()), Edges.NONE));
-                                icons.Add(new(new(baseItem.GetTexture(), baseItem.GetSourceRect(1)), Edges.NONE, Tint: preserve.color.Value));
+                                icons.Add(new(new(baseItem.GetTexture(), baseItem.GetSourceRect())));
+                                icons.Add(new(new(baseItem.GetTexture(), baseItem.GetSourceRect(1)), Tint: preserve.color.Value));
                             }
                             return new RuleItem(
                                 icons,
@@ -448,6 +463,53 @@ namespace MachineControlPanel.Framework
             return null;
         }
 
+        internal void PopulateContextTagValidInputs(IEnumerable<string> tags, ItemQueryContext context)
+        {
+            foreach (string tag in tags)
+            {
+                if (contextTagItemDataCache.GetValue(tag, (tg) => PopulateContextTagItemData(tg, context)) is List<ParsedItemData> ctItemData)
+                {
+                    foreach (ParsedItemData itemData in ctItemData)
+                    {
+                        if (!ValidInputs.ContainsKey(itemData.QualifiedItemId))
+                        {
+                            ValidInputs[itemData.QualifiedItemId] = new RuleItem(
+                                [new(new(itemData.GetTexture(), itemData.GetSourceRect()))],
+                                [itemData.DisplayName]
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        internal static List<ParsedItemData>? PopulateContextTagItemData(string tag, ItemQueryContext context)
+        {
+            tag = tag.Trim();
+            bool negate = tag.StartsWith('!');
+            if (negate || tag.StartsWith("preserve_sheet_index_"))
+                return null;
+
+            // get all item data associated with this tag
+            if (ItemQueryResolver.TryResolve(
+                "ALL_ITEMS",
+                context,
+                ItemQuerySearchMode.All,
+                $"ITEM_CONTEXT_TAG Target {tag}"
+            ) is ItemQueryResult[] results && results.Length > 0)
+            {
+                return results.Select((res) => ItemRegistry.GetData(res.Item.QualifiedItemId)).ToList();
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a representative icon for a context tag.
+        /// </summary>
+        /// <param name="tags"></param>
+        /// <param name="context"></param>
+        /// <param name="negateTags"></param>
+        /// <returns></returns>
         internal static List<RuleItem> GetContextTagRuleItems(IEnumerable<string> tags, ItemQueryContext context, out List<string> negateTags)
         {
             List<RuleItem> rules = [];
@@ -481,7 +543,6 @@ namespace MachineControlPanel.Framework
 
         internal static Tuple<RuleItem, bool>? GetContextTagRuleItem(string tag, ItemQueryContext context)
         {
-            // need to handle quality_* items
             tag = tag.Trim();
             bool negate = tag.StartsWith('!');
             string realTag = negate ? tag[1..] : tag;
@@ -509,28 +570,23 @@ namespace MachineControlPanel.Framework
                 return null;
             }
             // get first item found with this tag
-            else if (ItemQueryResolver.TryResolve(
-                "ALL_ITEMS",
-                context,
-                ItemQuerySearchMode.FirstOfTypeItem,
-                $"ITEM_CONTEXT_TAG Target {realTag}"
-            ).FirstOrDefault()?.Item is Item item)
+            else
             {
-                itemData = ItemRegistry.GetData(item.QualifiedItemId);
-                if (realTag.StartsWith("id_"))
-                {
-                    showNote = false;
-                    tooltip = itemData.DisplayName;
-                    alpha = 1f;
-                }
+                itemData = contextTagItemDataCache.GetValue(tag, (tg) => PopulateContextTagItemData(tg, context))?.First();
             }
             if (itemData == null)
             {
                 return null;
             }
+            else if (realTag.StartsWith("id_"))
+            {
+                showNote = false;
+                tooltip = itemData.DisplayName;
+                alpha = 1f;
+            }
 
             List<IconEdge> icons = [];
-            icons.Add(new(new(itemData.GetTexture(), itemData.GetSourceRect()), Edges.NONE, Tint: Color.White * alpha));
+            icons.Add(new(new(itemData.GetTexture(), itemData.GetSourceRect()), Tint: Color.White * alpha));
             if (showNote)
                 icons.Add(EmojiNote);
             if (negate)

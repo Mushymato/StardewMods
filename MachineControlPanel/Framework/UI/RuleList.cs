@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 using StardewUI;
 using StardewValley;
@@ -8,7 +7,7 @@ namespace MachineControlPanel.Framework.UI
 {
     internal sealed record ContentChangeArgs(IView? Nextview);
 
-    internal sealed class RuleListView(RuleHelper ruleHelper, HashSet<RuleIdent> disabled, Action<HashSet<RuleIdent>, HashSet<RuleIdent>> saveMachineRules) : WrapperView
+    internal sealed class RuleListView(RuleHelper ruleHelper, HashSet<RuleIdent> disabled, Action<HashSet<RuleIdent>, HashSet<RuleIdent>> saveMachineRules) : WrapperView, ITabbable
     {
         private const int ROW_MARGIN = 4;
         private const int COL_MARGIN = 6;
@@ -16,60 +15,108 @@ namespace MachineControlPanel.Framework.UI
         private const int BOX_W = ROW_MARGIN * 3;
         private const int MIN_HEIGHT = 400;
         private const int GUTTER_HEIGHT = 400;
+        private const int INPUT_GRID_COUNT = 8;
         private static Sprite RightCaret => new(Game1.mouseCursors, new(448, 96, 24, 32));
-        public static Sprite ThinVDivider =>
+        private static Sprite ThinVDivider =>
             new(
                 Game1.menuTexture,
                 SourceRect: new(156, 384, 8, 54)
             );
+        private static Sprite TabButton => new(Game1.mouseCursors2, new(0, 224, 16, 12), FixedEdges: new(0, 4));
 
         private static LayoutParameters IconLayout => LayoutParameters.FixedSize(64, 64);
         internal readonly Dictionary<RuleIdent, RuleCheckBox> ruleCheckboxes = [];
         private ScrollableFrameView? container = null;
         private Lane? rulesList = null;
-        private Lane? footer = null;
+        private Grid? inputsGrid = null;
 
         protected override IView CreateView()
         {
             Size viewportSize = Game1.uiViewport.Size;
             float menuHeight = MathF.Max(MIN_HEIGHT, viewportSize.Height - GUTTER_HEIGHT);
             // var itemSelector = CreateSidebar(menuHeight);
-            var rules = CreateRulesList(viewportSize, ref menuHeight);
+            CreateRulesList(viewportSize, ref menuHeight);
             LayoutParameters fitWidth = new() { Width = Length.Content(), Height = Length.Px(menuHeight) };
+            if (ruleHelper.ValidInputs.Count > 0)
+                CreateInputsGrid();
 
             container = new ScrollableFrameView()
             {
                 Name = "RuleListRoot",
                 FrameLayout = fitWidth,
                 ContentLayout = fitWidth,
-                Title = $"{I18n.RuleList_Title()} [{ruleHelper.Name}]",
-                Content = rules,
+                Title = I18n.RuleList_Title(name: ruleHelper.Name),
+                Content = rulesList,
+                Sidebar = ruleHelper.ValidInputs.Count > 0 ? CreateSideBar() : null,
+                SidebarWidth = ROW_W,
                 Footer = Game1.IsMasterGame ? CreateSaveButtons() : null,
             };
             return container;
         }
 
+        private IView CreateSideBar()
+        {
+            Button showRulesBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
+            {
+                Name = "ShowRulesButton",
+                Text = I18n.RuleList_ShowRules()
+            };
+            showRulesBtn.Click += ShowRules;
+
+            Button showInputsBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
+            {
+                Name = "ShowInputsBtn",
+                Text = I18n.RuleList_ShowInputs()
+            };
+            showInputsBtn.Click += ShowInputs;
+            return new Lane()
+            {
+                Layout = LayoutParameters.FitContent(),
+                Orientation = Orientation.Vertical,
+                Children = [showRulesBtn, showInputsBtn]
+            };
+        }
+
+        private void ShowRules(object? sender, ClickEventArgs e)
+        {
+            if (sender is Button)
+            {
+                container!.Content = rulesList;
+                Game1.playSound("smallSelect");
+            }
+        }
+
+        private void ShowInputs(object? sender, ClickEventArgs e)
+        {
+            if (sender is Button)
+            {
+                container!.Content = inputsGrid;
+                Game1.playSound("bigSelect");
+            }
+        }
+
         private IView CreateSaveButtons()
         {
-            Button saveLabel = new(hoverBackgroundSprite: UiSprites.ButtonLight)
+            Button saveBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
             {
+                Name = "SaveBtn",
                 Text = I18n.RuleList_Save()
             };
-            saveLabel.Click += SaveRules;
+            saveBtn.Click += SaveRules;
 
-            Button resetLabel = new(hoverBackgroundSprite: UiSprites.ButtonLight)
+            Button resetBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
             {
+                Name = "ResetBtn",
                 Text = I18n.RuleList_Reset()
             };
-            resetLabel.Click += ResetRules;
+            resetBtn.Click += ResetRules;
 
-            footer = new Lane()
+            return new Lane()
             {
                 Layout = LayoutParameters.FitContent(),
                 Orientation = Orientation.Horizontal,
-                Children = [saveLabel, resetLabel]
-            };
-            return footer;
+                Children = [saveBtn, resetBtn]
+            }; ;
         }
 
         private void SaveRules(object? sender, ClickEventArgs e)
@@ -105,38 +152,29 @@ namespace MachineControlPanel.Framework.UI
                 kv.Value.IsChecked = true;
             }
             saveMachineRules(newEnabled, newDisabled);
-
             Game1.playSound("bigDeSelect");
         }
 
-        private void ShowItemGrid(object? sender, ClickEventArgs e)
+        private void CreateInputsGrid()
         {
-            if (sender is InputShowButton button)
+            int i = 0;
+            // int count = (int)MathF.Floor(viewportSize.Width / (2 * ROW_W));
+            inputsGrid = new Grid()
             {
-                InputItemGrid itemGrid = button.ItemGrid;
-                itemGrid.backButton.Click += ShowRuleList;
-                container!.Content = itemGrid;
-                container!.Footer = itemGrid.backButton;
-                Game1.playSound("bigSelect");
-            }
+                Name = "InputsGrid",
+                // Layout = new() { Width = Length.Px(count * ROW_W), Height = Length.Stretch() },
+                Layout = new() { Width = Length.Px(INPUT_GRID_COUNT * ROW_W), Height = Length.Content() },
+                ItemLayout = GridItemLayout.Count(INPUT_GRID_COUNT),
+                Children = ruleHelper.ValidInputs.Select((kv) => (IView)FormRuleItemPanel(kv.Value, $"Inputs.{++i}")).ToList()
+            };
         }
 
-        private void ShowRuleList(object? sender, ClickEventArgs e)
-        {
-            if (sender is Button)
-            {
-                container!.Content = rulesList;
-                container!.Footer = footer;
-                Game1.playSound("bigDeSelect");
-            }
-        }
-
-        private IView CreateRulesList(Size viewportSize, ref float menuHeight)
+        private void CreateRulesList(Size viewportSize, ref float menuHeight)
         {
             ruleCheckboxes.Clear();
             List<RuleEntry> rules = ruleHelper.RuleEntries;
             List<List<RuleEntry>> rulesColumns;
-            int colSize = (int)((menuHeight - BOX_W) / ROW_W);
+            int colSize = (int)((menuHeight - BOX_W) / ROW_W) - 2;
             if (rules.Count <= colSize)
             {
                 menuHeight = ROW_W * rules.Count + BOX_W;
@@ -166,7 +204,6 @@ namespace MachineControlPanel.Framework.UI
             int seq = 0;
             foreach (var rulesC in rulesColumns)
             {
-
                 int inputSize = rulesC.Max((rule) => rule.Inputs.Count);
                 int outputSize = rulesC.Max((rule) => rule.Outputs.Count);
                 LayoutParameters inputLayout = new() { Width = Length.Px(ROW_W * inputSize + ROW_MARGIN * 2), Height = Length.Content() };
@@ -197,7 +234,6 @@ namespace MachineControlPanel.Framework.UI
                 Orientation = Orientation.Horizontal,
                 Children = columns,
             };
-            return rulesList;
         }
 
         private IView CreateRuleListEntry(RuleEntry rule, LayoutParameters inputLayout, LayoutParameters outputLayout)
@@ -210,16 +246,17 @@ namespace MachineControlPanel.Framework.UI
                 // children.Add(openItems);
                 // if (ruleCheckboxes.ContainsKey(rule.Ident))
 
-                if (ruleCheckboxes.TryGetValue(rule.Ident, out RuleCheckBox? existing))
+                // if (ruleCheckboxes.TryGetValue(rule.Ident, out RuleCheckBox? existing))
+                if (ruleCheckboxes.ContainsKey(rule.Ident))
                 {
-                    // children.Add(new Image()
-                    // {
-                    //     Sprite = disabled.Contains(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
-                    //     Tint = Color.White * 0.0f,
-                    //     Layout = LayoutParameters.FitContent(),
-                    //     IsFocusable = false
-                    // });
-                    children.Add(existing);
+                    children.Add(new Image()
+                    {
+                        Sprite = disabled.Contains(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
+                        Tint = Color.White * 0.0f,
+                        Layout = LayoutParameters.FitContent(),
+                        IsFocusable = false
+                    });
+                    // children.Add(existing);
                 }
                 else
                 {
@@ -280,30 +317,7 @@ namespace MachineControlPanel.Framework.UI
             int i = 0;
             foreach (var ruleItem in ruleItems)
             {
-                List<IView> iconImgs = [];
-                foreach (var icon in ruleItem.Icons)
-                {
-                    iconImgs.Add(new Image()
-                    {
-                        Layout = LayoutParameters.FixedSize(
-                            icon.Img.Size.X * icon.Scale,
-                            icon.Img.Size.X * icon.Scale
-                        ),
-                        Padding = icon.Edg,
-                        Sprite = icon.Img,
-                        IsFocusable = true,
-                        Tint = icon.Tint ?? Color.White
-                    });
-                }
-                content.Add(new Panel()
-                {
-                    Name = $"{prefix}.{i++}",
-                    Layout = IconLayout,
-                    Margin = new Edges(ROW_MARGIN),
-                    Children = iconImgs,
-                    Tooltip = string.Join('\n', ruleItem.Tooltip.Select((tip) => tip.Trim())),
-                    // IsFocusable = true
-                });
+                content.Add(FormRuleItemPanel(ruleItem, $"{prefix}.{i++}"));
             }
             return new Lane()
             {
@@ -313,6 +327,43 @@ namespace MachineControlPanel.Framework.UI
                 VerticalContentAlignment = Alignment.Middle,
                 Children = content
             };
+        }
+
+        private static Panel FormRuleItemPanel(RuleItem ruleItem, string name)
+        {
+            List<IView> iconImgs = [];
+            foreach (var icon in ruleItem.Icons)
+            {
+                iconImgs.Add(new Image()
+                {
+                    Layout = LayoutParameters.FixedSize(
+                        icon.Img.Size.X * icon.Scale,
+                        icon.Img.Size.X * icon.Scale
+                    ),
+                    Padding = icon.Edge,
+                    Sprite = icon.Img,
+                    Tint = icon.Tint ?? Color.White
+                });
+            }
+            return new Panel()
+            {
+                Name = name,
+                Layout = IconLayout,
+                Margin = new Edges(ROW_MARGIN),
+                Children = iconImgs,
+                Tooltip = string.Join('\n', ruleItem.Tooltip.Select((tip) => tip.Trim())),
+                IsFocusable = true
+            };
+        }
+
+        public bool NextTab()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool PreviousTab()
+        {
+            throw new NotImplementedException();
         }
     }
 }
