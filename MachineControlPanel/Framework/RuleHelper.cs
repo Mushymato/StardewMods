@@ -10,6 +10,8 @@ using StardewValley.Menus;
 using StardewValley.TokenizableStrings;
 using StardewValley.Objects;
 using StardewUI;
+using System.Collections.Immutable;
+using HarmonyLib;
 
 
 namespace MachineControlPanel.Framework
@@ -48,7 +50,7 @@ namespace MachineControlPanel.Framework
         List<RuleItem> Outputs
     )
     {
-        internal string Repr => $"{Ident.Item2}.{Ident.Item3}";
+        internal string Repr => $"{Ident.Item1}.{Ident.Item2}({Ident.Item3})";
     };
 
     internal sealed class RuleHelper
@@ -56,6 +58,7 @@ namespace MachineControlPanel.Framework
         internal const string PLACEHOLDER_TRIGGER = "PLACEHOLDER_TRIGGER";
         internal static Integration.IExtraMachineConfigApi? EMC { get; set; } = null;
         internal string Name => bigCraftable.DisplayName;
+        internal string QId => bigCraftable.QualifiedItemId;
         internal static IconEdge QuestionIcon => new(new(Game1.mouseCursors, new Rectangle(240, 192, 16, 16)));
         // internal static Sprite GreenStar => new(Game1.mouseCursors_1_6, new Rectangle(457, 298, 11, 11));
         internal static IconEdge EmojiX => new(new(ChatBox.emojiTexture, new Rectangle(45, 81, 9, 9)), new(14), 4f);
@@ -99,6 +102,22 @@ namespace MachineControlPanel.Framework
             this.bigCraftable = bigCraftable;
             this.machine = machine;
             GetRuleEntriesAndItemList();
+        }
+
+        internal bool CheckRuleDisabled(RuleIdent ident)
+        {
+            return (
+                ModEntry.SaveData.Disabled.TryGetValue(QId, out ModSaveDataEntry? msdEntry) &&
+                msdEntry.Rules.Contains(ident)
+            );
+        }
+
+        internal bool CheckInputDisabled(string inputQId)
+        {
+            return (
+                ModEntry.SaveData.Disabled.TryGetValue(QId, out ModSaveDataEntry? msdEntry) &&
+                msdEntry.Inputs.Contains(inputQId)
+            );
         }
 
         /// <summary>
@@ -220,7 +239,7 @@ namespace MachineControlPanel.Framework
                     {
                         List<RuleItem> emcFuel = [];
                         var extraReq = EMC.GetExtraRequirements(output);
-                        if (extraReq.Count > 0)
+                        if (extraReq.Any())
                         {
                             foreach ((string tag, int count) in extraReq)
                             {
@@ -256,7 +275,7 @@ namespace MachineControlPanel.Framework
                                 }
                             }
                         }
-                        if (emcFuel.Count > 0)
+                        if (emcFuel.Any())
                         {
                             withEmcFuel.Add(new(optLine, emcFuel));
                             continue;
@@ -297,7 +316,7 @@ namespace MachineControlPanel.Framework
                             if (preserve != null)
                             {
                                 inputLine.Add(preserve);
-                                ValidInputs[$"{trigger.RequiredItemId}/{preserveTag}"] = preserve.Copy();
+                                // Don't bother showing specific preserve items in inputs, should just use rules for that
                             }
                             else
                             {
@@ -318,10 +337,10 @@ namespace MachineControlPanel.Framework
                         inputLine.AddRange(GetContextTagRuleItems(trigger.RequiredTags, context, out negateTags));
                         qualityIcon = GetContextTagQuality(trigger.RequiredTags);
                     }
-                    if (inputLine.Count > 0)
+                    if (inputLine.Any())
                     {
                         bool needExclaim = false;
-                        if (negateTags.Count > 0)
+                        if (negateTags.Any())
                         {
                             inputLine.Last().Tooltip.InsertRange(0, negateTags);
                             needExclaim = true;
@@ -341,7 +360,7 @@ namespace MachineControlPanel.Framework
                         if (trigger.RequiredCount > 0)
                             inputLine.Last().Icons.AddRange(Number(trigger.RequiredCount));
 
-                        if (sharedFuel.Count > 0)
+                        if (sharedFuel.Any())
                             inputLine.AddRange(sharedFuel);
 
                         inputs.Add(new(
@@ -367,7 +386,7 @@ namespace MachineControlPanel.Framework
                     }
                 }
 
-                if (withEmcFuel.Count > 0)
+                if (withEmcFuel.Any())
                 {
                     foreach ((string triggerId, int idx, bool canCheck, List<RuleItem> inputLine) in inputs)
                     {
@@ -375,7 +394,7 @@ namespace MachineControlPanel.Framework
                         {
                             List<RuleItem> ipt = [.. inputLine, .. emcFuel];
                             RuleEntries.Add(new RuleEntry(
-                                new(bigCraftable.QualifiedItemId, rule.Id, triggerId, idx),
+                                new(rule.Id, triggerId, idx),
                                 canCheck,
                                 ipt,
                                 optLine
@@ -384,13 +403,13 @@ namespace MachineControlPanel.Framework
                     }
                 }
 
-                if (outputLine.Count > 0)
+                if (outputLine.Any())
                 {
                     foreach ((string triggerId, int idx, bool canCheck, List<RuleItem> inputLine) in inputs)
                     {
                         var ipt = inputLine;
                         RuleEntries.Add(new RuleEntry(
-                            new(bigCraftable.QualifiedItemId, rule.Id, triggerId, idx),
+                            new(rule.Id, triggerId, idx),
                             canCheck,
                             ipt,
                             outputLine
@@ -535,7 +554,7 @@ namespace MachineControlPanel.Framework
                 }
             }
 
-            if (negateRules.Count > 0)
+            if (negateRules.Any())
             {
                 if (rules.Count == 0)
                     return negateRules;

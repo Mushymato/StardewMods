@@ -1,12 +1,16 @@
+using System.Collections;
 using StardewUI;
 
 namespace MachineControlPanel.Framework.UI
 {
-    internal sealed class RuleMenu(RuleHelper ruleHelper, HashSet<RuleIdent> disabled, Action<HashSet<RuleIdent>, HashSet<RuleIdent>> saveMachineRules) : ViewMenu<RuleListView>
+    internal sealed class RuleMenu(
+        RuleHelper ruleHelper,
+        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules
+    ) : ViewMenu<RuleListView>
     {
         protected override RuleListView CreateView()
         {
-            return new(ruleHelper, disabled, saveMachineRules);
+            return new(ruleHelper, saveMachineRules);
         }
     }
 }

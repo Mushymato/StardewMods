@@ -25,14 +25,23 @@ namespace MachineControlPanel.Framework
             }
         }
 
-        private static bool CheckRuleDisabled(SObject machine, MachineOutputRule rule, MachineOutputTriggerRule trigger2, int idx, Item inputItem)
+        private static bool ShouldSkipMachineInput(SObject machine, MachineOutputRule rule, MachineOutputTriggerRule trigger2, int idx, Item inputItem)
         {
-            RuleIdent ident = new(machine.QualifiedItemId, rule.Id, trigger2.Id, idx);
+            RuleIdent ident = new(rule.Id, trigger2.Id, idx);
             if (!trigger2.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine))
                 return false;
-            if (ModEntry.SaveData.Disabled.Contains(ident))
+            if (!ModEntry.SaveData.Disabled.TryGetValue(machine.QualifiedItemId, out ModSaveDataEntry? msdEntry))
+                return false;
+
+            // technically better to check once in a prefix rather than in the iteration
+            if (msdEntry.Inputs.Contains(inputItem.QualifiedItemId))
             {
-                ModEntry.LogOnce($"Rule {ident} disabled.", LogLevel.Trace);
+                ModEntry.LogOnce($"{machine.QualifiedItemId} Input {inputItem.QualifiedItemId} disabled.", LogLevel.Trace);
+                return true;
+            }
+            if (msdEntry.Rules.Contains(ident))
+            {
+                ModEntry.LogOnce($"{machine.QualifiedItemId} Rule {ident} disabled.", LogLevel.Trace);
                 return true;
             }
             return false;
@@ -79,7 +88,7 @@ namespace MachineControlPanel.Framework
                     ldloc, // MachineOutputTriggerRule trigger2
                     new(OpCodes.Ldloc, idx), // foreach idx
                     new(OpCodes.Ldarg_3), // Item inputItem
-                    new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(GamePatches), nameof(CheckRuleDisabled))),
+                    new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(GamePatches), nameof(ShouldSkipMachineInput))),
                     new(OpCodes.Brtrue, lbl)
                 ]);
 

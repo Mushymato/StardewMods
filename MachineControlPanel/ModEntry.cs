@@ -1,6 +1,6 @@
 ﻿global using SObject = StardewValley.Object;
 // BigCraftable Id, MachineOutputRule Id, MachineOutputTriggerRule Id, MachineOutputTriggerRule idx
-global using RuleIdent = System.Tuple<string, string, string, int>;
+global using RuleIdent = System.Tuple<string, string, int>;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -11,12 +11,14 @@ using MachineControlPanel.Framework;
 using MachineControlPanel.Framework.UI;
 using MachineControlPanel.Framework.Integration;
 using HarmonyLib;
+using System.Collections.Immutable;
 
 namespace MachineControlPanel
 {
     internal sealed class ModEntry : Mod
     {
         private const string SAVEDATA = "save-machine-rules";
+        private const string SAVEDATA_ENTRY = "save-machine-rules-entry";
         private ModConfig? config = null;
         private static IMonitor? mon = null;
         private static ModSaveData? saveData = null;
@@ -65,22 +67,37 @@ namespace MachineControlPanel
             if (!Game1.IsMasterGame)
                 return;
 
-            if (saveData != null)
-            {
-                Helper.Multiplayer.SendMessage(
-                    saveData, SAVEDATA,
-                    modIDs: [ModManifest.UniqueID],
-                    playerIDs: [e.Peer.PlayerID]
-                );
-            }
+            Helper.Multiplayer.SendMessage(
+                saveData, SAVEDATA,
+                modIDs: [ModManifest.UniqueID],
+                playerIDs: [e.Peer.PlayerID]
+            );
         }
 
         private void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
         {
-            if (e.FromModID == ModManifest.UniqueID && e.Type == SAVEDATA)
+            if (e.FromModID == ModManifest.UniqueID)
             {
-                saveData = e.ReadAs<ModSaveData>() ?? new() { Version = ModManifest.Version };
-                LogSaveData();
+                switch (e.Type)
+                {
+                    case SAVEDATA:
+                        saveData = e.ReadAs<ModSaveData>() ?? new() { Version = ModManifest.Version };
+                        LogSaveData();
+                        break;
+                    case SAVEDATA_ENTRY:
+                        if (saveData == null)
+                        {
+                            Log("Received unexpected partial save data.", LogLevel.Error);
+                            break;
+                        }
+                        ModSaveDataEntryMessage msdEntryMsg = e.ReadAs<ModSaveDataEntryMessage>();
+                        if (msdEntryMsg.Entry == null)
+                            saveData.Disabled.Remove(msdEntryMsg.QId);
+                        else
+                            saveData.Disabled[msdEntryMsg.QId] = msdEntryMsg.Entry;
+                        LogSaveData(msdEntryMsg.QId);
+                        break;
+                }
             }
         }
 
@@ -98,15 +115,12 @@ namespace MachineControlPanel
             if (!Game1.IsMasterGame)
                 return;
 
-            if (saveData != null)
-            {
-                saveData.Version = ModManifest.Version;
-                Helper.Multiplayer.SendMessage(saveData, SAVEDATA, modIDs: [ModManifest.UniqueID]);
-                Helper.Data.WriteSaveData(SAVEDATA, saveData);
-                LogSaveData();
-            }
-            else
-                Log("Failed to write machine rules save data.", LogLevel.Warn);
+            if (saveData == null)
+                return;
+
+            saveData.Version = ModManifest.Version;
+            Helper.Data.WriteSaveData(SAVEDATA, saveData);
+            LogSaveData();
         }
 
         private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
@@ -116,19 +130,40 @@ namespace MachineControlPanel
             ShowPanel();
         }
 
-        private void SaveMachineRules(HashSet<RuleIdent> enabled, HashSet<RuleIdent> disabled)
+        private void SaveMachineRules(
+            string bigCraftableId,
+            IEnumerable<RuleIdent> disabledRules,
+            IEnumerable<string> disabledInputs
+        )
         {
-            if (saveData != null)
+            if (saveData == null)
             {
-                saveData.Disabled.ExceptWith(enabled);
-                saveData.Disabled.UnionWith(disabled);
-                saveData.Version = ModManifest.Version;
-                Helper.Multiplayer.SendMessage(saveData, SAVEDATA, modIDs: [ModManifest.UniqueID]);
-                Helper.Data.WriteSaveData(SAVEDATA, saveData);
-                LogSaveData();
+                Log("Attempted to save machine rules without save loaded", LogLevel.Error);
                 return;
             }
-            Log("Attempted to save machine rules without save loaded", LogLevel.Warn);
+
+            ModSaveDataEntry? msdEntry = null;
+            if (!disabledRules.Any() && !disabledInputs.Any())
+            {
+                saveData.Disabled.Remove(bigCraftableId);
+            }
+            else
+            {
+                msdEntry = new(
+                    disabledRules.ToImmutableHashSet(),
+                    disabledInputs.ToImmutableHashSet()
+                );
+                saveData.Disabled[bigCraftableId] = msdEntry;
+            }
+            saveData.Version = ModManifest.Version;
+            Helper.Multiplayer.SendMessage(
+                new ModSaveDataEntryMessage(bigCraftableId, msdEntry),
+                SAVEDATA_ENTRY, modIDs: [ModManifest.UniqueID]
+            );
+            Helper.Data.WriteSaveData(SAVEDATA, saveData);
+            LogSaveData(bigCraftableId);
+            return;
+
         }
 
         private bool ShowPanel()
@@ -163,7 +198,6 @@ namespace MachineControlPanel
 
             Game1.activeClickableMenu = new RuleMenu(
                 ruleHelper,
-                saveData!.Disabled,
                 SaveMachineRules
             );
 
@@ -201,14 +235,36 @@ namespace MachineControlPanel
 
         internal static void LogSaveData()
         {
-            if (saveData == null)
+            if (saveData == null || !saveData.Disabled.Any())
                 return;
             if (Game1.IsMasterGame)
                 Log("Disabled machine rules:");
             else
                 Log("Disabled machine rules (from host):");
-            foreach (var ident in saveData.Disabled)
-                Log($"- {ident}");
+            foreach (var kv in saveData.Disabled)
+            {
+                Log(kv.Key);
+                foreach (RuleIdent ident in kv.Value.Rules)
+                    Log($"* {ident}");
+                foreach (string inputQId in kv.Value.Inputs)
+                    Log($"- {inputQId}");
+            }
+        }
+
+        internal static void LogSaveData(string qId)
+        {
+            if (saveData == null || !saveData.Disabled.Any())
+                return;
+            if (!saveData.Disabled.TryGetValue(qId, out ModSaveDataEntry? msdEntry))
+                return;
+            if (Game1.IsMasterGame)
+                Log($"Disabled machine rules for {qId}:");
+            else
+                Log($"Disabled machine rules for {qId}: (from host):");
+            foreach (RuleIdent ident in msdEntry.Rules)
+                Log($"* {ident}");
+            foreach (string inputQId in msdEntry.Inputs)
+                Log($"- {inputQId}");
         }
     }
 }
