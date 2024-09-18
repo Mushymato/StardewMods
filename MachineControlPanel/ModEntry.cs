@@ -2,6 +2,7 @@
 // BigCraftable Id, MachineOutputRule Id, MachineOutputTriggerRule Id, MachineOutputTriggerRule idx
 global using RuleIdent = System.Tuple<string, string, int>;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewUI;
@@ -12,6 +13,7 @@ using MachineControlPanel.Framework.UI;
 using MachineControlPanel.Framework.Integration;
 using HarmonyLib;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MachineControlPanel
 {
@@ -22,7 +24,14 @@ namespace MachineControlPanel
         private ModConfig? config = null;
         private static IMonitor? mon = null;
         private static ModSaveData? saveData = null;
-        internal static ModSaveData SaveData => saveData!;
+
+        internal static bool TryGetSavedEntry(string QId, [NotNullWhen(true)] out ModSaveDataEntry? msdEntry)
+        {
+            msdEntry = null;
+            if (saveData != null)
+                return saveData.Disabled.TryGetValue(QId, out msdEntry);
+            return false;
+        }
 
         public override void Entry(IModHelper helper)
         {
@@ -105,8 +114,15 @@ namespace MachineControlPanel
         {
             if (!Game1.IsMasterGame)
                 return;
-
-            saveData = Helper.Data.ReadSaveData<ModSaveData>(SAVEDATA) ?? new() { Version = ModManifest.Version };
+            try
+            {
+                saveData = Helper.Data.ReadSaveData<ModSaveData>(SAVEDATA) ?? new() { Version = ModManifest.Version };
+            }
+            catch (JsonSerializationException)
+            {
+                Log($"Failed to read existing save data, previous settings lost.", LogLevel.Warn);
+                saveData = new() { Version = ModManifest.Version };
+            }
             LogSaveData();
         }
 
@@ -253,14 +269,17 @@ namespace MachineControlPanel
 
         internal static void LogSaveData(string qId)
         {
-            if (saveData == null || !saveData.Disabled.Any())
-                return;
-            if (!saveData.Disabled.TryGetValue(qId, out ModSaveDataEntry? msdEntry))
+            if (saveData == null)
                 return;
             if (Game1.IsMasterGame)
                 Log($"Disabled machine rules for {qId}:");
             else
                 Log($"Disabled machine rules for {qId}: (from host):");
+            if (!saveData.Disabled.TryGetValue(qId, out ModSaveDataEntry? msdEntry))
+            {
+                Log("= None");
+                return;
+            }
             foreach (RuleIdent ident in msdEntry.Rules)
                 Log($"* {ident}");
             foreach (string inputQId in msdEntry.Inputs)

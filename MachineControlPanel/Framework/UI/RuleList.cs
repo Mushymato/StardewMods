@@ -1,7 +1,7 @@
+using System.Collections.Immutable;
 using Microsoft.Xna.Framework;
 using StardewUI;
 using StardewValley;
-using xTile.Dimensions;
 
 namespace MachineControlPanel.Framework.UI
 {
@@ -25,6 +25,10 @@ namespace MachineControlPanel.Framework.UI
                 Game1.menuTexture,
                 SourceRect: new(156, 384, 8, 54)
             );
+        private static readonly IReadOnlyList<Sprite> Digits = Enumerable
+            .Range(0, 10)
+            .Select((digit) => new Sprite(Game1.mouseCursors, new Rectangle(368 + digit * 5, 56, 5, 7)))
+            .ToImmutableList();
 
         private static LayoutParameters IconLayout => LayoutParameters.FixedSize(64, 64);
         internal readonly Dictionary<RuleIdent, CheckBox> ruleCheckBoxes = [];
@@ -37,9 +41,8 @@ namespace MachineControlPanel.Framework.UI
 
         protected override IView CreateView()
         {
-            Size viewportSize = Game1.uiViewport.Size;
+            xTile.Dimensions.Size viewportSize = Game1.uiViewport.Size;
             float menuHeight = MathF.Max(MIN_HEIGHT, viewportSize.Height - GUTTER_HEIGHT);
-            // var itemSelector = CreateSidebar(menuHeight);
             CreateRulesList(viewportSize, ref menuHeight);
             LayoutParameters fitWidth = new() { Width = Length.Content(), Height = Length.Px(menuHeight) };
             if (ruleHelper.ValidInputs.Any())
@@ -191,8 +194,8 @@ namespace MachineControlPanel.Framework.UI
                 foreach (var kv in ruleHelper.ValidInputs)
                 {
                     InputCheckable inputCheck = new(
-                        kv.Key,
-                        FormRuleItemPanel(kv.Value, $"Inputs.{++i}")
+                        kv.Value,
+                        FormRuleItemPanel(kv.Value.Item, $"Inputs.{++i}")
                     )
                     {
                         IsChecked = !ruleHelper.CheckInputDisabled(kv.Key)
@@ -205,7 +208,7 @@ namespace MachineControlPanel.Framework.UI
             {
                 foreach (var kv in ruleHelper.ValidInputs)
                 {
-                    Panel inputIcon = FormRuleItemPanel(kv.Value, $"Inputs.{++i}");
+                    Panel inputIcon = FormRuleItemPanel(kv.Value.Item, $"Inputs.{++i}");
                     ((Image)inputIcon.Children.First()).Tint = !ruleHelper.CheckInputDisabled(kv.Key) ? Color.White : Color.Black * 0.8f;
                     children.Add(inputIcon);
                 }
@@ -219,7 +222,7 @@ namespace MachineControlPanel.Framework.UI
             };
         }
 
-        private void CreateRulesList(Size viewportSize, ref float menuHeight)
+        private void CreateRulesList(xTile.Dimensions.Size viewportSize, ref float menuHeight)
         {
             ruleCheckBoxes.Clear();
             List<RuleEntry> rules = ruleHelper.RuleEntries;
@@ -227,7 +230,7 @@ namespace MachineControlPanel.Framework.UI
             int colSize = (int)((menuHeight - BOX_W) / ROW_W) - 2;
             if (rules.Count <= colSize)
             {
-                menuHeight = ROW_W * rules.Count + BOX_W;
+                menuHeight = MathF.Max(MIN_HEIGHT, ROW_W * rules.Count + BOX_W);
                 rulesColumns = [rules];
             }
             else
@@ -241,7 +244,7 @@ namespace MachineControlPanel.Framework.UI
                 else
                 {
                     colSize = (int)MathF.Ceiling(rules.Count / colByCount);
-                    menuHeight = ROW_W * colSize + BOX_W;
+                    menuHeight = MathF.Max(MIN_HEIGHT, ROW_W * colSize + BOX_W);
                 }
                 rulesColumns = [];
                 for (int i = 0; i < rules.Count; i += colSize)
@@ -367,13 +370,34 @@ namespace MachineControlPanel.Framework.UI
             int i = 0;
             foreach (var ruleItem in ruleItems)
             {
-                content.Add(FormRuleItemPanel(ruleItem, $"{prefix}.{i++}"));
+                Panel itemPanel = FormRuleItemPanel(ruleItem, $"{prefix}.{i++}");
+                if (ruleItem.Count >= 1)
+                {
+                    int num = ruleItem.Count;
+                    int offset = 44;
+                    while (num > 0)
+                    {
+                        // final digit
+                        int digit = num % 10;
+                        itemPanel.Children.Add(new Image()
+                        {
+                            Layout = LayoutParameters.FixedSize(15, 21),
+                            Padding = new(Left: offset, Top: 48),
+                            Sprite = Digits[digit]
+                        });
+                        // unclear why this looks the best, shouldnt it be scale * 5?
+                        offset -= 12;
+                        num /= 10;
+                    }
+                }
+                content.Add(itemPanel);
             }
             return new Lane()
             {
                 Name = prefix,
                 Layout = LayoutParameters.FitContent(),
                 Orientation = Orientation.Horizontal,
+                HorizontalContentAlignment = Alignment.End,
                 VerticalContentAlignment = Alignment.Middle,
                 Children = content
             };

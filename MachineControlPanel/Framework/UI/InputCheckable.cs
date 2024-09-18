@@ -7,8 +7,9 @@ namespace MachineControlPanel.Framework.UI
     internal sealed class InputCheckable
     {
         private bool isChecked = true;
-        public readonly string QId;
+        private readonly ValidInput input;
         private readonly Panel content;
+        internal string QId => input.QId;
         // private static readonly Image emojiXImage = new()
         // {
         //     // Layout = LayoutParameters.FixedSize(
@@ -21,8 +22,8 @@ namespace MachineControlPanel.Framework.UI
         //     Layout = LayoutParameters.FixedSize(14 * 3, 15 * 3),
         //     Sprite = new(Game1.mouseCursors, new(269, 471, 14, 15))
         // };
-        public Panel Content => content;
-        public bool IsChecked
+        internal Panel Content => content;
+        internal bool IsChecked
         {
             get => isChecked;
             set
@@ -36,9 +37,9 @@ namespace MachineControlPanel.Framework.UI
             }
         }
 
-        internal InputCheckable(string QId, Panel content) : base()
+        internal InputCheckable(ValidInput input, Panel content) : base()
         {
-            this.QId = QId;
+            this.input = input;
             this.content = content;
             content.HorizontalContentAlignment = Alignment.Middle;
             content.VerticalContentAlignment = Alignment.Middle;

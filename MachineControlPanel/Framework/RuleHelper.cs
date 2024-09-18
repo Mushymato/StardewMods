@@ -10,8 +10,7 @@ using StardewValley.Menus;
 using StardewValley.TokenizableStrings;
 using StardewValley.Objects;
 using StardewUI;
-using System.Collections.Immutable;
-using HarmonyLib;
+using StardewValley.Extensions;
 
 
 namespace MachineControlPanel.Framework
@@ -30,6 +29,7 @@ namespace MachineControlPanel.Framework
     internal sealed record RuleItem(
         List<IconEdge> Icons,
         List<string> Tooltip,
+        int Count = 0,
         string? QId = null
     )
     {
@@ -38,6 +38,7 @@ namespace MachineControlPanel.Framework
             return new RuleItem(
                 [.. Icons],
                 [.. Tooltip],
+                Count,
                 QId: QId
             );
         }
@@ -53,6 +54,14 @@ namespace MachineControlPanel.Framework
         internal string Repr => $"{Ident.Item1}.{Ident.Item2}({Ident.Item3})";
     };
 
+    internal sealed record ValidInput(
+        RuleItem Item,
+        HashSet<RuleIdent> Idents
+    )
+    {
+        internal string QId => Item.QId ?? "ERROR";
+    };
+
     internal sealed class RuleHelper
     {
         internal const string PLACEHOLDER_TRIGGER = "PLACEHOLDER_TRIGGER";
@@ -65,22 +74,7 @@ namespace MachineControlPanel.Framework
         internal static IconEdge EmojiExclaim => new(new(ChatBox.emojiTexture, new Rectangle(54, 81, 9, 9)), new(Top: 37), 3f);
         internal static IconEdge EmojiNote => new(new(ChatBox.emojiTexture, new Rectangle(81, 81, 9, 9)), Scale: 3f);
         internal static IconEdge EmojiBolt => new(new(ChatBox.emojiTexture, new Rectangle(36, 63, 9, 9)), new(Left: 37), 3f);
-        internal static IEnumerable<IconEdge> Number(int num)
-        {
-            int offset = 44;
-            while (num > 1)
-            {
-                // final digit
-                int digit = num % 10;
-                yield return new IconEdge(
-                    new Sprite(Game1.mouseCursors, new Rectangle(368 + digit * 5, 56, 5, 7)),
-                    new(offset, 48, 0, 0)
-                );
-                // unclear why this looks the best, shouldnt it be scale * 5?
-                offset -= 12;
-                num /= 10;
-            }
-        }
+
         internal static IconEdge Quality(int quality)
         {
             return new(
@@ -91,7 +85,7 @@ namespace MachineControlPanel.Framework
             );
         }
         internal readonly List<RuleEntry> RuleEntries = [];
-        internal readonly Dictionary<string, RuleItem> ValidInputs = [];
+        internal readonly Dictionary<string, ValidInput> ValidInputs = [];
         private readonly SObject bigCraftable;
         private readonly MachineData machine;
         private static readonly ConditionalWeakTable<string, RuleItem?> contextTagSpriteCache = [];
@@ -101,13 +95,13 @@ namespace MachineControlPanel.Framework
         {
             this.bigCraftable = bigCraftable;
             this.machine = machine;
-            GetRuleEntriesAndItemList();
+            GetRuleEntries();
         }
 
         internal bool CheckRuleDisabled(RuleIdent ident)
         {
             return (
-                ModEntry.SaveData.Disabled.TryGetValue(QId, out ModSaveDataEntry? msdEntry) &&
+                ModEntry.TryGetSavedEntry(QId, out ModSaveDataEntry? msdEntry) &&
                 msdEntry.Rules.Contains(ident)
             );
         }
@@ -115,9 +109,36 @@ namespace MachineControlPanel.Framework
         internal bool CheckInputDisabled(string inputQId)
         {
             return (
-                ModEntry.SaveData.Disabled.TryGetValue(QId, out ModSaveDataEntry? msdEntry) &&
+                ModEntry.TryGetSavedEntry(QId, out ModSaveDataEntry? msdEntry) &&
                 msdEntry.Inputs.Contains(inputQId)
             );
+        }
+
+        internal void AddValidInput(ParsedItemData itemData, RuleIdent ident)
+        {
+            if (itemData.QualifiedItemId == null)
+                return;
+            if (ValidInputs.TryGetValue(itemData.QualifiedItemId, out ValidInput? valid))
+                valid.Idents.Add(ident);
+            else
+                ValidInputs[itemData.QualifiedItemId] = new(
+                    new RuleItem(
+                        [new(new(itemData.GetTexture(), itemData.GetSourceRect()))],
+                        [itemData.DisplayName],
+                        QId: itemData.QualifiedItemId
+                    ),
+                    [ident]
+                );
+        }
+
+        internal void AddValidInput(RuleItem ruleItem, RuleIdent ident)
+        {
+            if (ruleItem.QId == null)
+                return;
+            if (ValidInputs.TryGetValue(ruleItem.QId, out ValidInput? valid))
+                valid.Idents.Add(ident);
+            else
+                ValidInputs[ruleItem.QId] = new(ruleItem, [ident]);
         }
 
         /// <summary>
@@ -162,7 +183,7 @@ namespace MachineControlPanel.Framework
             return pruned;
         }
 
-        private void GetRuleEntriesAndItemList()
+        private void GetRuleEntries()
         {
             RuleEntries.Clear();
             ValidInputs.Clear();
@@ -178,9 +199,9 @@ namespace MachineControlPanel.Framework
                     {
                         sharedFuel.Add(new RuleItem(
                             [new(new(itemData.GetTexture(), itemData.GetSourceRect())),
-                             EmojiBolt,
-                             ..Number(fuel.RequiredCount)],
+                             EmojiBolt],
                             [itemData.DisplayName],
+                            Count: fuel.RequiredCount,
                             QId: itemData.QualifiedItemId
                         ));
                     }
@@ -223,13 +244,16 @@ namespace MachineControlPanel.Framework
                                 icons.Add(EmojiExclaim);
                                 tooltip.AddRange(output.Condition.Split(','));
                             }
-                            icons.AddRange(Number(res.Item.Stack));
                             if (res.Item.Quality > 0)
                             {
                                 icons.Add(Quality(res.Item.Quality));
                             }
                             tooltip.Add(itemData.DisplayName);
-                            optLine.Add(new RuleItem(icons, tooltip, QId: itemData.QualifiedItemId));
+                            optLine.Add(new RuleItem(
+                                icons, tooltip,
+                                Count: res.Item.Stack,
+                                QId: itemData.QualifiedItemId
+                            ));
                         }
                     }
                     if (optLine.Count == 0)
@@ -248,9 +272,9 @@ namespace MachineControlPanel.Framework
                                 {
                                     emcFuel.Add(new RuleItem(
                                         [new(new(itemData.GetTexture(), itemData.GetSourceRect())),
-                                        EmojiBolt,
-                                        ..Number(count)],
+                                        EmojiBolt],
                                         [itemData.DisplayName],
+                                        Count: count,
                                         QId: itemData.QualifiedItemId
                                     ));
                                 }
@@ -260,7 +284,7 @@ namespace MachineControlPanel.Framework
                         foreach ((string tagExpr, int count) in extraTagReq)
                         {
                             var tags = tagExpr.Split(',');
-                            var results = GetContextTagRuleItems(tags, context, out List<string> negateTags);
+                            var results = GetContextTagRuleItems(tags, count, context, out List<string> negateTags);
                             if (results != null)
                             {
                                 IconEdge? qualityIcon = GetContextTagQuality(tags);
@@ -268,7 +292,6 @@ namespace MachineControlPanel.Framework
                                 {
                                     res.Tooltip.InsertRange(0, negateTags);
                                     res.Icons.Add(EmojiBolt);
-                                    res.Icons.AddRange(Number(count));
                                     if (qualityIcon != null)
                                         res.Icons.Add(qualityIcon);
                                     emcFuel.Add(res);
@@ -287,24 +310,23 @@ namespace MachineControlPanel.Framework
                     continue;
 
                 // rule inputs (triggers)
-                List<Tuple<string, int, bool, List<RuleItem>>> inputs = [];
+                List<Tuple<RuleIdent, bool, List<RuleItem>>> inputs = [];
                 RuleItem? placeholder = null;
-                int seq = -1;
+                int seq = 0;
                 foreach (MachineOutputTriggerRule trigger in rule.Triggers)
                 {
-                    seq++;
+                    RuleIdent ident = new(rule.Id, trigger.Id, seq++);
                     List<RuleItem> inputLine = [];
                     List<ParsedItemData> inputItems = [];
                     // no item input
                     if (!trigger.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine))
                     {
-                        List<IconEdge> icons = [QuestionIcon];
                         List<string> tooltip = [trigger.Trigger.ToString()];
                         if (trigger.Condition != null)
                         {
                             tooltip.AddRange(trigger.Condition.Split(','));
                         }
-                        placeholder = new RuleItem(icons, tooltip);
+                        placeholder = new RuleItem([QuestionIcon], tooltip);
                         continue;
                     }
                     // item input based rules
@@ -312,7 +334,7 @@ namespace MachineControlPanel.Framework
                     {
                         if (ItemRegistry.GetData(trigger.RequiredItemId) is ParsedItemData itemData)
                         {
-                            RuleItem? preserve = GetPreserveRuleItem(trigger.RequiredTags, itemData, context, out string preserveTag);
+                            RuleItem? preserve = GetPreserveRuleItem(trigger.RequiredTags, trigger.RequiredCount, itemData, context, out string preserveTag);
                             if (preserve != null)
                             {
                                 inputLine.Add(preserve);
@@ -323,9 +345,10 @@ namespace MachineControlPanel.Framework
                                 inputLine.Add(new RuleItem(
                                     [new(new(itemData.GetTexture(), itemData.GetSourceRect()))],
                                     [itemData.DisplayName],
+                                    Count: trigger.RequiredCount,
                                     QId: itemData.QualifiedItemId
                                 ));
-                                ValidInputs[itemData.QualifiedItemId] = inputLine.Last().Copy();
+                                AddValidInput(inputLine.Last().Copy(), ident);
                             }
                         }
                     }
@@ -333,8 +356,8 @@ namespace MachineControlPanel.Framework
                     IconEdge? qualityIcon = null;
                     if (trigger.RequiredTags != null)
                     {
-                        PopulateContextTagValidInputs(trigger.RequiredTags, context);
-                        inputLine.AddRange(GetContextTagRuleItems(trigger.RequiredTags, context, out negateTags));
+                        PopulateContextTagValidInputs(trigger.RequiredTags, ident, context);
+                        inputLine.AddRange(GetContextTagRuleItems(trigger.RequiredTags, trigger.RequiredCount, context, out negateTags));
                         qualityIcon = GetContextTagQuality(trigger.RequiredTags);
                     }
                     if (inputLine.Any())
@@ -357,15 +380,11 @@ namespace MachineControlPanel.Framework
                         if (needExclaim)
                             inputLine.Last().Icons.Add(EmojiExclaim);
 
-                        if (trigger.RequiredCount > 0)
-                            inputLine.Last().Icons.AddRange(Number(trigger.RequiredCount));
-
                         if (sharedFuel.Any())
                             inputLine.AddRange(sharedFuel);
 
                         inputs.Add(new(
-                            trigger.Id,
-                            seq,
+                            ident,
                             trigger.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine),
                             inputLine
                         ));
@@ -378,23 +397,44 @@ namespace MachineControlPanel.Framework
                         string invalidMsg = machine.InvalidItemMessage == null ?
                             I18n.RuleList_ComplexInput() :
                             TokenParser.ParseText(machine.InvalidItemMessage);
-                        inputs.Add(new(PLACEHOLDER_TRIGGER, -1, false, [new RuleItem([QuestionIcon], [invalidMsg])]));
+                        inputs.Add(new(new(rule.Id, PLACEHOLDER_TRIGGER, -1), false, [new RuleItem([QuestionIcon], [invalidMsg])]));
                     }
                     else if (placeholder != null)
                     {
-                        inputs.Add(new(PLACEHOLDER_TRIGGER, -1, false, [placeholder]));
+                        inputs.Add(new(new(rule.Id, PLACEHOLDER_TRIGGER, -1), false, [placeholder]));
                     }
                 }
 
                 if (withEmcFuel.Any())
                 {
-                    foreach ((string triggerId, int idx, bool canCheck, List<RuleItem> inputLine) in inputs)
+                    foreach ((RuleIdent ident, bool canCheck, List<RuleItem> inputLine) in inputs)
                     {
                         foreach ((List<RuleItem> optLine, List<RuleItem> emcFuel) in withEmcFuel)
                         {
-                            List<RuleItem> ipt = [.. inputLine, .. emcFuel];
+                            List<RuleItem> ipt = [.. inputLine];
+                            foreach (RuleItem emcF in emcFuel)
+                            {
+                                if (ipt.FindIndex((inL) => (
+                                    inL.QId == emcF.QId &&
+                                    inL.Icons.Count == emcF.Icons.Count &&
+                                    // inL.Tooltip == emcF.Tooltip &&
+                                    inL.Icons.Contains(EmojiBolt)
+                                )) is int found && found > -1)
+                                {
+                                    ipt[found] = new RuleItem(
+                                        emcF.Icons,
+                                        emcF.Tooltip,
+                                        Count: ipt[found].Count + emcF.Count,
+                                        QId: emcF.QId
+                                    );
+                                }
+                                else
+                                {
+                                    ipt.Add(emcF);
+                                }
+                            }
                             RuleEntries.Add(new RuleEntry(
-                                new(rule.Id, triggerId, idx),
+                                ident,
                                 canCheck,
                                 ipt,
                                 optLine
@@ -405,13 +445,12 @@ namespace MachineControlPanel.Framework
 
                 if (outputLine.Any())
                 {
-                    foreach ((string triggerId, int idx, bool canCheck, List<RuleItem> inputLine) in inputs)
+                    foreach ((RuleIdent ident, bool canCheck, List<RuleItem> inputLine) in inputs)
                     {
-                        var ipt = inputLine;
                         RuleEntries.Add(new RuleEntry(
-                            new(rule.Id, triggerId, idx),
+                            ident,
                             canCheck,
-                            ipt,
+                            inputLine,
                             outputLine
                         ));
                     }
@@ -420,7 +459,7 @@ namespace MachineControlPanel.Framework
             }
         }
 
-        internal static RuleItem? GetPreserveRuleItem(List<string>? tags, ParsedItemData baseItem, ItemQueryContext context, out string preserveTag)
+        internal static RuleItem? GetPreserveRuleItem(List<string>? tags, int count, ParsedItemData baseItem, ItemQueryContext context, out string preserveTag)
         {
             preserveTag = "none";
             if (tags == null)
@@ -479,7 +518,7 @@ namespace MachineControlPanel.Framework
                             return new RuleItem(
                                 icons,
                                 [preserve.DisplayName],
-                                $"{preserve.QualifiedItemId}/{preserveItem.QualifiedItemId}"
+                                Count: count
                             );
                         }
                     }
@@ -488,23 +527,29 @@ namespace MachineControlPanel.Framework
             return null;
         }
 
-        internal void PopulateContextTagValidInputs(IEnumerable<string> tags, ItemQueryContext context)
+        internal void PopulateContextTagValidInputs(IEnumerable<string> tags, RuleIdent ident, ItemQueryContext context)
         {
+            HashSet<ParsedItemData> validInputs = [];
+            HashSet<string> appliedTags = [];
+            bool shouldIntersect = false;
             foreach (string tag in tags)
             {
                 if (contextTagItemDataCache.GetValue(tag, (tg) => PopulateContextTagItemData(tg, context)) is List<ParsedItemData> ctItemData)
                 {
-                    foreach (ParsedItemData itemData in ctItemData)
+                    if (shouldIntersect)
+                        validInputs.IntersectWith(ctItemData);
+                    else
                     {
-                        if (!ValidInputs.ContainsKey(itemData.QualifiedItemId))
-                        {
-                            ValidInputs[itemData.QualifiedItemId] = new RuleItem(
-                                [new(new(itemData.GetTexture(), itemData.GetSourceRect()))],
-                                [itemData.DisplayName],
-                                QId: itemData.QualifiedItemId
-                            );
-                        }
+                        shouldIntersect = true;
+                        validInputs.AddRange(ctItemData);
                     }
+                }
+            }
+            foreach (ParsedItemData itemData in validInputs)
+            {
+                if (!ValidInputs.ContainsKey(itemData.QualifiedItemId))
+                {
+                    AddValidInput(itemData, ident);
                 }
             }
         }
@@ -536,14 +581,14 @@ namespace MachineControlPanel.Framework
         /// <param name="context"></param>
         /// <param name="negateTags"></param>
         /// <returns></returns>
-        internal static List<RuleItem> GetContextTagRuleItems(IEnumerable<string> tags, ItemQueryContext context, out List<string> negateTags)
+        internal static List<RuleItem> GetContextTagRuleItems(IEnumerable<string> tags, int count, ItemQueryContext context, out List<string> negateTags)
         {
             List<RuleItem> rules = [];
             List<RuleItem> negateRules = [];
             negateTags = [];
             foreach (string tag in tags)
             {
-                var result = GetContextTagRuleItem(tag, context);
+                var result = GetContextTagRuleItem(tag, count, context);
                 if (result != null)
                 {
                     (RuleItem ctxTag, bool negate) = result;
@@ -567,7 +612,7 @@ namespace MachineControlPanel.Framework
             return rules;
         }
 
-        internal static Tuple<RuleItem, bool>? GetContextTagRuleItem(string tag, ItemQueryContext context)
+        internal static Tuple<RuleItem, bool>? GetContextTagRuleItem(string tag, int count, ItemQueryContext context)
         {
             tag = tag.Trim();
             bool negate = tag.StartsWith('!');
@@ -580,7 +625,7 @@ namespace MachineControlPanel.Framework
             if (ctxTag == null)
                 return null;
 
-            return new(new(ctxTag.Icons, ctxTag.Tooltip.DeepClone()), negate);
+            return new(new(ctxTag.Icons, ctxTag.Tooltip.DeepClone(), count), negate);
         }
 
         internal static RuleItem? CreateContextTagRuleItem(string realTag, bool negate, string tag, ItemQueryContext context)
