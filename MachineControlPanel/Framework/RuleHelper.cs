@@ -86,15 +86,18 @@ namespace MachineControlPanel.Framework
         }
         internal readonly List<RuleEntry> RuleEntries = [];
         internal readonly Dictionary<string, ValidInput> ValidInputs = [];
-        private readonly SObject bigCraftable;
-        private readonly MachineData machine;
         private static readonly ConditionalWeakTable<string, RuleItem?> contextTagSpriteCache = [];
         private static readonly ConditionalWeakTable<string, List<ParsedItemData>?> contextTagItemDataCache = [];
 
-        internal RuleHelper(SObject bigCraftable, MachineData machine)
+        private readonly SObject bigCraftable;
+        private readonly MachineData machine;
+        internal readonly ModConfig Config;
+
+        internal RuleHelper(SObject bigCraftable, MachineData machine, ModConfig config)
         {
             this.bigCraftable = bigCraftable;
             this.machine = machine;
+            this.Config = config;
             GetRuleEntries();
         }
 

@@ -208,7 +208,7 @@ namespace MachineControlPanel
             if (machine.IsIncubator || machine.OutputRules == null || !machine.AllowFairyDust)
                 return false;
 
-            RuleHelper ruleHelper = new(bigCraftable, machine);
+            RuleHelper ruleHelper = new(bigCraftable, machine, config!);
             if (ruleHelper.RuleEntries.Count == 0)
                 return false;
 

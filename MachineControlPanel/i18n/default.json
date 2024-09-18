@@ -1,6 +1,10 @@
 {
     "config.control-panel-key.name": "Control Panel Key",
-    "config.control-panel-key.description": "Key used to show the control panel on a machine",
+    "config.control-panel-key.description": "Key used to show the control panel when interacting with a machine.",
+    "config.default-page.name": "Default Page",
+    "config.default-page.description": "Page of control panel to display by default.",
+    "config.default-page.machine-rules": "Machine Rules",
+    "config.default-page.item-inputs": "Item Inputs",
     "rule-list.title": "Machine: {{name}}",
     "rule-list.same-as-input": "Same as Input",
     "rule-list.complex-input": "Complex Input",
@@ -8,6 +12,6 @@
     "rule-list.reset": "Reset",
     "rule-list.rules": "Rules",
     "rule-list.inputs": "Inputs",
-    "skip-reason.rule": "Input rejected due to disabled machine rules.",
+    "skip-reason.rules": "Input rejected due to disabled machine rules.",
     "skip-reason.inputs": "Input '{{Name}}' disabled."
 }

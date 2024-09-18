@@ -36,7 +36,7 @@ namespace MachineControlPanel.Framework
             }
         }
 
-        private static bool ShouldSkipMachineInput(SObject machine, MachineOutputRule rule, MachineOutputTriggerRule trigger2, int idx, Item inputItem)
+        private static bool ShouldSkipMachineInput(MachineOutputTriggerRule trigger2, SObject machine, MachineOutputRule rule, Item inputItem, int idx)
         {
             RuleIdent ident = new(rule.Id, trigger2.Id, idx);
             if (!trigger2.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine))
@@ -82,28 +82,29 @@ namespace MachineControlPanel.Framework
                 ldlocAny.opcodes.Add(OpCodes.Ldloc);
                 ldlocAny.opcodes.Add(OpCodes.Ldloc_S);
 
-                // compiler is pretty free spirited about continue, may explode in later builds
-                // patching early to not deal with jumps as much
-                // foreach (MachineOutputTriggerRule trigger2 in rule.Triggers)
-                // if (!trigger2.Trigger.HasFlag(trigger) [PATCH HERE] || (trigger2.Condition != null ...
+                // insert just before if (trigger2.RequiredCount > inputItem.Stack)
                 matcher.Start()
                 .MatchStartForward([
-                    new(OpCodes.Brfalse),
+                    new(OpCodes.Brfalse_S),
                     ldlocAny,
-                    new(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(MachineOutputTriggerRule), nameof(MachineOutputTriggerRule.Condition)))
+                    new(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(MachineOutputTriggerRule), nameof(MachineOutputTriggerRule.RequiredCount))),
+                    new(OpCodes.Ldarg_3),
+                    new(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Item), nameof(Item.Stack))),
                 ]);
+
                 Label lbl = (Label)matcher.Operand;
                 matcher.Advance(1);
                 CodeInstruction ldloc = new(matcher.Opcode, matcher.Operand);
 
-                matcher.Insert([
+                matcher.Advance(1).InsertAndAdvance([
+                    // ldloc from match
                     new(OpCodes.Ldarg_0), // Object machine
                     new(OpCodes.Ldarg_1), // MachineOutputRule rule
-                    ldloc, // MachineOutputTriggerRule trigger2
-                    new(OpCodes.Ldloc, idx), // foreach idx
                     new(OpCodes.Ldarg_3), // Item inputItem
+                    new(OpCodes.Ldloc, idx), // foreach idx
                     new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(GamePatches), nameof(ShouldSkipMachineInput))),
-                    new(OpCodes.Brtrue, lbl)
+                    new(OpCodes.Brtrue, lbl),
+                    ldloc, // MachineOutputTriggerRule trigger2
                 ]);
 
                 // IL_00f0: ldloca.s 0
@@ -143,7 +144,7 @@ namespace MachineControlPanel.Framework
             switch (skipped)
             {
                 case SkipReason.Rule:
-                    Game1.showRedMessage(I18n.SkipReason_Rule());
+                    Game1.showRedMessage(I18n.SkipReason_Rules());
                     who.ignoreItemConsumptionThisFrame = true;
                     break;
                 case SkipReason.Input:
@@ -176,12 +177,6 @@ namespace MachineControlPanel.Framework
                     new(OpCodes.Call, AccessTools.Method(typeof(GamePatches), nameof(ShowSkippedReasonMessage))),
                 ]);
                 matcher.CreateLabel(out Label lbl);
-
-                ModEntry.Log($"====matcher at {matcher.Pos}====");
-                for (int i = -9; i < 9; i++)
-                {
-                    ModEntry.Log($"inst {i}: {matcher.InstructionAt(i)}");
-                }
 
                 // change 2 prev false branches to jump to the new label
 

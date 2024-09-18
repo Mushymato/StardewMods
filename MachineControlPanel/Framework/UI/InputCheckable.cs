@@ -6,6 +6,7 @@ namespace MachineControlPanel.Framework.UI
 {
     internal sealed class InputCheckable
     {
+        public static readonly Color COLOR_DISABLED = Color.Black * 0.9f;
         private bool isChecked = true;
         private readonly ValidInput input;
         private readonly Panel content;
@@ -33,7 +34,7 @@ namespace MachineControlPanel.Framework.UI
                     return;
                 }
                 isChecked = value;
-                ((Image)content.Children.First()).Tint = isChecked ? Color.White : Color.Black * 0.8f;
+                ((Image)content.Children.First()).Tint = isChecked ? Color.White : COLOR_DISABLED;
             }
         }
 

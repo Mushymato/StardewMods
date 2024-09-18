@@ -54,7 +54,7 @@ namespace MachineControlPanel.Framework.UI
                 FrameLayout = fitWidth,
                 ContentLayout = fitWidth,
                 Title = I18n.RuleList_Title(name: ruleHelper.Name),
-                Content = rulesList,
+                Content = (ruleHelper.Config.DefaultPage == DefaultPageOption.Inputs && inputsGrid != null) ? inputsGrid : rulesList,
                 // Sidebar = ruleHelper.ValidInputs.Any() ? CreateSideBar() : null,
                 SidebarWidth = ROW_W,
                 Footer = CreateFooter(),
@@ -209,7 +209,8 @@ namespace MachineControlPanel.Framework.UI
                 foreach (var kv in ruleHelper.ValidInputs)
                 {
                     Panel inputIcon = FormRuleItemPanel(kv.Value.Item, $"Inputs.{++i}");
-                    ((Image)inputIcon.Children.First()).Tint = !ruleHelper.CheckInputDisabled(kv.Key) ? Color.White : Color.Black * 0.8f;
+                    ((Image)inputIcon.Children.First()).Tint = !ruleHelper.CheckInputDisabled(kv.Key) ?
+                        Color.White : InputCheckable.COLOR_DISABLED;
                     children.Add(inputIcon);
                 }
             }
