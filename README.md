@@ -14,14 +14,27 @@ Changes the toolbar. Now you can have all 36 items on your screen at once.
 Extend the daily quest notifications from the vanilla game to also affect special orders.
 
 
+#### [More Visible Cask Quality](https://www.nexusmods.com/stardewvalley/mods/26052)
+Move the quality star on the cask up by just under 1 tile distance, so that it's visible with many casks in a group.
+
+
+#### [Scythe Tool Enchantments](https://www.nexusmods.com/stardewvalley/mods/26217)
+Add new custom enchantments for the iridium scythe tool added in 1.6
+
+
 ## Unreleased
 
-#### Machine Output Tweaks
-Tweaks output of various artisan machines so that they respect quality of the input item, done via C# to handle modded content better.
-Mostly just a personal version of [Artisan Goods Keep Quality](https://www.nexusmods.com/stardewvalley/mods/21278)
+#### Misc Tweaks
+Random game tweaks for my playthrough.
+- Make artisan goods keep quality of inputs
+- Buy 24 items instead of 25 with shift+ctrl
+- Item sort tweeks (from [atravita-mods](https://github.com/atravita-mods/StardewMods/blob/1db0a9587f1f5963a2f7e09ebd40824f351326c4/ExperimentalLagReduction/HarmonyPatches/MiniChanges/ItemSortRewrite.cs))
+- Make big chest a little bigger (70 -> 80)
 
-#### Custom Building Entry
-Allow building/map modders to specify where the player should spawn when entering a farm building through map property BuildingEntryLocation <x> <y>
+#### Misc Map Action Properties
+Map actions/properties made for other mods.
+- Allow building/map modders to specify where the player should spawn when entering a farm building
+- Allow NPC modders to create "introduction" type quests for an arbiturary group of NPC.
 
 #### Custom Introductions
-Allow NPC modders to create "introduction" type quests for an arbiturary group of NPC.
+A framework for having a custom "say hi to everyone" quest.
