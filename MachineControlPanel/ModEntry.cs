@@ -39,7 +39,6 @@ namespace MachineControlPanel
             I18n.Init(helper.Translation);
             UI.Initialize(helper, Monitor);
 
-
             // shared events
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
@@ -90,8 +89,17 @@ namespace MachineControlPanel
                 switch (e.Type)
                 {
                     case SAVEDATA:
-                        saveData = e.ReadAs<ModSaveData>() ?? new() { Version = ModManifest.Version };
-                        LogSaveData();
+                        try
+                        {
+                            saveData = e.ReadAs<ModSaveData>();
+                            LogSaveData();
+
+                        }
+                        catch (JsonSerializationException)
+                        {
+                            Log($"Failed to read save data sent by host.", LogLevel.Warn);
+                            saveData = null;
+                        }
                         break;
                     case SAVEDATA_ENTRY:
                         if (saveData == null)
@@ -143,7 +151,9 @@ namespace MachineControlPanel
         {
             if (!Context.IsWorldReady)
                 return;
-            ShowPanel();
+            if (ShowPanel())
+                return;
+            ShowMachineSelect();
         }
 
         private void SaveMachineRules(
@@ -182,9 +192,18 @@ namespace MachineControlPanel
 
         }
 
+        private bool ShowMachineSelect()
+        {
+            if (Game1.activeClickableMenu == null && config!.MachineSelectKey.JustPressed() && saveData != null)
+            {
+                Game1.activeClickableMenu = new MachineMenu(config, SaveMachineRules);
+            }
+            return false;
+        }
+
         private bool ShowPanel()
         {
-            if (Game1.activeClickableMenu == null && config!.ControlPanelKey.JustPressed())
+            if (Game1.activeClickableMenu == null && config!.ControlPanelKey.JustPressed() && saveData != null)
             {
                 // ICursorPosition.GrabTile is unreliable with gamepad controls. Instead recreate game logic.
                 Vector2 cursorTile = Game1.currentCursorTile;
@@ -208,7 +227,7 @@ namespace MachineControlPanel
             if (machine.IsIncubator || machine.OutputRules == null || !machine.AllowFairyDust)
                 return false;
 
-            RuleHelper ruleHelper = new(bigCraftable, machine, config!);
+            RuleHelper ruleHelper = new(bigCraftable.QualifiedItemId, bigCraftable.DisplayName, machine, config!);
             if (ruleHelper.RuleEntries.Count == 0)
                 return false;
 

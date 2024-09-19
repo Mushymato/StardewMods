@@ -21,6 +21,7 @@ namespace MachineControlPanel.Framework
             {
                 harmony.Patch(
                     original: AccessTools.Method(typeof(MachineDataUtility), nameof(MachineDataUtility.CanApplyOutput)),
+                    // prefix: new HarmonyMethod(typeof(GamePatches), nameof(MachineDataUtility_CanApplyOutput_Prefix)),
                     transpiler: new HarmonyMethod(typeof(GamePatches), nameof(MachineDataUtility_CanApplyOutput_Transpiler))
                 );
                 ModEntry.Log($"Applied MachineDataUtility.CanApplyOutput Transpiler", LogLevel.Trace);
@@ -39,8 +40,6 @@ namespace MachineControlPanel.Framework
         private static bool ShouldSkipMachineInput(MachineOutputTriggerRule trigger2, SObject machine, MachineOutputRule rule, Item inputItem, int idx)
         {
             RuleIdent ident = new(rule.Id, trigger2.Id, idx);
-            if (!trigger2.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine))
-                return false;
             if (!ModEntry.TryGetSavedEntry(machine.QualifiedItemId, out ModSaveDataEntry? msdEntry))
                 return false;
 
@@ -59,6 +58,18 @@ namespace MachineControlPanel.Framework
                 return true;
             }
             return false;
+        }
+
+        private static bool ShouldSkipMachineInput_DayUpdate(MachineOutputTrigger trigger, MachineOutputTriggerRule trigger2, SObject machine, MachineOutputRule rule, Item inputItem, int idx)
+        {
+            if (trigger.HasFlag(MachineOutputTrigger.DayUpdate) || trigger.HasFlag(MachineOutputTrigger.MachinePutDown))
+                return ShouldSkipMachineInput(trigger2, machine, rule, inputItem, idx);
+            return false;
+        }
+
+        private static void MachineDataUtility_CanApplyOutput_Prefix()
+        {
+            skipped = SkipReason.None;
         }
 
         private static IEnumerable<CodeInstruction> MachineDataUtility_CanApplyOutput_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -92,10 +103,11 @@ namespace MachineControlPanel.Framework
                     new(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Item), nameof(Item.Stack))),
                 ]);
 
-                Label lbl = (Label)matcher.Operand;
+                Label lbl = (Label)matcher.Operand; // label to end of loop
                 matcher.Advance(1);
                 CodeInstruction ldloc = new(matcher.Opcode, matcher.Operand);
 
+                // Check for MachineOutputTrigger.ItemPlacedInMachine
                 matcher.Advance(1).InsertAndAdvance([
                     // ldloc from match
                     new(OpCodes.Ldarg_0), // Object machine
@@ -107,9 +119,32 @@ namespace MachineControlPanel.Framework
                     ldloc, // MachineOutputTriggerRule trigger2
                 ]);
 
-                // IL_00f0: ldloca.s 0
-                // IL_00f2: call instance bool valuetype [System.Collections]System.Collections.Generic.List`1/Enumerator<class [StardewValley.GameData]StardewValley.GameData.Machines.MachineOutputTriggerRule>::MoveNext()
-                // IL_00f7: brtrue IL_0023
+                // Check for MachineOutputTrigger.DayUpdate
+                matcher.MatchStartForward([
+                    new(OpCodes.Ldarg_S, (byte)6),
+                    new(ldloc.opcode, ldloc.operand),
+                    new(OpCodes.Stind_Ref),
+                    new(OpCodes.Ldarg_S, (byte)7),
+                    new(OpCodes.Ldc_I4_0),
+                    new(OpCodes.Stind_I1)
+                ]);
+
+                Console.WriteLine($"{matcher.Operand}: {matcher.Operand.GetType()}");
+
+                matcher
+                .SetAndAdvance(OpCodes.Ldarg_2, null) // MachineOutputTrigger trigger
+                .Insert([
+                    ldloc.Clone(), // MachineOutputTriggerRule trigger2
+                    new(OpCodes.Ldarg_0), // Object machine
+                    new(OpCodes.Ldarg_1), // MachineOutputRule rule
+                    new(OpCodes.Ldarg_3), // Item inputItem
+                    new(OpCodes.Ldloc, idx), // foreach idx
+                    new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(GamePatches), nameof(ShouldSkipMachineInput_DayUpdate))),
+                    new(OpCodes.Brtrue, lbl),
+                    new(OpCodes.Ldarg_S, (byte)6)
+                ]);
+
+                // increment idx
                 var moveNext = AccessTools.EnumeratorMoveNext(
                     AccessTools.Method(
                         typeof(List<MachineOutputTriggerRule>),
@@ -128,7 +163,6 @@ namespace MachineControlPanel.Framework
                     new(OpCodes.Stloc, idx),
                     ldloca
                 ]);
-
 
                 return matcher.Instructions();
             }

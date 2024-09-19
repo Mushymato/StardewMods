@@ -8,14 +8,17 @@ namespace MachineControlPanel.Framework
         Rules = 1,
         Inputs = 2
     }
+
     internal sealed class ModConfig
     {
         public KeybindList ControlPanelKey { get; set; } = KeybindList.Parse($"{SButton.Q}");
+        public KeybindList MachineSelectKey { get; set; } = KeybindList.Parse($"{SButton.LeftControl}+{SButton.Q}");
         public DefaultPageOption DefaultPage { get; set; } = DefaultPageOption.Rules;
 
         private void Reset()
         {
             ControlPanelKey = KeybindList.Parse($"{SButton.MouseLeft}, {SButton.ControllerB}");
+            MachineSelectKey = KeybindList.Parse($"{SButton.LeftControl}+{SButton.Q}");
             DefaultPage = DefaultPageOption.Rules;
         }
 
@@ -39,6 +42,13 @@ namespace MachineControlPanel.Framework
                 setValue: (value) => { ControlPanelKey = value; },
                 name: I18n.Config_ControlPanelKey_Name,
                 tooltip: I18n.Config_ControlPanelKey_Description
+            );
+            GMCM.AddKeybindList(
+                mod,
+                getValue: () => { return MachineSelectKey; },
+                setValue: (value) => { MachineSelectKey = value; },
+                name: I18n.Config_MachineSelectKey_Name,
+                tooltip: I18n.Config_MachineSelectKey_Description
             );
             GMCM.AddTextOption(
                 mod,

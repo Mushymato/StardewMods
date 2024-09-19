@@ -66,8 +66,8 @@ namespace MachineControlPanel.Framework
     {
         internal const string PLACEHOLDER_TRIGGER = "PLACEHOLDER_TRIGGER";
         internal static Integration.IExtraMachineConfigApi? EMC { get; set; } = null;
-        internal string Name => bigCraftable.DisplayName;
-        internal string QId => bigCraftable.QualifiedItemId;
+        internal readonly string Name;
+        internal readonly string QId;
         internal static IconEdge QuestionIcon => new(new(Game1.mouseCursors, new Rectangle(240, 192, 16, 16)));
         // internal static Sprite GreenStar => new(Game1.mouseCursors_1_6, new Rectangle(457, 298, 11, 11));
         internal static IconEdge EmojiX => new(new(ChatBox.emojiTexture, new Rectangle(45, 81, 9, 9)), new(14), 4f);
@@ -89,13 +89,13 @@ namespace MachineControlPanel.Framework
         private static readonly ConditionalWeakTable<string, RuleItem?> contextTagSpriteCache = [];
         private static readonly ConditionalWeakTable<string, List<ParsedItemData>?> contextTagItemDataCache = [];
 
-        private readonly SObject bigCraftable;
         private readonly MachineData machine;
         internal readonly ModConfig Config;
 
-        internal RuleHelper(SObject bigCraftable, MachineData machine, ModConfig config)
+        internal RuleHelper(string qId, string displayName, MachineData machine, ModConfig config)
         {
-            this.bigCraftable = bigCraftable;
+            this.QId = qId;
+            this.Name = displayName;
             this.machine = machine;
             this.Config = config;
             GetRuleEntries();
@@ -224,7 +224,7 @@ namespace MachineControlPanel.Framework
                     if (output.OutputMethod != null) // complex method
                     {
                         string methodName = output.OutputMethod.Split(':').Last();
-                        optLine.Add(new RuleItem([QuestionIcon], [$"SPECIAL {methodName}"]));
+                        optLine.Add(new RuleItem([QuestionIcon], [I18n.RuleList_SpecialOutput(method: methodName)]));
                         hasComplex = true;
                     }
                     if (output.ItemId == "DROP_IN")
@@ -314,7 +314,7 @@ namespace MachineControlPanel.Framework
 
                 // rule inputs (triggers)
                 List<Tuple<RuleIdent, bool, List<RuleItem>>> inputs = [];
-                RuleItem? placeholder = null;
+                // RuleItem? placeholder = null;
                 int seq = 0;
                 foreach (MachineOutputTriggerRule trigger in rule.Triggers)
                 {
@@ -325,12 +325,22 @@ namespace MachineControlPanel.Framework
                     if (!trigger.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine))
                     {
                         List<string> tooltip = [trigger.Trigger.ToString()];
-                        if (trigger.Condition != null)
-                        {
-                            tooltip.AddRange(trigger.Condition.Split(','));
-                        }
-                        placeholder = new RuleItem([QuestionIcon], tooltip);
-                        continue;
+                        inputLine.Add(new RuleItem([QuestionIcon], tooltip));
+                        // if (trigger.Trigger.HasFlag(MachineOutputTrigger.DayUpdate))
+                        //     inputLine.Add(new RuleItem([QuestionIcon], tooltip));
+                        // else
+                        // {
+                        //     if (trigger.Condition != null)
+                        //     {
+                        //         tooltip.AddRange(trigger.Condition.Split(','));
+                        //         placeholder = new RuleItem([QuestionIcon, EmojiExclaim], tooltip);
+                        //     }
+                        //     else
+                        //     {
+                        //         placeholder = new RuleItem([QuestionIcon,], tooltip);
+                        //     }
+                        //     continue;
+                        // }
                     }
                     // item input based rules
                     if (trigger.RequiredItemId != null)
@@ -388,7 +398,9 @@ namespace MachineControlPanel.Framework
 
                         inputs.Add(new(
                             ident,
-                            trigger.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine),
+                            !trigger.Trigger.HasFlag(MachineOutputTrigger.MachinePutDown) &&
+                            !trigger.Trigger.HasFlag(MachineOutputTrigger.OutputCollected) &&
+                            trigger.Trigger != MachineOutputTrigger.None,
                             inputLine
                         ));
                     }
@@ -397,15 +409,16 @@ namespace MachineControlPanel.Framework
                 {
                     if (hasComplex)
                     {
-                        string invalidMsg = machine.InvalidItemMessage == null ?
-                            I18n.RuleList_ComplexInput() :
-                            TokenParser.ParseText(machine.InvalidItemMessage);
-                        inputs.Add(new(new(rule.Id, PLACEHOLDER_TRIGGER, -1), false, [new RuleItem([QuestionIcon], [invalidMsg])]));
+                        inputs.Add(new(
+                            new(rule.Id, PLACEHOLDER_TRIGGER, -1),
+                            false,
+                            [new RuleItem([QuestionIcon], [I18n.RuleList_SpecialInput()])]
+                        ));
                     }
-                    else if (placeholder != null)
-                    {
-                        inputs.Add(new(new(rule.Id, PLACEHOLDER_TRIGGER, -1), false, [placeholder]));
-                    }
+                    // else if (placeholder != null)
+                    // {
+                    //     inputs.Add(new(new(rule.Id, PLACEHOLDER_TRIGGER, -1), false, [placeholder]));
+                    // }
                 }
 
                 if (withEmcFuel.Any())

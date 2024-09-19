@@ -11,18 +11,7 @@ namespace MachineControlPanel.Framework.UI
         private readonly ValidInput input;
         private readonly Panel content;
         internal string QId => input.QId;
-        // private static readonly Image emojiXImage = new()
-        // {
-        //     // Layout = LayoutParameters.FixedSize(
-        //     //         RuleHelper.EmojiX.Img.Size.X * RuleHelper.EmojiX.Scale,
-        //     //         RuleHelper.EmojiX.Img.Size.X * RuleHelper.EmojiX.Scale
-        //     //     ),
-        //     // Padding = RuleHelper.EmojiX.Edge,
-        //     // Sprite = RuleHelper.EmojiX.Img,
-        //     // Tint = RuleHelper.EmojiX.Tint ?? Color.White
-        //     Layout = LayoutParameters.FixedSize(14 * 3, 15 * 3),
-        //     Sprite = new(Game1.mouseCursors, new(269, 471, 14, 15))
-        // };
+
         internal Panel Content => content;
         internal bool IsChecked
         {
