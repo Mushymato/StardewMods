@@ -3,9 +3,9 @@ using HarmonyLib;
 using StardewModdingAPI;
 using StardewValley.Menus;
 
-namespace MiscTweaks
+namespace MiscTweaks.Patches
 {
-    internal static class StackCountChanges
+    internal static class StackCountTweak
     {
         public static void Patch(Harmony patcher)
         {
@@ -17,16 +17,16 @@ namespace MiscTweaks
             {
                 patcher.Patch(
                     original: AccessTools.DeclaredMethod(typeof(ShopMenu), nameof(ShopMenu.receiveLeftClick)),
-                    transpiler: new HarmonyMethod(typeof(StackCountChanges), nameof(ShopMenu_replaceStackCounts_transpiler))
+                    transpiler: new HarmonyMethod(typeof(StackCountTweak), nameof(ShopMenu_replaceStackCounts_transpiler))
                 );
                 patcher.Patch(
                     original: AccessTools.DeclaredMethod(typeof(ShopMenu), nameof(ShopMenu.receiveRightClick)),
-                    transpiler: new HarmonyMethod(typeof(StackCountChanges), nameof(ShopMenu_replaceStackCounts_transpiler))
+                    transpiler: new HarmonyMethod(typeof(StackCountTweak), nameof(ShopMenu_replaceStackCounts_transpiler))
                 );
             }
             catch (Exception err)
             {
-                ModEntry.Log($"Failed to patch FullInventoryToolbar:\n{err}", LogLevel.Error);
+                ModEntry.Log($"Failed to patch StackCountTweak:\n{err}", LogLevel.Error);
             }
         }
 

@@ -9,7 +9,7 @@ using StardewValley.Objects;
 // using StardewValley.Objects.Trinkets;
 using SObject = StardewValley.Object;
 
-namespace MiscTweaks;
+namespace MiscTweaks.Patches;
 
 internal static class AtravitaItemSortTweak
 {

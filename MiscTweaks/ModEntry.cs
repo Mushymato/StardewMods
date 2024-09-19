@@ -6,6 +6,7 @@ using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
 using StardewObject = StardewValley.Object;
 using HarmonyLib;
+using MiscTweaks.Patches;
 
 namespace MiscTweaks
 {
@@ -21,7 +22,8 @@ namespace MiscTweaks
             helper.Events.Content.AssetRequested += OnAssetRequested;
             Harmony patcher = new(ModManifest.UniqueID);
             AtravitaItemSortTweak.Patch(patcher);
-            StackCountChanges.Patch(patcher);
+            StackCountTweak.Patch(patcher);
+            ChestSizeTweak.Patch(patcher);
         }
 
         public static void Log(string msg, LogLevel level = LogLevel.Debug)
