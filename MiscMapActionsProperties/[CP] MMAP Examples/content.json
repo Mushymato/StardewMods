@@ -48,7 +48,7 @@
           },
           "Layer": "Buildings",
           "SetProperties": {
-            "Action": "mushymato.MMAP_Builder Wizard"
+            "Action": "mushymato.MMAP_ShowConstruct Wizard"
           }
         }
       ]

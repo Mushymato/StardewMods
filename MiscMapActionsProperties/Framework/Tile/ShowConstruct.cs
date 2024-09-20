@@ -3,7 +3,8 @@
 namespace MiscMapActionsProperties.Framework.Tile
 {
     /// <summary>
-    /// Add new tile action mushymato.MMAP_ShowConstruct
+    /// Add new tile action mushymato.MMAP_ShowConstruct.
+    /// Shows contruct menu (robin, wizard) when interacted with
     /// </summary>
     internal static class ShowConstruct
     {
