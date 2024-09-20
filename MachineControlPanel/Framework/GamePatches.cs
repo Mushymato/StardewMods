@@ -129,8 +129,6 @@ namespace MachineControlPanel.Framework
                     new(OpCodes.Stind_I1)
                 ]);
 
-                Console.WriteLine($"{matcher.Operand}: {matcher.Operand.GetType()}");
-
                 matcher
                 .SetAndAdvance(OpCodes.Ldarg_2, null) // MachineOutputTrigger trigger
                 .Insert([

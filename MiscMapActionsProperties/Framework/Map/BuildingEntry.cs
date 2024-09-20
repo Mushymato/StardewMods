@@ -7,6 +7,10 @@ using StardewValley;
 
 namespace MiscMapActionsProperties.Framework.Map
 {
+    /// <summary>
+    /// Adds new map property mushymato.MMAP_BuildingEntryLocation <x> <y>.
+    /// Controls where farmer arrives when entering a farm building.
+    /// </summary>
     internal static class BuildingEntry
     {
         internal readonly static string MapProp_BuildingEntryLocation = $"{ModEntry.ModId}_BuildingEntry";

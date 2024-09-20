@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿global using MapTile = xTile.Tiles.Tile;
+using HarmonyLib;
 using StardewModdingAPI;
 
 
@@ -6,7 +7,6 @@ namespace MiscMapActionsProperties
 {
     public class ModEntry : Mod
     {
-        public const string MapProp_BuildingEntryLocation = "BuildingEntryLocation";
         private static IMonitor? mon;
         internal static IManifest? manifest = null;
         internal static string ModId => manifest?.UniqueID ?? "ERROR";
@@ -19,27 +19,18 @@ namespace MiscMapActionsProperties
 
             Framework.Map.BuildingEntry.Patch(harmony);
 
-            Framework.Tile.Builder.Register();
-            Framework.Tile.AnimaSpot.Patch(harmony);
+            Framework.Tile.ShowConstruct.Register();
+            Framework.Tile.AnimalSpot.Patch(harmony);
         }
 
-#if DEBUG
         internal static void Log(string msg, LogLevel level = LogLevel.Debug)
-#else
-        internal static void Log(string msg, LogLevel level = LogLevel.Trace)
-#endif
         {
             mon!.Log(msg, level);
         }
 
-#if DEBUG
         internal static void LogOnce(string msg, LogLevel level = LogLevel.Debug)
-#else
-        internal static void Log(string msg, LogLevel level = LogLevel.Trace)
-#endif
         {
             mon!.LogOnce(msg, level);
         }
-
     }
 }

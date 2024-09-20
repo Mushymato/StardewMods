@@ -2,12 +2,15 @@
 
 namespace MiscMapActionsProperties.Framework.Tile
 {
-    internal static class Builder
+    /// <summary>
+    /// Add new tile action mushymato.MMAP_ShowConstruct
+    /// </summary>
+    internal static class ShowConstruct
     {
         internal static void Register()
         {
             GameLocation.RegisterTileAction(
-                $"{ModEntry.ModId}_Builder",
+                $"{ModEntry.ModId}_ShowConstruct",
                 (location, args, farmer, tile) =>
                 {
                     try

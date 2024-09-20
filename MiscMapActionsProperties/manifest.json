@@ -2,9 +2,9 @@
     "Name": "Misc Map Actions + Properties",
     "Author": "mushymato",
     "Version": "1.0.0",
-    "MinimumApiVersion": "4.0.0",
-    "MinimumGameVersion": "1.6.0",
-    "Description": "Random map stuff for people better at maps than me.",
+    "MinimumApiVersion": "4.0.8",
+    "MinimumGameVersion": "1.6.8",
+    "Description": "Random map stuff for people who make maps.",
     "UniqueID": "mushymato.MMAP",
     "UpdateKeys": [],
     "EntryDll": "MiscMapActionsProperties.dll"

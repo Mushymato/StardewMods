@@ -10,8 +10,8 @@
       "MapTiles": [
         {
           "Position": {
-            "X": 1,
-            "Y": 3
+            "X": 2,
+            "Y": 4
           },
           "Layer": "Back",
           "SetProperties": {
@@ -20,7 +20,7 @@
         },
         {
           "Position": {
-            "X": 1,
+            "X": 6,
             "Y": 4
           },
           "Layer": "Back",
