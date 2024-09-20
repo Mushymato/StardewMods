@@ -326,21 +326,6 @@ namespace MachineControlPanel.Framework
                     {
                         List<string> tooltip = [trigger.Trigger.ToString()];
                         inputLine.Add(new RuleItem([QuestionIcon], tooltip));
-                        // if (trigger.Trigger.HasFlag(MachineOutputTrigger.DayUpdate))
-                        //     inputLine.Add(new RuleItem([QuestionIcon], tooltip));
-                        // else
-                        // {
-                        //     if (trigger.Condition != null)
-                        //     {
-                        //         tooltip.AddRange(trigger.Condition.Split(','));
-                        //         placeholder = new RuleItem([QuestionIcon, EmojiExclaim], tooltip);
-                        //     }
-                        //     else
-                        //     {
-                        //         placeholder = new RuleItem([QuestionIcon,], tooltip);
-                        //     }
-                        //     continue;
-                        // }
                     }
                     // item input based rules
                     if (trigger.RequiredItemId != null)

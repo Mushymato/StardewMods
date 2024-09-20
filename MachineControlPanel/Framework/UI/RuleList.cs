@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Reflection;
 using Microsoft.Xna.Framework;
 using StardewUI;
 using StardewValley;
@@ -18,17 +19,20 @@ namespace MachineControlPanel.Framework.UI
         private const int BOX_W = ROW_MARGIN * 3;
         private const int MIN_HEIGHT = 400;
         private const int GUTTER_HEIGHT = 400;
-        private const int INPUT_GRID_COUNT = 12;
         private static Sprite RightCaret => new(Game1.mouseCursors, new(448, 96, 24, 32));
         private static Sprite ThinVDivider =>
             new(
                 Game1.menuTexture,
                 SourceRect: new(156, 384, 8, 54)
             );
+        // private static Sprite TabButton => new(Game1.mouseCursors2, new(0, 224, 24, 12), new(4, 4, 0, 4), new(Scale: 4));
+        private static Sprite TabButton => new(Game1.menuTexture, new(0, 256, 44, 60), new(16, 16, 0, 16));
         private static readonly IReadOnlyList<Sprite> Digits = Enumerable
             .Range(0, 10)
             .Select((digit) => new Sprite(Game1.mouseCursors, new Rectangle(368 + digit * 5, 56, 5, 7)))
             .ToImmutableList();
+        private readonly Edges tabButtonPassive = new(Bottom: ROW_MARGIN * 2);
+        private readonly Edges tabButtonActive = new(Left: 6, Bottom: ROW_MARGIN * 2);
 
         private static LayoutParameters IconLayout => LayoutParameters.FixedSize(64, 64);
         internal readonly Dictionary<RuleIdent, CheckBox> ruleCheckBoxes = [];
@@ -38,6 +42,7 @@ namespace MachineControlPanel.Framework.UI
         private Grid? inputsGrid = null;
         private Button? rulesBtn = null;
         private Button? inputsBtn = null;
+
 
         protected override IView CreateView()
         {
@@ -54,67 +59,106 @@ namespace MachineControlPanel.Framework.UI
                 FrameLayout = fitWidth,
                 ContentLayout = fitWidth,
                 Title = I18n.RuleList_Title(name: ruleHelper.Name),
-                Content = (ruleHelper.Config.DefaultPage == DefaultPageOption.Inputs && inputsGrid != null) ? inputsGrid : rulesList,
-                // Sidebar = ruleHelper.ValidInputs.Any() ? CreateSideBar() : null,
+                Content = rulesList,
+                Sidebar = inputsGrid != null ? CreateSidebar() : null,
                 SidebarWidth = ROW_W,
-                Footer = CreateFooter(),
+                Footer = Game1.IsMasterGame ? CreateFooter() : null,
             };
+
+            // measure and get real width of ruleList, then update inputsGrid
+            // (ruleHelper.Config.DefaultPage == DefaultPageOption.Inputs && inputsGrid != null) ? inputsGrid : rulesList
+            container.Measure(new(viewportSize.Width, viewportSize.Height));
+
+            if (inputsGrid != null)
+            {
+                inputsGrid.Layout = new() { Width = Length.Px(rulesList!.ContentSize.X), Height = Length.Content() };
+                if (ruleHelper.Config.DefaultPage == DefaultPageOption.Inputs)
+                {
+                    container.Content = inputsGrid;
+                }
+                UpdateTabButtonMargins();
+                // I am do reflection here because I dont want to fork StardewUI
+                if (container.GetType().GetField("sidebarContainer", BindingFlags.NonPublic | BindingFlags.Instance) is FieldInfo sidebarContaineField &&
+                    sidebarContaineField.GetValue(container) is Panel sidebarContainer)
+                {
+                    sidebarContainer.ZIndex = 2;
+                }
+            }
+
             return container;
         }
 
+        private IView CreateSidebar()
+        {
+            rulesBtn = new(defaultBackgroundSprite: TabButton)
+            {
+                Name = "RulesBtn",
+                Content = new Label()
+                {
+                    Text = I18n.RuleList_Rules(),
+                    Margin = new(Left: 12)
+                },
+                Layout = LayoutParameters.FixedSize(96, 64),
+                Margin = tabButtonActive
+            };
+            rulesBtn.LeftClick += ShowRules;
+            inputsBtn = new(defaultBackgroundSprite: TabButton)
+            {
+                Name = "InputsBtn",
+                Content = new Label()
+                {
+                    Text = I18n.RuleList_Inputs(),
+                    Margin = new(Left: 12)
+                },
+                Layout = LayoutParameters.FixedSize(96, 64),
+                Margin = tabButtonPassive,
+            };
+            inputsBtn.LeftClick += ShowInputs;
+
+            return new Lane()
+            {
+                Layout = new() { Width = Length.Px(128), Height = Length.Content() },
+                Padding = new(Top: 24),
+                Margin = new(Right: -50),
+                Orientation = Orientation.Vertical,
+                Children = [rulesBtn, inputsBtn]
+            };
+        }
+
+        private void UpdateTabButtonMargins()
+        {
+            if (container!.Content == inputsGrid)
+            {
+                rulesBtn!.Margin = tabButtonPassive;
+                inputsBtn!.Margin = tabButtonActive;
+            }
+            else
+            {
+                rulesBtn!.Margin = tabButtonActive;
+                inputsBtn!.Margin = tabButtonPassive;
+            }
+        }
 
         private IView CreateFooter()
         {
-            List<IView> footerItems = [];
-            if (ruleHelper.ValidInputs.Any())
+            Button saveBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
             {
-                rulesBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
-                {
-                    Name = "RulesBtn",
-                    Text = I18n.RuleList_Rules()
-                };
-                rulesBtn.LeftClick += ShowRules;
-                inputsBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
-                {
-                    Name = "InputsBtn",
-                    Text = I18n.RuleList_Inputs()
-                };
-                inputsBtn.LeftClick += ShowInputs;
-
-                footerItems.Add(rulesBtn);
-                footerItems.Add(inputsBtn);
-            }
-            if (Game1.IsMasterGame)
+                Name = "SaveBtn",
+                Text = I18n.RuleList_Save()
+            };
+            saveBtn.LeftClick += SaveRules;
+            Button resetBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
             {
-                if (footerItems.Any())
-                {
-                    footerItems.Add(new Spacer()
-                    {
-                        Layout = LayoutParameters.FixedSize(32, 1)
-                    });
-                }
-                Button saveBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
-                {
-                    Name = "SaveBtn",
-                    Text = I18n.RuleList_Save()
-                };
-                saveBtn.LeftClick += SaveRules;
-                Button resetBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
-                {
-                    Name = "ResetBtn",
-                    Text = I18n.RuleList_Reset()
-                };
-                resetBtn.LeftClick += ResetRules;
-
-                footerItems.Add(saveBtn);
-                footerItems.Add(resetBtn);
-            }
+                Name = "ResetBtn",
+                Text = I18n.RuleList_Reset()
+            };
+            resetBtn.LeftClick += ResetRules;
 
             return new Lane()
             {
                 Layout = LayoutParameters.FitContent(),
                 Orientation = Orientation.Horizontal,
-                Children = footerItems
+                Children = [saveBtn, resetBtn]
             };
         }
 
@@ -123,6 +167,7 @@ namespace MachineControlPanel.Framework.UI
             if (sender is Button)
             {
                 container!.Content = rulesList;
+                UpdateTabButtonMargins();
                 Game1.playSound("smallSelect");
             }
         }
@@ -132,6 +177,7 @@ namespace MachineControlPanel.Framework.UI
             if (sender is Button)
             {
                 container!.Content = inputsGrid;
+                UpdateTabButtonMargins();
                 Game1.playSound("smallSelect");
             }
         }
@@ -141,6 +187,7 @@ namespace MachineControlPanel.Framework.UI
             if (container!.Content == rulesList)
             {
                 container!.Content = inputsGrid;
+                UpdateTabButtonMargins();
                 Game1.playSound("smallSelect");
                 return true;
             }
@@ -152,6 +199,7 @@ namespace MachineControlPanel.Framework.UI
             if (container!.Content == inputsGrid)
             {
                 container!.Content = rulesList;
+                UpdateTabButtonMargins();
                 Game1.playSound("smallSelect");
                 return true;
             }
@@ -217,8 +265,8 @@ namespace MachineControlPanel.Framework.UI
             inputsGrid = new Grid()
             {
                 Name = "InputsGrid",
-                Layout = new() { Width = Length.Px(INPUT_GRID_COUNT * ROW_W), Height = Length.Content() },
-                ItemLayout = GridItemLayout.Count(INPUT_GRID_COUNT),
+                // Layout = new() { Width = Length.Px(INPUT_GRID_COUNT * ROW_W), Height = Length.Content() },
+                ItemLayout = GridItemLayout.Length(ROW_W),
                 Children = children
             };
         }
@@ -349,6 +397,7 @@ namespace MachineControlPanel.Framework.UI
             children.Add(arrow);
 
             Lane outputs = FormRuleItemLane(rule.Outputs, $"{rule.Repr}.Outputs");
+            outputs.Margin = new(Left: ROW_MARGIN * 1);
             outputs.Layout = outputLayout;
             outputs.HorizontalContentAlignment = Alignment.Start;
             children.Add(outputs);
@@ -359,7 +408,7 @@ namespace MachineControlPanel.Framework.UI
                 Layout = LayoutParameters.FitContent(),
                 Orientation = Orientation.Horizontal,
                 Children = children,
-                Margin = new(Left: 12),
+                Margin = new(Left: ROW_MARGIN * 3),
                 HorizontalContentAlignment = Alignment.Start,
                 VerticalContentAlignment = Alignment.Middle,
             };

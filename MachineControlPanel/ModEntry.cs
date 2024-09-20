@@ -19,12 +19,24 @@ namespace MachineControlPanel
 {
     internal sealed class ModEntry : Mod
     {
+        /// <summary>
+        /// Key for save data of this mod.
+        /// </summary>
         private const string SAVEDATA = "save-machine-rules";
+        /// <summary>
+        /// Key for a partial message, e.g. only 1 machine's rules/inputs were changed.
+        /// </summary>
         private const string SAVEDATA_ENTRY = "save-machine-rules-entry";
         private ModConfig? config = null;
         private static IMonitor? mon = null;
         private static ModSaveData? saveData = null;
 
+        /// <summary>
+        /// Attempt to get a save data entry for a machine
+        /// </summary>
+        /// <param name="QId"></param>
+        /// <param name="msdEntry"></param>
+        /// <returns></returns>
         internal static bool TryGetSavedEntry(string QId, [NotNullWhen(true)] out ModSaveDataEntry? msdEntry)
         {
             msdEntry = null;
@@ -46,7 +58,6 @@ namespace MachineControlPanel
 
             // host only events
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
-            helper.Events.GameLoop.DayEnding += OnDayEnding;
             helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
 
             helper.ConsoleCommands.Add(
@@ -56,20 +67,27 @@ namespace MachineControlPanel
             );
         }
 
+        /// <summary>
+        /// Read config, get EMC api, do patches
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
         {
-            Harmony harmony = new(ModManifest.UniqueID);
-            GamePatches.Apply(harmony);
-
             config = Helper.ReadConfig<ModConfig>();
             config.Register(Helper, ModManifest);
             var EMC = Helper.ModRegistry.GetApi<IExtraMachineConfigApi>("selph.ExtraMachineConfig");
             if (EMC != null)
-            {
                 RuleHelper.EMC = EMC;
-            }
+            Harmony harmony = new(ModManifest.UniqueID);
+            GamePatches.Apply(harmony);
         }
 
+        /// <summary>
+        /// When someone joins in co-op, send entire saved data over
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnPeerConnected(object? sender, PeerConnectedEventArgs e)
         {
             if (!Game1.IsMasterGame)
@@ -82,12 +100,18 @@ namespace MachineControlPanel
             );
         }
 
+        /// <summary>
+        /// Receive saved data sent from host
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
         {
             if (e.FromModID == ModManifest.UniqueID)
             {
                 switch (e.Type)
                 {
+                    // entire saveData
                     case SAVEDATA:
                         try
                         {
@@ -101,6 +125,7 @@ namespace MachineControlPanel
                             saveData = null;
                         }
                         break;
+                    // 1 entry in saveData
                     case SAVEDATA_ENTRY:
                         if (saveData == null)
                         {
@@ -118,13 +143,24 @@ namespace MachineControlPanel
             }
         }
 
+        /// <summary>
+        /// Read save data on the host
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
         {
             if (!Game1.IsMasterGame)
                 return;
             try
             {
-                saveData = Helper.Data.ReadSaveData<ModSaveData>(SAVEDATA) ?? new() { Version = ModManifest.Version };
+                saveData = Helper.Data.ReadSaveData<ModSaveData>(SAVEDATA);
+                if (saveData == null)
+                    saveData = new();
+                else
+                    saveData.ClearInvalidData();
+                saveData.Version = ModManifest.Version;
+                Helper.Data.WriteSaveData(SAVEDATA, saveData);
             }
             catch (JsonSerializationException)
             {
@@ -132,28 +168,6 @@ namespace MachineControlPanel
                 saveData = new() { Version = ModManifest.Version };
             }
             LogSaveData();
-        }
-
-        private void OnDayEnding(object? sender, DayEndingEventArgs e)
-        {
-            if (!Game1.IsMasterGame)
-                return;
-
-            if (saveData == null)
-                return;
-
-            saveData.Version = ModManifest.Version;
-            Helper.Data.WriteSaveData(SAVEDATA, saveData);
-            LogSaveData();
-        }
-
-        private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
-        {
-            if (!Context.IsWorldReady)
-                return;
-            if (ShowPanel())
-                return;
-            ShowMachineSelect();
         }
 
         private void SaveMachineRules(
@@ -192,6 +206,24 @@ namespace MachineControlPanel
 
         }
 
+        /// <summary>
+        /// Try and show either the machine control panel, or page to select machine from
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
+        {
+            if (!Context.IsWorldReady)
+                return;
+            if (ShowPanel())
+                return;
+            ShowMachineSelect();
+        }
+
+        /// <summary>
+        /// Show the machine selection grid if corresponding button is pressed
+        /// </summary>
+        /// <returns></returns>
         private bool ShowMachineSelect()
         {
             if (Game1.activeClickableMenu == null && config!.MachineSelectKey.JustPressed() && saveData != null)
@@ -201,6 +233,10 @@ namespace MachineControlPanel
             return false;
         }
 
+        /// <summary>
+        /// Show the machine panel if corresponding button is pressed
+        /// </summary>
+        /// <returns></returns>
         private bool ShowPanel()
         {
             if (Game1.activeClickableMenu == null && config!.ControlPanelKey.JustPressed() && saveData != null)
@@ -219,6 +255,11 @@ namespace MachineControlPanel
             return false;
         }
 
+        /// <summary>
+        /// Show machine control panel for a big craftable
+        /// </summary>
+        /// <param name="bigCraftable"></param>
+        /// <returns></returns>
         private bool ShowPanelFor(SObject bigCraftable)
         {
             if (bigCraftable.GetMachineData() is not MachineData machine)
@@ -239,6 +280,11 @@ namespace MachineControlPanel
             return true;
         }
 
+        /// <summary>
+        /// Reset save data from this mod, for when things are looking wrong
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="args"></param>
         private void ConsoleResetSaveData(string command, string[] args)
         {
             if (!Context.IsWorldReady)

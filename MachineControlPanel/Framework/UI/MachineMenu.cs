@@ -9,20 +9,20 @@ namespace MachineControlPanel.Framework.UI
     {
         protected override MachineSelect CreateView()
         {
-            return new(ShowPanelFor);
+            return new(config, ShowPanelFor);
         }
 
         private void ShowPanelFor(MachineCell machineCell)
         {
-            RuleHelper ruleHelper = new(
-                machineCell.itemData.QualifiedItemId,
-                machineCell.itemData.DisplayName,
-                machineCell.machine, config
-            );
-            if (ruleHelper.RuleEntries.Count == 0)
-                return;
+            // RuleHelper ruleHelper = new(
+            //     machineCell.itemData.QualifiedItemId,
+            //     machineCell.itemData.DisplayName,
+            //     machineCell.machine, config
+            // );
+            // if (ruleHelper.RuleEntries.Count == 0)
+            //     return;
             SetChildMenu(new RuleMenu(
-                ruleHelper,
+                machineCell.ruleHelper,
                 saveMachineRules
             ));
         }

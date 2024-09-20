@@ -9,18 +9,16 @@ namespace MachineControlPanel.Framework.UI
     internal class MachineCell : Frame
     {
         internal static readonly Sprite bgSprite = new(Game1.mouseCursors, new(384, 396, 15, 15), new(5), new(Scale: 4));
-        internal ParsedItemData itemData;
-        internal MachineData machine;
+        internal RuleHelper ruleHelper;
 
-        internal MachineCell(ParsedItemData itemData, MachineData machine)
+        internal MachineCell(RuleHelper ruleHelper, ParsedItemData itemData)
         {
-            this.itemData = itemData;
-            this.machine = machine;
+            this.ruleHelper = ruleHelper;
             IsFocusable = true;
             Padding = new(12);
             Background = bgSprite;
             BorderThickness = bgSprite.FixedEdges!;
-            Tooltip = itemData.DisplayName;
+            Tooltip = ruleHelper.Name;
 
             Content = new Image()
             {

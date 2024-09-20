@@ -3,6 +3,10 @@ using StardewModdingAPI.Utilities;
 
 namespace MachineControlPanel.Framework
 {
+    /// <summary>
+    /// Options for default opened page
+    /// s
+    /// </summary>
     internal enum DefaultPageOption
     {
         Rules = 1,

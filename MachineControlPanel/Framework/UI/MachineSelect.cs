@@ -5,7 +5,7 @@ using StardewValley.ItemTypeDefinitions;
 
 namespace MachineControlPanel.Framework.UI
 {
-    internal sealed class MachineSelect(Action<MachineCell> showPanelFor) : WrapperView
+    internal sealed class MachineSelect(ModConfig config, Action<MachineCell> showPanelFor) : WrapperView
     {
         const int GUTTER_WIDTH = 500;
         const int GUTTER_HEIGHT = 400;
@@ -28,12 +28,15 @@ namespace MachineControlPanel.Framework.UI
             List<IView> cells = [];
             foreach ((string qId, MachineData machine) in machinesData)
             {
-                if (ItemRegistry.GetDataOrErrorItem(qId) is not ParsedItemData itemData)
+                if (ItemRegistry.GetData(qId) is not ParsedItemData itemData)
                     continue;
                 if (machine.IsIncubator || machine.OutputRules == null || !machine.AllowFairyDust)
                     continue;
+                RuleHelper ruleHelper = new(qId, itemData.DisplayName, machine, config);
+                if (ruleHelper.RuleEntries.Count == 0)
+                    continue;
 
-                MachineCell cell = new(itemData, machine);
+                MachineCell cell = new(ruleHelper, itemData);
                 cell.LeftClick += ShowPanel;
                 cells.Add(cell);
             }
