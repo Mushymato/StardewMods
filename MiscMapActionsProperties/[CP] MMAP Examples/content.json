@@ -5,7 +5,7 @@
       "Action": "EditMap",
       "Target": "Maps/Coop",
       "MapProperties": {
-        "mushymato.MMAP_BuildingEntryLocation": "2 3"
+        "mushymato.MMAP_BuildingEntry": "2 3"
       },
       "MapTiles": [
         {
