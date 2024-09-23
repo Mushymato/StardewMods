@@ -265,14 +265,15 @@ namespace MachineControlPanel
             if (bigCraftable.GetMachineData() is not MachineData machine)
                 return false;
 
-            if (machine.IsIncubator || machine.OutputRules == null || !machine.AllowFairyDust)
+            if (machine.IsIncubator || machine.OutputRules == null || machine.OutputRules.Count == 0 || !machine.AllowFairyDust)
                 return false;
 
             RuleHelper ruleHelper = new(bigCraftable.QualifiedItemId, bigCraftable.DisplayName, machine, config!);
+            ruleHelper.GetRuleEntries();
             if (ruleHelper.RuleEntries.Count == 0)
                 return false;
 
-            Game1.activeClickableMenu = new RuleMenu(
+            Game1.activeClickableMenu = new RuleListMenu(
                 ruleHelper,
                 SaveMachineRules
             );
@@ -314,6 +315,7 @@ namespace MachineControlPanel
             mon!.LogOnce(msg, level);
         }
 
+        /// <summary>Debug log save data</summary>
         internal static void LogSaveData()
         {
             if (saveData == null || !saveData.Disabled.Any())
@@ -332,6 +334,7 @@ namespace MachineControlPanel
             }
         }
 
+        /// <summary>Debug log partial save data</summary>
         internal static void LogSaveData(string qId)
         {
             if (saveData == null)

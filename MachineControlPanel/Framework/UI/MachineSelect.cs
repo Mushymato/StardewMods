@@ -22,7 +22,7 @@ namespace MachineControlPanel.Framework.UI
             };
         }
 
-        private Grid CreateMachineSelect()
+        private IView CreateMachineSelect()
         {
             var machinesData = DataLoader.Machines(Game1.content);
             List<IView> cells = [];
@@ -32,15 +32,20 @@ namespace MachineControlPanel.Framework.UI
                     continue;
                 if (machine.IsIncubator || machine.OutputRules == null || !machine.AllowFairyDust)
                     continue;
-                RuleHelper ruleHelper = new(qId, itemData.DisplayName, machine, config);
-                if (ruleHelper.RuleEntries.Count == 0)
-                    continue;
 
+                RuleHelper ruleHelper = new(qId, itemData.DisplayName, machine, config);
                 MachineCell cell = new(ruleHelper, itemData);
                 cell.LeftClick += ShowPanel;
+
                 cells.Add(cell);
             }
 
+            // return new Grid()
+            // {
+            //     Name = "InputsGrid",
+            //     ItemLayout = GridItemLayout.Count(8),
+            //     Children = cells
+            // };
             return new Grid()
             {
                 Name = "InputsGrid",

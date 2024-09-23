@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.Extensions;
 using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
 

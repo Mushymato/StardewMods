@@ -1,12 +1,11 @@
-using System.Collections;
 using StardewUI;
 
 namespace MachineControlPanel.Framework.UI
 {
-    internal sealed class RuleMenu(
+    internal sealed class RuleListOverlay(
         RuleHelper ruleHelper,
         Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules
-    ) : ViewMenu<RuleListView>
+    ) : FullScreenOverlay
     {
         protected override RuleListView CreateView()
         {

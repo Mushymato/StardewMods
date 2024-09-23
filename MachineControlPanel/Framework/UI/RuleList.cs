@@ -11,7 +11,7 @@ namespace MachineControlPanel.Framework.UI
     internal sealed class RuleListView(
         RuleHelper ruleHelper,
         Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules
-    ) : WrapperView, ITabbable
+    ) : WrapperView, IPageable
     {
         private const int ROW_MARGIN = 4;
         private const int COL_MARGIN = 6;
@@ -37,7 +37,7 @@ namespace MachineControlPanel.Framework.UI
         private static LayoutParameters IconLayout => LayoutParameters.FixedSize(64, 64);
         internal readonly Dictionary<RuleIdent, CheckBox> ruleCheckBoxes = [];
         internal readonly List<InputCheckable> inputChecks = [];
-        private ScrollableFrameView? container = null;
+        private ScrollableView container;
         private Lane? rulesList = null;
         private Grid? inputsGrid = null;
         private Button? rulesBtn = null;
@@ -48,47 +48,74 @@ namespace MachineControlPanel.Framework.UI
         {
             xTile.Dimensions.Size viewportSize = Game1.uiViewport.Size;
             float menuHeight = MathF.Max(MIN_HEIGHT, viewportSize.Height - GUTTER_HEIGHT);
-            CreateRulesList(viewportSize, ref menuHeight);
-            LayoutParameters fitWidth = new() { Width = Length.Content(), Height = Length.Px(menuHeight) };
-            if (ruleHelper.ValidInputs.Any())
-                CreateInputsGrid();
+            rulesList = CreateRulesList(viewportSize, ref menuHeight);
 
-            container = new ScrollableFrameView()
+            List<IView> vItems = [];
+            List<IView> hItems = [];
+            container = new()
             {
-                Name = "RuleListRoot",
-                FrameLayout = fitWidth,
-                ContentLayout = fitWidth,
-                Title = I18n.RuleList_Title(name: ruleHelper.Name),
+                Name = "RuleList.Scroll",
+                Layout = new() { Width = Length.Content(), Height = Length.Px(menuHeight) },
                 Content = rulesList,
-                Sidebar = inputsGrid != null ? CreateSidebar() : null,
-                SidebarWidth = ROW_W,
-                Footer = Game1.IsMasterGame ? CreateFooter() : null,
             };
 
-            // measure and get real width of ruleList, then update inputsGrid
-            // (ruleHelper.Config.DefaultPage == DefaultPageOption.Inputs && inputsGrid != null) ? inputsGrid : rulesList
-            container.Measure(new(viewportSize.Width, viewportSize.Height));
-
-            if (inputsGrid != null)
+            if (ruleHelper.ValidInputs.Any())
             {
+                inputsGrid = CreateInputsGrid();
+                container.Measure(new(viewportSize.Width, viewportSize.Height));
                 inputsGrid.Layout = new() { Width = Length.Px(rulesList!.ContentSize.X), Height = Length.Content() };
-                if (ruleHelper.Config.DefaultPage == DefaultPageOption.Inputs)
-                {
-                    container.Content = inputsGrid;
-                }
-                UpdateTabButtonMargins();
-                // I am do reflection here because I dont want to fork StardewUI
-                if (container.GetType().GetField("sidebarContainer", BindingFlags.NonPublic | BindingFlags.Instance) is FieldInfo sidebarContaineField &&
-                    sidebarContaineField.GetValue(container) is Panel sidebarContainer)
-                {
-                    sidebarContainer.ZIndex = 2;
-                }
+                hItems.Add(CreateSidebar());
             }
+            Frame scrollBox = new()
+            {
+                Name = "RuleList.Frame",
+                Layout = LayoutParameters.FitContent(),
+                Background = UiSprites.MenuBackground,
+                Border = UiSprites.MenuBorder,
+                BorderThickness = UiSprites.MenuBorderThickness,
+                Content = container,
+            };
 
-            return container;
+            Banner banner = new()
+            {
+                Layout = LayoutParameters.FitContent(),
+                Margin = new(Top: -85),
+                Padding = new(12),
+                Background = UiSprites.BannerBackground,
+                BackgroundBorderThickness =
+                (UiSprites.BannerBackground.FixedEdges ?? Edges.NONE)
+                * (UiSprites.BannerBackground.SliceSettings?.Scale ?? 1),
+                Text = ruleHelper.Name
+            };
+
+            vItems.Add(banner);
+            vItems.Add(scrollBox);
+            if (Game1.IsMasterGame)
+                vItems.Add(CreateFooter());
+
+            Lane center = new()
+            {
+                Name = "RuleList.Body",
+                Layout = LayoutParameters.FitContent(),
+                Orientation = Orientation.Vertical,
+                HorizontalContentAlignment = Alignment.Middle,
+                VerticalContentAlignment = Alignment.Middle,
+                Children = vItems,
+            };
+            hItems.Add(center);
+
+            return new Lane()
+            {
+                Name = "RuleList",
+                Layout = LayoutParameters.FitContent(),
+                Orientation = Orientation.Horizontal,
+                HorizontalContentAlignment = Alignment.Middle,
+                VerticalContentAlignment = Alignment.Start,
+                Children = hItems,
+            };
         }
 
-        private IView CreateSidebar()
+        private Lane CreateSidebar()
         {
             rulesBtn = new(defaultBackgroundSprite: TabButton)
             {
@@ -118,16 +145,17 @@ namespace MachineControlPanel.Framework.UI
             return new Lane()
             {
                 Layout = new() { Width = Length.Px(128), Height = Length.Content() },
-                Padding = new(Top: 24),
+                Padding = new(Top: 32),
                 Margin = new(Right: -50),
                 Orientation = Orientation.Vertical,
-                Children = [rulesBtn, inputsBtn]
+                Children = [rulesBtn, inputsBtn],
+                ZIndex = 2
             };
         }
 
         private void UpdateTabButtonMargins()
         {
-            if (container!.Content == inputsGrid)
+            if (container.Content == inputsGrid)
             {
                 rulesBtn!.Margin = tabButtonPassive;
                 inputsBtn!.Margin = tabButtonActive;
@@ -139,7 +167,7 @@ namespace MachineControlPanel.Framework.UI
             }
         }
 
-        private IView CreateFooter()
+        private Lane CreateFooter()
         {
             Button saveBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
             {
@@ -166,7 +194,7 @@ namespace MachineControlPanel.Framework.UI
         {
             if (sender is Button)
             {
-                container!.Content = rulesList;
+                container.Content = rulesList;
                 UpdateTabButtonMargins();
                 Game1.playSound("smallSelect");
             }
@@ -176,34 +204,10 @@ namespace MachineControlPanel.Framework.UI
         {
             if (sender is Button)
             {
-                container!.Content = inputsGrid;
+                container.Content = inputsGrid;
                 UpdateTabButtonMargins();
                 Game1.playSound("smallSelect");
             }
-        }
-
-        public bool NextTab()
-        {
-            if (container!.Content == rulesList)
-            {
-                container!.Content = inputsGrid;
-                UpdateTabButtonMargins();
-                Game1.playSound("smallSelect");
-                return true;
-            }
-            return false;
-        }
-
-        public bool PreviousTab()
-        {
-            if (container!.Content == inputsGrid)
-            {
-                container!.Content = rulesList;
-                UpdateTabButtonMargins();
-                Game1.playSound("smallSelect");
-                return true;
-            }
-            return false;
         }
 
         private void SaveRules(object? sender, ClickEventArgs e)
@@ -233,7 +237,7 @@ namespace MachineControlPanel.Framework.UI
             saveMachineRules(ruleHelper.QId, [], []);
         }
 
-        private void CreateInputsGrid()
+        private Grid CreateInputsGrid()
         {
             int i = 0;
             List<IView> children = [];
@@ -262,7 +266,7 @@ namespace MachineControlPanel.Framework.UI
                     children.Add(inputIcon);
                 }
             }
-            inputsGrid = new Grid()
+            return new Grid()
             {
                 Name = "InputsGrid",
                 // Layout = new() { Width = Length.Px(INPUT_GRID_COUNT * ROW_W), Height = Length.Content() },
@@ -271,7 +275,7 @@ namespace MachineControlPanel.Framework.UI
             };
         }
 
-        private void CreateRulesList(xTile.Dimensions.Size viewportSize, ref float menuHeight)
+        private Lane CreateRulesList(xTile.Dimensions.Size viewportSize, ref float menuHeight)
         {
             ruleCheckBoxes.Clear();
             List<RuleEntry> rules = ruleHelper.RuleEntries;
@@ -329,10 +333,11 @@ namespace MachineControlPanel.Framework.UI
                 });
             }
 
-            rulesList = new Lane()
+            return new Lane()
             {
                 Name = "RuleList",
                 // Layout = new() { Width = Length.Content(), Height = Length.Stretch() },
+                Layout = LayoutParameters.FitContent(),
                 Orientation = Orientation.Horizontal,
                 Children = columns,
             };
@@ -478,6 +483,31 @@ namespace MachineControlPanel.Framework.UI
                 Tooltip = string.Join('\n', ruleItem.Tooltip.Select((tip) => tip.Trim())),
                 IsFocusable = true
             };
+        }
+
+
+        public bool NextPage()
+        {
+            if (container.Content == rulesList)
+            {
+                container.Content = inputsGrid;
+                UpdateTabButtonMargins();
+                Game1.playSound("smallSelect");
+                return true;
+            }
+            return false;
+        }
+
+        public bool PreviousPage()
+        {
+            if (container.Content == inputsGrid)
+            {
+                container.Content = rulesList;
+                UpdateTabButtonMargins();
+                Game1.playSound("smallSelect");
+                return true;
+            }
+            return false;
         }
     }
 }

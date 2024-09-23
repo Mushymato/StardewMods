@@ -5,7 +5,8 @@ namespace MachineControlPanel.Framework
 {
     /// <summary>
     /// Options for default opened page
-    /// s
+    /// Rules: machine rules page first
+    /// Inputs: input page first
     /// </summary>
     internal enum DefaultPageOption
     {

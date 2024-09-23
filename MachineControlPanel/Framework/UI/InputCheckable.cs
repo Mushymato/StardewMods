@@ -13,6 +13,7 @@ namespace MachineControlPanel.Framework.UI
         internal string QId => input.QId;
 
         internal Panel Content => content;
+        internal Image Icon => (Image)content.Children.First();
         internal bool IsChecked
         {
             get => isChecked;
@@ -23,7 +24,7 @@ namespace MachineControlPanel.Framework.UI
                     return;
                 }
                 isChecked = value;
-                ((Image)content.Children.First()).Tint = isChecked ? Color.White : COLOR_DISABLED;
+                Icon.Tint = isChecked ? Color.White : COLOR_DISABLED;
             }
         }
 

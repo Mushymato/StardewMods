@@ -14,17 +14,11 @@ namespace MachineControlPanel.Framework.UI
 
         private void ShowPanelFor(MachineCell machineCell)
         {
-            // RuleHelper ruleHelper = new(
-            //     machineCell.itemData.QualifiedItemId,
-            //     machineCell.itemData.DisplayName,
-            //     machineCell.machine, config
-            // );
-            // if (ruleHelper.RuleEntries.Count == 0)
-            //     return;
-            SetChildMenu(new RuleMenu(
-                machineCell.ruleHelper,
-                saveMachineRules
-            ));
+            machineCell.ruleHelper.GetRuleEntries();
+            if (machineCell.ruleHelper.RuleEntries.Count == 0)
+                return;
+            var overlay = new RuleListOverlay(machineCell.ruleHelper, saveMachineRules);
+            Overlay.Push(overlay);
         }
     }
 }

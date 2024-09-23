@@ -7,7 +7,6 @@ using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Internal;
 using StardewValley.Menus;
-using StardewValley.TokenizableStrings;
 using StardewValley.Objects;
 using StardewUI;
 using StardewValley.Extensions;
@@ -15,7 +14,13 @@ using StardewValley.Extensions;
 
 namespace MachineControlPanel.Framework
 {
-    // suspect i ought to just use sprite with nineslice stuff unclear
+    /// <summary>
+    /// Holds info about how to draw an icon, mostly a wrapper around <seealso cref="Sprite"/>
+    /// </summary>
+    /// <param name="Img"></param>
+    /// <param name="Edg"></param>
+    /// <param name="Scale"></param>
+    /// <param name="Tint"></param>
     internal sealed record IconEdge(
         Sprite Img,
         Edges? Edg = null,
@@ -26,6 +31,13 @@ namespace MachineControlPanel.Framework
         internal Edges Edge => Edg ?? Edges.NONE;
     };
 
+    /// <summary>
+    /// Represents an item involved in machine rule.
+    /// </summary>
+    /// <param name="Icons">Base icon, plus any decorations indicating their role (context tag, fuel)</param>
+    /// <param name="Tooltip">Hoverover text</param>
+    /// <param name="Count">Number required</param>
+    /// <param name="QId">Qualified item id, if this is a specific item</param>
     internal sealed record RuleItem(
         List<IconEdge> Icons,
         List<string> Tooltip,
@@ -44,6 +56,13 @@ namespace MachineControlPanel.Framework
         }
     };
 
+    /// <summary>
+    /// A single machine rule with inputs and outputs.
+    /// </summary>
+    /// <param name="Ident"></param>
+    /// <param name="CanCheck"></param>
+    /// <param name="Inputs"></param>
+    /// <param name="Outputs"></param>
     internal sealed record RuleEntry(
         RuleIdent Ident,
         bool CanCheck,
@@ -54,6 +73,11 @@ namespace MachineControlPanel.Framework
         internal string Repr => $"{Ident.Item1}.{Ident.Item2}({Ident.Item3})";
     };
 
+    /// <summary>
+    /// Valid inputs
+    /// </summary>
+    /// <param name="Item"></param>
+    /// <param name="Idents"></param>
     internal sealed record ValidInput(
         RuleItem Item,
         HashSet<RuleIdent> Idents
@@ -98,7 +122,6 @@ namespace MachineControlPanel.Framework
             this.Name = displayName;
             this.machine = machine;
             this.Config = config;
-            GetRuleEntries();
         }
 
         internal bool CheckRuleDisabled(RuleIdent ident)
@@ -186,7 +209,7 @@ namespace MachineControlPanel.Framework
             return pruned;
         }
 
-        private void GetRuleEntries()
+        internal void GetRuleEntries()
         {
             RuleEntries.Clear();
             ValidInputs.Clear();
