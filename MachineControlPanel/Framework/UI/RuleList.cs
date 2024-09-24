@@ -10,7 +10,8 @@ namespace MachineControlPanel.Framework.UI
 
     internal sealed class RuleListView(
         RuleHelper ruleHelper,
-        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules
+        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules,
+        Action<bool>? exitThisMenu = null
     ) : WrapperView, IPageable
     {
         private const int ROW_MARGIN = 4;
@@ -32,12 +33,12 @@ namespace MachineControlPanel.Framework.UI
             .Select((digit) => new Sprite(Game1.mouseCursors, new Rectangle(368 + digit * 5, 56, 5, 7)))
             .ToImmutableList();
         private readonly Edges tabButtonPassive = new(Bottom: ROW_MARGIN * 2);
-        private readonly Edges tabButtonActive = new(Left: 6, Bottom: ROW_MARGIN * 2);
+        private readonly Edges tabButtonActive = new(Bottom: ROW_MARGIN * 2, Right: -6);
 
         private static LayoutParameters IconLayout => LayoutParameters.FixedSize(64, 64);
         internal readonly Dictionary<RuleIdent, CheckBox> ruleCheckBoxes = [];
         internal readonly List<InputCheckable> inputChecks = [];
-        private ScrollableView container;
+        private ScrollableView? container;
         private Lane? rulesList = null;
         private Grid? inputsGrid = null;
         private Button? rulesBtn = null;
@@ -59,13 +60,6 @@ namespace MachineControlPanel.Framework.UI
                 Content = rulesList,
             };
 
-            if (ruleHelper.ValidInputs.Any())
-            {
-                inputsGrid = CreateInputsGrid();
-                container.Measure(new(viewportSize.Width, viewportSize.Height));
-                inputsGrid.Layout = new() { Width = Length.Px(rulesList!.ContentSize.X), Height = Length.Content() };
-                hItems.Add(CreateSidebar());
-            }
             Frame scrollBox = new()
             {
                 Name = "RuleList.Frame",
@@ -75,6 +69,21 @@ namespace MachineControlPanel.Framework.UI
                 BorderThickness = UiSprites.MenuBorderThickness,
                 Content = container,
             };
+
+            if (ruleHelper.ValidInputs.Any())
+            {
+                inputsGrid = CreateInputsGrid();
+                container.Measure(new(viewportSize.Width, viewportSize.Height));
+                inputsGrid.Layout = new() { Width = Length.Px(rulesList!.ContentSize.X), Height = Length.Content() };
+                // hItems.Add(CreateSidebar());
+                scrollBox.FloatingElements.Add(new(CreateSidebar(), FloatingPosition.BeforeParent));
+
+                if (ruleHelper.Config.DefaultPage == DefaultPageOption.Inputs)
+                {
+                    container.Content = inputsGrid;
+                    UpdateTabButtonMargins();
+                }
+            }
 
             Banner banner = new()
             {
@@ -102,17 +111,29 @@ namespace MachineControlPanel.Framework.UI
                 VerticalContentAlignment = Alignment.Middle,
                 Children = vItems,
             };
-            hItems.Add(center);
-
-            return new Lane()
+            // hItems.Add(center);
+            if (exitThisMenu != null)
             {
-                Name = "RuleList",
-                Layout = LayoutParameters.FitContent(),
-                Orientation = Orientation.Horizontal,
-                HorizontalContentAlignment = Alignment.Middle,
-                VerticalContentAlignment = Alignment.Start,
-                Children = hItems,
-            };
+                Button closeBtn = new(defaultBackgroundSprite: MachineSelect.CloseButton)
+                {
+                    Margin = new Edges(Left: 48),
+                    Layout = LayoutParameters.FixedSize(48, 48)
+                };
+                closeBtn.LeftClick += ExitMenu;
+                // hItems.Add(closeBtn);
+                center.FloatingElements.Add(new(closeBtn, FloatingPosition.AfterParent));
+            }
+
+            // return new Lane()
+            // {
+            //     Name = "RuleList",
+            //     Layout = LayoutParameters.FitContent(),
+            //     Orientation = Orientation.Horizontal,
+            //     HorizontalContentAlignment = Alignment.Middle,
+            //     VerticalContentAlignment = Alignment.Start,
+            //     Children = hItems,
+            // };
+            return center;
         }
 
         private Lane CreateSidebar()
@@ -144,9 +165,10 @@ namespace MachineControlPanel.Framework.UI
 
             return new Lane()
             {
-                Layout = new() { Width = Length.Px(128), Height = Length.Content() },
+                Layout = new() { Width = Length.Px(96), Height = Length.Content() },
                 Padding = new(Top: 32),
-                Margin = new(Right: -50),
+                Margin = new(Right: -20),
+                HorizontalContentAlignment = Alignment.End,
                 Orientation = Orientation.Vertical,
                 Children = [rulesBtn, inputsBtn],
                 ZIndex = 2
@@ -155,7 +177,7 @@ namespace MachineControlPanel.Framework.UI
 
         private void UpdateTabButtonMargins()
         {
-            if (container.Content == inputsGrid)
+            if (container!.Content == inputsGrid)
             {
                 rulesBtn!.Margin = tabButtonPassive;
                 inputsBtn!.Margin = tabButtonActive;
@@ -194,7 +216,7 @@ namespace MachineControlPanel.Framework.UI
         {
             if (sender is Button)
             {
-                container.Content = rulesList;
+                container!.Content = rulesList;
                 UpdateTabButtonMargins();
                 Game1.playSound("smallSelect");
             }
@@ -204,7 +226,7 @@ namespace MachineControlPanel.Framework.UI
         {
             if (sender is Button)
             {
-                container.Content = inputsGrid;
+                container!.Content = inputsGrid;
                 UpdateTabButtonMargins();
                 Game1.playSound("smallSelect");
             }
@@ -235,6 +257,11 @@ namespace MachineControlPanel.Framework.UI
                 ic.IsChecked = true;
 
             saveMachineRules(ruleHelper.QId, [], []);
+        }
+
+        private void ExitMenu(object? sender, ClickEventArgs e)
+        {
+            exitThisMenu!(true);
         }
 
         private Grid CreateInputsGrid()
@@ -488,9 +515,9 @@ namespace MachineControlPanel.Framework.UI
 
         public bool NextPage()
         {
-            if (container.Content == rulesList)
+            if (container!.Content == rulesList)
             {
-                container.Content = inputsGrid;
+                container!.Content = inputsGrid;
                 UpdateTabButtonMargins();
                 Game1.playSound("smallSelect");
                 return true;
@@ -500,9 +527,9 @@ namespace MachineControlPanel.Framework.UI
 
         public bool PreviousPage()
         {
-            if (container.Content == inputsGrid)
+            if (container!.Content == inputsGrid)
             {
-                container.Content = rulesList;
+                container!.Content = rulesList;
                 UpdateTabButtonMargins();
                 Game1.playSound("smallSelect");
                 return true;

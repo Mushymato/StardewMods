@@ -7,6 +7,8 @@
     "config.default-page.description": "Page of control panel to display by default.",
     "config.default-page.machine-rules": "Machine Rules",
     "config.default-page.item-inputs": "Item Inputs",
+    "config.open-machine-select-menu.name": "Open Machine Select Menu",
+    "config.open-machine-select-menu.description": "(Must load a save first)",
     "rule-list.title": "Machine: {{name}}",
     "rule-list.same-as-input": "Same as Input",
     "rule-list.special-input": "Special Input",

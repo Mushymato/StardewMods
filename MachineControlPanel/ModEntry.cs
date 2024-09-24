@@ -75,7 +75,7 @@ namespace MachineControlPanel
         private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
         {
             config = Helper.ReadConfig<ModConfig>();
-            config.Register(Helper, ModManifest);
+            config.Register(Helper, ModManifest, GetMachineSelectMenu);
             var EMC = Helper.ModRegistry.GetApi<IExtraMachineConfigApi>("selph.ExtraMachineConfig");
             if (EMC != null)
                 RuleHelper.EMC = EMC;
@@ -228,9 +228,14 @@ namespace MachineControlPanel
         {
             if (Game1.activeClickableMenu == null && config!.MachineSelectKey.JustPressed() && saveData != null)
             {
-                Game1.activeClickableMenu = new MachineMenu(config, SaveMachineRules);
+                Game1.activeClickableMenu = GetMachineSelectMenu();
             }
             return false;
+        }
+
+        private MachineMenu GetMachineSelectMenu()
+        {
+            return new MachineMenu(config!, SaveMachineRules);
         }
 
         /// <summary>
@@ -275,7 +280,8 @@ namespace MachineControlPanel
 
             Game1.activeClickableMenu = new RuleListMenu(
                 ruleHelper,
-                SaveMachineRules
+                SaveMachineRules,
+                true
             );
 
             return true;
