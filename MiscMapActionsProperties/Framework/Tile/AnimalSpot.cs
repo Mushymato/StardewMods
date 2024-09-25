@@ -56,8 +56,9 @@ namespace MiscMapActionsProperties.Framework.Tile
 
         private static bool HasOtherAnimals(FarmAnimal __instance, GameLocation location, Vector2 tile)
         {
+            Rectangle bounds = __instance.GetBoundingBox();
             foreach (FarmAnimal animal in location.animals.Values)
-                if (animal != __instance && animal.Tile == tile)
+                if (animal != __instance && bounds.Intersects(animal.GetBoundingBox()))
                     return true;
             return false;
         }

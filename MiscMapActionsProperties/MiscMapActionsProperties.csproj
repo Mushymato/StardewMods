@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="../debug.168.csproj" />
+  <Import Project="../debug.csproj" />
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>

@@ -32,6 +32,42 @@
     },
     {
       "Action": "EditMap",
+      "Target": "Maps/Barn3",
+      "MapTiles": [
+        {
+          "Position": {
+            "X": 3,
+            "Y": 4
+          },
+          "Layer": "Back",
+          "SetProperties": {
+            "mushymato.MMAP_AnimalSpot": "T"
+          }
+        },
+        {
+          "Position": {
+            "X": 4,
+            "Y": 4
+          },
+          "Layer": "Back",
+          "SetProperties": {
+            "mushymato.MMAP_AnimalSpot": "T"
+          }
+        },
+        {
+          "Position": {
+            "X": 5,
+            "Y": 4
+          },
+          "Layer": "Back",
+          "SetProperties": {
+            "mushymato.MMAP_AnimalSpot": "T"
+          }
+        }
+      ]
+    },
+    {
+      "Action": "EditMap",
       "Target": "Maps/Greenhouse",
       "MapProperties": {
         "mushymato.MMAP_BuildingEntry": "10 10"
