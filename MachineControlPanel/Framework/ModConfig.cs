@@ -13,7 +13,7 @@ namespace MachineControlPanel.Framework
     internal class OpenMenuButton(Func<MachineMenu> getMachineSelectMenu)
     {
         private bool mouseLastFrame = false;
-        private string notInGame = I18n.Config_OpenMachineSelectMenu_Description();
+        private readonly string notInGame = I18n.Config_OpenMachineSelectMenu_Description();
 
         public void Draw(SpriteBatch b, Vector2 origin)
         {

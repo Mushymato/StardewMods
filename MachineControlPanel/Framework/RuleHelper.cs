@@ -90,10 +90,7 @@ namespace MachineControlPanel.Framework
     {
         internal const string PLACEHOLDER_TRIGGER = "PLACEHOLDER_TRIGGER";
         internal static Integration.IExtraMachineConfigApi? EMC { get; set; } = null;
-        internal readonly string Name;
-        internal readonly string QId;
         internal static IconEdge QuestionIcon => new(new(Game1.mouseCursors, new Rectangle(240, 192, 16, 16)));
-        // internal static Sprite GreenStar => new(Game1.mouseCursors_1_6, new Rectangle(457, 298, 11, 11));
         internal static IconEdge EmojiX => new(new(ChatBox.emojiTexture, new Rectangle(45, 81, 9, 9)), new(14), 4f);
         internal static IconEdge EmojiExclaim => new(new(ChatBox.emojiTexture, new Rectangle(54, 81, 9, 9)), new(Top: 37), 3f);
         internal static IconEdge EmojiNote => new(new(ChatBox.emojiTexture, new Rectangle(81, 81, 9, 9)), Scale: 3f);
@@ -113,16 +110,20 @@ namespace MachineControlPanel.Framework
         private static readonly ConditionalWeakTable<string, RuleItem?> contextTagSpriteCache = [];
         private static readonly ConditionalWeakTable<string, List<ParsedItemData>?> contextTagItemDataCache = [];
 
-        private readonly MachineData machine;
+        internal readonly string Name;
+        internal readonly string QId;
         internal readonly ModConfig Config;
+        private readonly MachineData machine;
 
         internal RuleHelper(string qId, string displayName, MachineData machine, ModConfig config)
         {
             this.QId = qId;
             this.Name = displayName;
-            this.machine = machine;
             this.Config = config;
+            this.machine = machine;
         }
+
+        internal bool HasDisabled => ModEntry.HasSavedEntry(QId);
 
         internal bool CheckRuleDisabled(RuleIdent ident)
         {

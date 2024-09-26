@@ -11,7 +11,8 @@ namespace MachineControlPanel.Framework.UI
     internal sealed class RuleListView(
         RuleHelper ruleHelper,
         Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules,
-        Action<bool>? exitThisMenu = null
+        Action<bool>? exitThisMenu = null,
+        Action? updateEdited = null
     ) : WrapperView, IPageable
     {
         private const int ROW_MARGIN = 4;
@@ -243,6 +244,7 @@ namespace MachineControlPanel.Framework.UI
                 ruleCheckBoxes.Where((kv) => !kv.Value.IsChecked).Select((kv) => kv.Key),
                 inputChecks.Where((ic) => !ic.IsChecked).Select((ic) => ic.QId)
             );
+            updateEdited?.Invoke();
         }
 
         private void ResetRules(object? sender, ClickEventArgs e)
@@ -257,6 +259,7 @@ namespace MachineControlPanel.Framework.UI
                 ic.IsChecked = true;
 
             saveMachineRules(ruleHelper.QId, [], []);
+            updateEdited?.Invoke();
         }
 
         private void ExitMenu(object? sender, ClickEventArgs e)

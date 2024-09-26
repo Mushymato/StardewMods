@@ -9,7 +9,8 @@ namespace MachineControlPanel.Framework.UI
     {
         protected override MachineSelect CreateView()
         {
-            return new(config, ShowPanelFor, exitThisMenu);
+            initializeUpperRightCloseButton();
+            return new(config, ShowPanelFor, exitThisMenu: exitThisMenu);
         }
 
         private void ShowPanelFor(MachineCell machineCell)
@@ -18,10 +19,19 @@ namespace MachineControlPanel.Framework.UI
             if (machineCell.ruleHelper.RuleEntries.Count == 0)
                 return;
 
-            // Overlay doesn't handle click on floating elements quite right
-            // var overlay = new RuleListOverlay(machineCell.ruleHelper, saveMachineRules);
+            // // Overlay doesn't handle click on floating elements quite right
+            // var overlay = new RuleListOverlay(
+            //     machineCell.ruleHelper,
+            //     saveMachineRules,
+            //     machineCell.UpdateEdited
+            // );
             // Overlay.Push(overlay);
-            Game1.activeClickableMenu.SetChildMenu(new RuleListMenu(machineCell.ruleHelper, saveMachineRules, true));
+
+            Game1.activeClickableMenu.SetChildMenu(new RuleListMenu(
+                machineCell.ruleHelper, saveMachineRules,
+                showExitX: true,
+                updateEdited: machineCell.UpdateEdited
+            ));
         }
     }
 }

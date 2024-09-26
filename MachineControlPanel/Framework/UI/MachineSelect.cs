@@ -7,15 +7,17 @@ namespace MachineControlPanel.Framework.UI
 {
     internal sealed class MachineSelect(ModConfig config, Action<MachineCell> showPanelFor, Action<bool> exitThisMenu) : WrapperView
     {
-        const int GUTTER_WIDTH = 500;
-        const int GUTTER_HEIGHT = 400;
+        private const int GUTTER = 400;
+        private const int GRID_W = 96;
+        private int gridCount = 12;
         internal static readonly Sprite CloseButton = new(Game1.mouseCursors, new(337, 494, 12, 12));
 
         protected override IView CreateView()
         {
             xTile.Dimensions.Size viewportSize = Game1.uiViewport.Size;
-            float menuWidth = 704;
-            float menuHeight = MathF.Max(400, viewportSize.Height - GUTTER_HEIGHT);
+            gridCount = (int)MathF.Min(gridCount, MathF.Floor((viewportSize.Width - GUTTER) / 96));
+            float menuWidth = gridCount * GRID_W;
+            float menuHeight = MathF.Max(400, viewportSize.Height - GUTTER);
 
             ScrollableView scrollableView = new()
             {
@@ -62,7 +64,7 @@ namespace MachineControlPanel.Framework.UI
             return new Grid()
             {
                 Name = "MachineSelect.Grid",
-                ItemLayout = GridItemLayout.Count(8),
+                ItemLayout = GridItemLayout.Count(gridCount),
                 Children = cells
             }; ;
         }

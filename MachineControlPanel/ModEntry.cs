@@ -45,6 +45,18 @@ namespace MachineControlPanel
             return false;
         }
 
+        /// <summary>
+        /// Check if machine has any saved data
+        /// </summary>
+        /// <param name="QId"></param>
+        /// <returns></returns>
+        internal static bool HasSavedEntry(string QId)
+        {
+            if (saveData != null)
+                return saveData.Disabled.ContainsKey(QId);
+            return false;
+        }
+
         public override void Entry(IModHelper helper)
         {
             mon = Monitor;
@@ -170,6 +182,12 @@ namespace MachineControlPanel
             LogSaveData();
         }
 
+        /// <summary>
+        /// Save machine rule for given machine.
+        /// </summary>
+        /// <param name="bigCraftableId"></param>
+        /// <param name="disabledRules"></param>
+        /// <param name="disabledInputs"></param>
         private void SaveMachineRules(
             string bigCraftableId,
             IEnumerable<RuleIdent> disabledRules,
@@ -233,6 +251,10 @@ namespace MachineControlPanel
             return false;
         }
 
+        /// <summary>
+        /// Obtain new machine select menu.
+        /// </summary>
+        /// <returns></returns>
         private MachineMenu GetMachineSelectMenu()
         {
             return new MachineMenu(config!, SaveMachineRules);
