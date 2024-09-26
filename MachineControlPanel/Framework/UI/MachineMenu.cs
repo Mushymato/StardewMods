@@ -19,19 +19,13 @@ namespace MachineControlPanel.Framework.UI
             if (machineCell.ruleHelper.RuleEntries.Count == 0)
                 return;
 
-            // // Overlay doesn't handle click on floating elements quite right
-            // var overlay = new RuleListOverlay(
-            //     machineCell.ruleHelper,
-            //     saveMachineRules,
-            //     machineCell.UpdateEdited
-            // );
-            // Overlay.Push(overlay);
-
-            Game1.activeClickableMenu.SetChildMenu(new RuleListMenu(
-                machineCell.ruleHelper, saveMachineRules,
-                showExitX: true,
-                updateEdited: machineCell.UpdateEdited
-            ));
+            // Overlay doesn't handle click on floating elements quite right
+            var overlay = new RuleListOverlay(
+                machineCell.ruleHelper,
+                saveMachineRules,
+                machineCell.UpdateEdited
+            );
+            Overlay.Push(overlay);
         }
     }
 }
