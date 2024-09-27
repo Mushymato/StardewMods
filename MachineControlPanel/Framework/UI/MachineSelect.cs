@@ -5,13 +5,21 @@ using StardewValley.ItemTypeDefinitions;
 
 namespace MachineControlPanel.Framework.UI
 {
-    internal sealed class MachineSelect(ModConfig config, Action<MachineCell> showPanelFor, Action<bool> exitThisMenu) : WrapperView
+    internal sealed class MachineSelect(
+        ModConfig config,
+        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules,
+        Action<bool> exitThisMenu
+    ) : WrapperView
     {
         private const int GUTTER = 400;
         private const int GRID_W = 96;
         private int gridCount = 12;
         internal static readonly Sprite CloseButton = new(Game1.mouseCursors, new(337, 494, 12, 12));
 
+        /// <summary>
+        /// Make machine select grid view
+        /// </summary>
+        /// <returns></returns>
         protected override IView CreateView()
         {
             xTile.Dimensions.Size viewportSize = Game1.uiViewport.Size;
@@ -41,6 +49,10 @@ namespace MachineControlPanel.Framework.UI
             return wrapper;
         }
 
+        /// <summary>
+        /// Make machine select grid
+        /// </summary>
+        /// <returns></returns>
         private IView CreateMachineSelect()
         {
             var machinesData = DataLoader.Machines(Game1.content);
@@ -69,12 +81,33 @@ namespace MachineControlPanel.Framework.UI
             }; ;
         }
 
+        /// <summary>
+        /// Show a rule list panel for the machine
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ShowPanel(object? sender, ClickEventArgs e)
         {
             if (sender is MachineCell machineCell)
-                showPanelFor(machineCell);
+            {
+                machineCell.ruleHelper.GetRuleEntries();
+                if (machineCell.ruleHelper.RuleEntries.Count == 0)
+                    return;
+
+                var overlay = new RuleListOverlay(
+                    machineCell.ruleHelper,
+                    saveMachineRules,
+                    machineCell.UpdateEdited
+                );
+                Overlay.Push(overlay);
+            }
         }
 
+        /// <summary>
+        /// Exit this menu
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ExitMenu(object? sender, ClickEventArgs e)
         {
             exitThisMenu(true);

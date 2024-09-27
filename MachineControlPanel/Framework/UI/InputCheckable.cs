@@ -4,6 +4,9 @@ using StardewValley;
 
 namespace MachineControlPanel.Framework.UI
 {
+    /// <summary>
+    /// Holds some state for a checkable Panel > Image, not a view.
+    /// </summary>
     internal sealed class InputCheckable
     {
         public static readonly Color COLOR_DISABLED = Color.Black * 0.9f;

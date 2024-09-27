@@ -6,6 +6,7 @@ using StardewValley.GameData.Machines;
 
 namespace MachineControlPanel.Framework
 {
+    /// <summary>Indicate why a rule or input is skipped by this mod</summary>
     internal enum SkipReason
     {
         None = 0,
@@ -14,6 +15,7 @@ namespace MachineControlPanel.Framework
     }
     internal static class GamePatches
     {
+        /// <summary>Hold skip reason, here is hoping single thread means its safe lol</summary>
         private static SkipReason skipped = SkipReason.None;
         internal static void Apply(Harmony harmony)
         {
@@ -37,6 +39,15 @@ namespace MachineControlPanel.Framework
             }
         }
 
+        /// <summary>
+        /// Check whether a rule or input item should be skipped
+        /// </summary>
+        /// <param name="trigger2"></param>
+        /// <param name="machine"></param>
+        /// <param name="rule"></param>
+        /// <param name="inputItem"></param>
+        /// <param name="idx"></param>
+        /// <returns></returns>
         private static bool ShouldSkipMachineInput(MachineOutputTriggerRule trigger2, SObject machine, MachineOutputRule rule, Item inputItem, int idx)
         {
             RuleIdent ident = new(rule.Id, trigger2.Id, idx);
@@ -60,6 +71,16 @@ namespace MachineControlPanel.Framework
             return false;
         }
 
+        /// <summary>
+        /// Check should skip, for <see cref="MachineOutputTrigger.DayUpdate"/>
+        /// </summary>
+        /// <param name="trigger"></param>
+        /// <param name="trigger2"></param>
+        /// <param name="machine"></param>
+        /// <param name="rule"></param>
+        /// <param name="inputItem"></param>
+        /// <param name="idx"></param>
+        /// <returns></returns>
         private static bool ShouldSkipMachineInput_DayUpdate(MachineOutputTrigger trigger, MachineOutputTriggerRule trigger2, SObject machine, MachineOutputRule rule, Item inputItem, int idx)
         {
             if (trigger.HasFlag(MachineOutputTrigger.DayUpdate) || trigger.HasFlag(MachineOutputTrigger.MachinePutDown))
@@ -67,11 +88,18 @@ namespace MachineControlPanel.Framework
             return false;
         }
 
+        /// <summary>Unset skipped reason</summary>
         private static void MachineDataUtility_CanApplyOutput_Prefix()
         {
             skipped = SkipReason.None;
         }
 
+        /// <summary>
+        /// Patch checks in CanApplyOutput
+        /// </summary>
+        /// <param name="instructions"></param>
+        /// <param name="generator"></param>
+        /// <returns></returns>
         private static IEnumerable<CodeInstruction> MachineDataUtility_CanApplyOutput_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             try
@@ -171,6 +199,11 @@ namespace MachineControlPanel.Framework
             }
         }
 
+        /// <summary>
+        /// Display HUD message for rejecting an input, if <see cref="skipped"/> is set
+        /// </summary>
+        /// <param name="inputItem"></param>
+        /// <param name="who"></param>
         private static void ShowSkippedReasonMessage(Item inputItem, Farmer who)
         {
             switch (skipped)
@@ -187,6 +220,12 @@ namespace MachineControlPanel.Framework
             skipped = SkipReason.None;
         }
 
+        /// <summary>
+        /// Patch PlaceInMachine to show HUD messages
+        /// </summary>
+        /// <param name="instructions"></param>
+        /// <param name="generator"></param>
+        /// <returns></returns>
         private static IEnumerable<CodeInstruction> SObject_PlaceInMachine_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             try

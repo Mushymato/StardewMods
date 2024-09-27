@@ -325,20 +325,25 @@ namespace MachineControlPanel
             saveData = new() { Version = ModManifest.Version };
         }
 
+        internal static void Log(string msg
 #if DEBUG
-        internal static void Log(string msg, LogLevel level = LogLevel.Debug)
+            , LogLevel level = LogLevel.Debug
 #else
-        internal static void Log(string msg, LogLevel level = LogLevel.Trace)
+            , LogLevel level = LogLevel.Trace
 #endif
+        )
         {
             mon!.Log(msg, level);
         }
 
+        internal static void LogOnce(string msg
 #if DEBUG
-        internal static void LogOnce(string msg, LogLevel level = LogLevel.Debug)
+            , LogLevel level = LogLevel.Debug
 #else
-        internal static void Log(string msg, LogLevel level = LogLevel.Trace)
+            , LogLevel level = LogLevel.Trace
 #endif
+
+        )
         {
             mon!.LogOnce(msg, level);
         }

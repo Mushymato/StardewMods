@@ -1,6 +1,4 @@
-using StardewValley;
 using StardewValley.GameData.Machines;
-using StardewValley.Inventories;
 
 namespace MachineControlPanel.Framework.Integration
 {
@@ -9,6 +7,6 @@ namespace MachineControlPanel.Framework.Integration
         IList<(string, int)> GetExtraRequirements(MachineItemOutput outputData);
         IList<(string, int)> GetExtraTagsRequirements(MachineItemOutput outputData);
         IList<MachineItemOutput> GetExtraOutputs(MachineItemOutput outputData, MachineData? machineData);
-        IList<Item>? GetFuelsForThisRecipe(MachineItemOutput outputData, Item inputItem, IInventory inventory);
+        // IList<Item>? GetFuelsForThisRecipe(MachineItemOutput outputData, Item inputItem, IInventory inventory);
     }
 }

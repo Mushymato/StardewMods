@@ -15,6 +15,7 @@ namespace MachineControlPanel.Framework.UI
         Action? updateEdited = null
     ) : WrapperView, IPageable
     {
+        /// Geometry
         private const int ROW_MARGIN = 4;
         private const int COL_MARGIN = 6;
         private const int ROW_W = 64 + ROW_MARGIN * 2;
@@ -27,7 +28,6 @@ namespace MachineControlPanel.Framework.UI
                 Game1.menuTexture,
                 SourceRect: new(156, 384, 8, 54)
             );
-        // private static Sprite TabButton => new(Game1.mouseCursors2, new(0, 224, 24, 12), new(4, 4, 0, 4), new(Scale: 4));
         private static Sprite TabButton => new(Game1.menuTexture, new(0, 256, 44, 60), new(16, 16, 0, 16));
         private static readonly IReadOnlyList<Sprite> Digits = Enumerable
             .Range(0, 10)
@@ -45,7 +45,10 @@ namespace MachineControlPanel.Framework.UI
         private Button? rulesBtn = null;
         private Button? inputsBtn = null;
 
-
+        /// <summary>
+        /// Create rule list view, with tabs and footer buttons
+        /// </summary>
+        /// <returns></returns>
         protected override IView CreateView()
         {
             xTile.Dimensions.Size viewportSize = Game1.uiViewport.Size;
@@ -76,7 +79,6 @@ namespace MachineControlPanel.Framework.UI
                 inputsGrid = CreateInputsGrid();
                 container.Measure(new(viewportSize.Width, viewportSize.Height));
                 inputsGrid.Layout = new() { Width = Length.Px(rulesList!.ContentSize.X), Height = Length.Content() };
-                // hItems.Add(CreateSidebar());
                 scrollBox.FloatingElements.Add(new(CreateSidebar(), FloatingPosition.BeforeParent));
 
                 if (ruleHelper.Config.DefaultPage == DefaultPageOption.Inputs)
@@ -112,7 +114,6 @@ namespace MachineControlPanel.Framework.UI
                 VerticalContentAlignment = Alignment.Middle,
                 Children = vItems,
             };
-            // hItems.Add(center);
             if (exitThisMenu != null)
             {
                 Button closeBtn = new(defaultBackgroundSprite: MachineSelect.CloseButton)
@@ -121,22 +122,16 @@ namespace MachineControlPanel.Framework.UI
                     Layout = LayoutParameters.FixedSize(48, 48)
                 };
                 closeBtn.LeftClick += ExitMenu;
-                // hItems.Add(closeBtn);
                 center.FloatingElements.Add(new(closeBtn, FloatingPosition.AfterParent));
             }
 
-            // return new Lane()
-            // {
-            //     Name = "RuleList",
-            //     Layout = LayoutParameters.FitContent(),
-            //     Orientation = Orientation.Horizontal,
-            //     HorizontalContentAlignment = Alignment.Middle,
-            //     VerticalContentAlignment = Alignment.Start,
-            //     Children = hItems,
-            // };
             return center;
         }
 
+        /// <summary>
+        /// Create the sidebar for changing pages
+        /// </summary>
+        /// <returns></returns>
         private Lane CreateSidebar()
         {
             rulesBtn = new(defaultBackgroundSprite: TabButton)
@@ -176,6 +171,9 @@ namespace MachineControlPanel.Framework.UI
             };
         }
 
+        /// <summary>
+        /// Move tab position depending on current page
+        /// </summary>
         private void UpdateTabButtonMargins()
         {
             if (container!.Content == inputsGrid)
@@ -190,6 +188,10 @@ namespace MachineControlPanel.Framework.UI
             }
         }
 
+        /// <summary>
+        /// Make footer buttons for save/reset of rules
+        /// </summary>
+        /// <returns></returns>
         private Lane CreateFooter()
         {
             Button saveBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
@@ -213,6 +215,11 @@ namespace MachineControlPanel.Framework.UI
             };
         }
 
+        /// <summary>
+        /// Change to rules list on click
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ShowRules(object? sender, ClickEventArgs e)
         {
             if (sender is Button)
@@ -223,6 +230,11 @@ namespace MachineControlPanel.Framework.UI
             }
         }
 
+        /// <summary>
+        /// Change to inputs on click
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ShowInputs(object? sender, ClickEventArgs e)
         {
             if (sender is Button)
@@ -233,6 +245,11 @@ namespace MachineControlPanel.Framework.UI
             }
         }
 
+        /// <summary>
+        /// Save rules
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void SaveRules(object? sender, ClickEventArgs e)
         {
             if (sender is not Button)
@@ -247,6 +264,11 @@ namespace MachineControlPanel.Framework.UI
             updateEdited?.Invoke();
         }
 
+        /// <summary>
+        /// Reset saved rules
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ResetRules(object? sender, ClickEventArgs e)
         {
             if (sender is not Button)
@@ -262,11 +284,20 @@ namespace MachineControlPanel.Framework.UI
             updateEdited?.Invoke();
         }
 
+        /// <summary>
+        /// Exit menu on click
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ExitMenu(object? sender, ClickEventArgs e)
         {
             exitThisMenu!(true);
         }
 
+        /// <summary>
+        /// Make inputs page
+        /// </summary>
+        /// <returns></returns>
         private Grid CreateInputsGrid()
         {
             int i = 0;
@@ -305,6 +336,12 @@ namespace MachineControlPanel.Framework.UI
             };
         }
 
+        /// <summary>
+        /// Make rules page
+        /// </summary>
+        /// <param name="viewportSize"></param>
+        /// <param name="menuHeight"></param>
+        /// <returns></returns>
         private Lane CreateRulesList(xTile.Dimensions.Size viewportSize, ref float menuHeight)
         {
             ruleCheckBoxes.Clear();
@@ -373,17 +410,18 @@ namespace MachineControlPanel.Framework.UI
             };
         }
 
+        /// <summary>
+        /// Make a single entry in rules
+        /// </summary>
+        /// <param name="rule"></param>
+        /// <param name="inputLayout"></param>
+        /// <param name="outputLayout"></param>
+        /// <returns></returns>
         private IView CreateRuleListEntry(RuleEntry rule, LayoutParameters inputLayout, LayoutParameters outputLayout)
         {
             List<IView> children = [];
             if (Game1.IsMasterGame && rule.CanCheck)
             {
-                // InputShowButton openItems = new(rule);
-                // openItems.LeftClick += ShowItemGrid;
-                // children.Add(openItems);
-                // if (ruleCheckBoxes.ContainsKey(rule.Ident))
-
-                // if (ruleCheckBoxes.TryGetValue(rule.Ident, out CheckBox? existing))
                 if (ruleCheckBoxes.ContainsKey(rule.Ident))
                 {
                     children.Add(new Image()
@@ -393,7 +431,6 @@ namespace MachineControlPanel.Framework.UI
                         Layout = LayoutParameters.FitContent(),
                         IsFocusable = false
                     });
-                    // children.Add(existing);
                 }
                 else
                 {
@@ -449,6 +486,12 @@ namespace MachineControlPanel.Framework.UI
             };
         }
 
+        /// <summary>
+        /// Make a horizontal lane of RuleItems
+        /// </summary>
+        /// <param name="ruleItems"></param>
+        /// <param name="prefix"></param>
+        /// <returns></returns>
         private static Lane FormRuleItemLane(List<RuleItem> ruleItems, string prefix)
         {
             List<IView> content = [];
@@ -488,6 +531,12 @@ namespace MachineControlPanel.Framework.UI
             };
         }
 
+        /// <summary>
+        /// Make a Panel for a rule item, can have several images on top of each other
+        /// </summary>
+        /// <param name="ruleItem"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
         private static Panel FormRuleItemPanel(RuleItem ruleItem, string name)
         {
             List<IView> iconImgs = [];
@@ -515,7 +564,10 @@ namespace MachineControlPanel.Framework.UI
             };
         }
 
-
+        /// <summary>
+        /// Implement gamepad R to next page
+        /// </summary>
+        /// <returns></returns>
         public bool NextPage()
         {
             if (container!.Content == rulesList)
@@ -528,6 +580,10 @@ namespace MachineControlPanel.Framework.UI
             return false;
         }
 
+        /// <summary>
+        /// Implement gamepad L to prev page
+        /// </summary>
+        /// <returns></returns>
         public bool PreviousPage()
         {
             if (container!.Content == inputsGrid)

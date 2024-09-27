@@ -8,7 +8,7 @@ using StardewValley;
 
 namespace MachineControlPanel.Framework
 {
-    // Credit to ichortower
+    // Adds a button in GMCM, credit to ichortower
     // https://github.com/ichortower/Nightshade/blob/dev/src/GMCM.cs#L79
     internal class OpenMenuButton(Func<MachineMenu> getMachineSelectMenu)
     {
