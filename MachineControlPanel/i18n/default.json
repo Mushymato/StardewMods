@@ -11,7 +11,7 @@
     "config.open-machine-select-menu.description": "(Must load a save first)",
     "rule-list.title": "Machine: {{name}}",
     "rule-list.same-as-input": "Same as Input",
-    "rule-list.special-input": "Special Input",
+    "rule-list.special-input": "SPECIAL Input",
     "rule-list.special-output": "SPECIAL {{method}}",
     "rule-list.save": "Save",
     "rule-list.reset": "Reset",

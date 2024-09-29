@@ -27,7 +27,7 @@ namespace ScytheToolEnchantments.Framework.Enchantments
                 "ALL_ITEMS",
                 new ItemQueryContext(Game1.currentLocation, Game1.player, Game1.random),
                 ItemQuerySearchMode.RandomOfTypeItem,
-                "ITEM_CONTEXT_TAG Target bone_item, !ITEM_CONTEXT_TAG Target id_o_881"
+                "ITEM_CONTEXT_TAG Target bone_item !id_o_881"
             ).FirstOrDefault()?.Item is not Item item)
                 return false;
             boneItem = item;

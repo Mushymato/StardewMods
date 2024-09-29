@@ -1,16 +1,17 @@
 using System.Text.RegularExpressions;
-using System.Runtime.CompilerServices;
-using Force.DeepCloner;
+using System.Collections.Immutable;
+using System.Reflection;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Internal;
 using StardewValley.Menus;
-using StardewValley.Objects;
 using StardewUI;
-using StardewValley.Extensions;
-using System.Collections.Immutable;
+using StardewValley.Delegates;
+using StardewValley.Objects;
+using HarmonyLib;
+using System.Text;
 
 
 namespace MachineControlPanel.Framework
@@ -92,6 +93,7 @@ namespace MachineControlPanel.Framework
         internal const string PLACEHOLDER_TRIGGER = "PLACEHOLDER_TRIGGER";
         internal static Integration.IExtraMachineConfigApi? EMC { get; set; } = null;
         internal static IconEdge QuestionIcon => new(new(Game1.mouseCursors, new Rectangle(240, 192, 16, 16)));
+        internal static IconEdge EmojiNote => new(new(ChatBox.emojiTexture, new Rectangle(81, 81, 9, 9)), Scale: 3f);
         internal static IconEdge EmojiExclaim => new(new(ChatBox.emojiTexture, new Rectangle(54, 81, 9, 9)), new(Top: 37), 3f);
         internal static IconEdge EmojiBolt => new(new(ChatBox.emojiTexture, new Rectangle(36, 63, 9, 9)), new(Left: 37), 3f);
 
@@ -104,19 +106,19 @@ namespace MachineControlPanel.Framework
                 3
             );
         }
+
+        private bool populated = false;
         internal readonly List<RuleEntry> RuleEntries = [];
         internal readonly Dictionary<string, ValidInput> ValidInputs = [];
 
         internal readonly string Name;
         internal readonly string QId;
-        internal readonly ModConfig Config;
         private readonly MachineData machine;
 
-        internal RuleHelper(string qId, string displayName, MachineData machine, ModConfig config)
+        internal RuleHelper(string qId, string displayName, MachineData machine)
         {
             this.QId = qId;
             this.Name = displayName;
-            this.Config = config;
             this.machine = machine;
         }
 
@@ -138,9 +140,12 @@ namespace MachineControlPanel.Framework
             );
         }
 
+        /// <summary>Add item data valid inputs</summary>
+        /// <param name="itemData"></param>
+        /// <param name="ident"></param>
         internal void AddValidInput(ParsedItemData itemData, RuleIdent ident)
         {
-            if (itemData.QualifiedItemId == null)
+            if (itemData == null || itemData.QualifiedItemId == null)
                 return;
             if (ValidInputs.TryGetValue(itemData.QualifiedItemId, out ValidInput? valid))
                 valid.Idents.Add(ident);
@@ -155,6 +160,9 @@ namespace MachineControlPanel.Framework
                 );
         }
 
+        /// <summary>Add rule item to valid inputs</summary>
+        /// <param name="ruleItem"></param>
+        /// <param name="ident"></param>
         internal void AddValidInput(RuleItem ruleItem, RuleIdent ident)
         {
             if (ruleItem.QId == null)
@@ -207,8 +215,12 @@ namespace MachineControlPanel.Framework
             return pruned;
         }
 
-        internal void GetRuleEntries()
+        internal bool GetRuleEntries(bool force = false)
         {
+            if (!force && populated)
+                return RuleEntries.Any();
+
+            populated = false;
             RuleEntries.Clear();
             ValidInputs.Clear();
 
@@ -233,7 +245,7 @@ namespace MachineControlPanel.Framework
 
             foreach (MachineOutputRule rule in machine.OutputRules)
             {
-                bool hasComplex = false;
+                List<MachineItemOutput> complexOutputs = [];
 
                 // rule outputs
                 List<Tuple<List<RuleItem>, List<RuleItem>>> withEmcFuel = [];
@@ -241,12 +253,13 @@ namespace MachineControlPanel.Framework
                 foreach (MachineItemOutput output in PrunedMachineItemOutput(rule.OutputItem))
                 {
                     List<RuleItem> optLine = [];
-                    if (output.OutputMethod != null) // complex method
+                    if (output.OutputMethod != null)
                     {
-                        string methodName = output.OutputMethod.Split(':').Last();
+                        complexOutputs.Add(output);
+                        string methodName = output.OutputMethod.Split(':').Last().Trim();
                         optLine.Add(new RuleItem([QuestionIcon], [I18n.RuleList_SpecialOutput(method: methodName)]));
-                        hasComplex = true;
                     }
+
                     if (output.ItemId == "DROP_IN")
                     {
                         optLine.Add(new RuleItem([QuestionIcon], [I18n.RuleList_SameAsInput()]));
@@ -307,14 +320,15 @@ namespace MachineControlPanel.Framework
                         foreach ((string tagExpr, int count) in extraTagReq)
                         {
                             var tags = tagExpr.Split(',');
-                            if (ItemQueryCache.TryGetContextTagRuleItemCache(tags, out RuleItem? ctxTag))
+                            string? normalized = ItemQueryCache.NormalizeCondition(null, tags, out List<string> _);
+                            // case 2: only ITEM_CONTEXT_TAG Target !<tag> or !ITEM_CONTEXT_TAG Target <tag>
+                            if (normalized != null && ItemQueryCache.TryGetConditionItemDatas(normalized, out ImmutableList<ParsedItemData>? matchingItemDatas))
                             {
-                                RuleItem ctxTagCopy = ctxTag.Copy();
-                                IconEdge? qualityIcon = GetContextTagQuality(tags);
-                                ctxTagCopy.Icons.Add(EmojiBolt);
-                                if (qualityIcon != null)
-                                    ctxTagCopy.Icons.Add(qualityIcon);
-                                emcFuel.Add(ctxTagCopy);
+                                RuleItem condRule = MakeReprRuleItem(matchingItemDatas, normalized);
+                                if (GetContextTagQuality(tags) is IconEdge qualityIcon)
+                                    condRule.Icons.Add(qualityIcon);
+                                condRule.Icons.Add(EmojiBolt);
+                                emcFuel.Add(condRule);
                             }
                         }
                         if (emcFuel.Any())
@@ -336,82 +350,69 @@ namespace MachineControlPanel.Framework
                     RuleIdent ident = new(rule.Id, trigger.Id);
                     List<RuleItem> inputLine = [];
                     List<ParsedItemData> inputItems = [];
+                    IconEdge? qualityIcon = null;
+                    List<string> nonItemConditions = [];
                     // no item input
                     if (!trigger.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine))
                     {
                         List<string> tooltip = [trigger.Trigger.ToString()];
                         inputLine.Add(new RuleItem([QuestionIcon], tooltip));
-                    }
-                    // item input based rules
-                    if (trigger.RequiredItemId != null)
-                    {
-                        if (ItemRegistry.GetData(trigger.RequiredItemId) is ParsedItemData itemData)
-                        {
-                            RuleItem? preserve = GetPreserveRuleItem(trigger.RequiredTags, trigger.RequiredCount, itemData, out string preserveTag);
-                            if (preserve != null)
-                            {
-                                inputLine.Add(preserve);
-                                // Don't bother showing specific preserve items in inputs, should just use rules for that
-                            }
-                            else
-                            {
-                                inputLine.Add(new RuleItem(
-                                    [new(new(itemData.GetTexture(), itemData.GetSourceRect()))],
-                                    [itemData.DisplayName],
-                                    Count: trigger.RequiredCount,
-                                    QId: itemData.QualifiedItemId
-                                ));
-                                AddValidInput(inputLine.Last().Copy(), ident);
-                            }
-                        }
-                    }
-                    IconEdge? qualityIcon = null;
-                    List<string> conditions = [];
-                    if (trigger.RequiredTags != null)
-                    {
-                        List<string> inclCondTags = new(trigger.RequiredTags);
-                        // for some reason game has ITEM_CONTEXT_TAG Input edible_mushroom instead of RequiredTags edible_mushroom
                         if (trigger.Condition != null)
+                            nonItemConditions = new(trigger.Condition.Split(','));
+                    }
+                    else
+                    {
+                        // item input based rules
+                        if (trigger.RequiredItemId != null)
                         {
-                            foreach (string condStr in trigger.Condition.Split(','))
+                            if (ItemRegistry.GetData(trigger.RequiredItemId) is ParsedItemData itemData)
                             {
-                                if (condStr.StartsWith("ITEM_CONTEXT_TAG Input "))
+                                RuleItem? preserve = ItemQueryCache.GetPreserveRuleItem(trigger.RequiredTags, trigger.RequiredCount, itemData, out string preserveTag);
+                                if (preserve != null)
                                 {
-                                    inclCondTags.AddRange(condStr["ITEM_CONTEXT_TAG Input ".Length..].Split(' '));
-                                }
-                                else if (condStr.StartsWith("!ITEM_CONTEXT_TAG Input "))
-                                {
-                                    inclCondTags.AddRange(condStr["!ITEM_CONTEXT_TAG Input ".Length..].Split(' ').Select((tag) => $"!{tag}"));
+                                    inputLine.Add(preserve);
+                                    // Don't bother showing specific preserve items in inputs, should just use rules for that
                                 }
                                 else
                                 {
-                                    conditions.Add(condStr);
+                                    inputLine.Add(new RuleItem(
+                                        [new(new(itemData.GetTexture(), itemData.GetSourceRect()))],
+                                        [itemData.DisplayName],
+                                        Count: trigger.RequiredCount,
+                                        QId: itemData.QualifiedItemId
+                                    ));
+                                    AddValidInput(inputLine.Last().Copy(), ident);
                                 }
                             }
+                            if (trigger.RequiredTags != null)
+                            {
+                                qualityIcon = GetContextTagQuality(trigger.RequiredTags);
+                            }
                         }
-                        if (ItemQueryCache.TryGetContextTagRuleItemCache(inclCondTags, out RuleItem? ctxTag))
+
+
+                        string? normalized = ItemQueryCache.NormalizeCondition(trigger.Condition, trigger.RequiredTags, out nonItemConditions);
+                        if (ItemQueryCache.TryGetConditionItemDatas(normalized, QId, complexOutputs, out ImmutableList<ParsedItemData>? matchingItemDatas))
                         {
-                            inputLine.Add(ctxTag.Copy());
-                            if (ctxTag.QId != null)
-                                AddValidInput(ItemRegistry.GetData(ctxTag.QId), ident);
-                            else
-                                PopulateContextTagValidInputs(inclCondTags, ident);
+                            foreach (ParsedItemData itemData in matchingItemDatas)
+                            {
+                                if (!ValidInputs.ContainsKey(itemData.QualifiedItemId))
+                                    AddValidInput(itemData, ident);
+                            }
+                            if (matchingItemDatas.Any())
+                                inputLine.Add(MakeReprRuleItem(matchingItemDatas, normalized ?? I18n.RuleList_SpecialInput()));
                         }
-                        qualityIcon = GetContextTagQuality(inclCondTags);
                     }
-                    else if (trigger.Condition != null)
-                    {
-                        conditions.AddRange(trigger.Condition.Split(','));
-                    }
+
                     if (inputLine.Any())
                     {
                         if (qualityIcon != null)
                         {
                             inputLine.Last().Icons.Add(qualityIcon);
                         }
-                        if (conditions.Any())
+                        if (nonItemConditions.Any())
                         {
-                            inputLine.Last().Tooltip.InsertRange(0, conditions);
+                            inputLine.Last().Tooltip.InsertRange(0, nonItemConditions);
                             inputLine.Last().Icons.Add(EmojiExclaim);
                         }
 
@@ -427,9 +428,9 @@ namespace MachineControlPanel.Framework
                         ));
                     }
                 }
-                if (inputs.Count == 0)
+                if (complexOutputs.Any())
                 {
-                    if (hasComplex)
+                    if (inputs.Count == 0)
                     {
                         inputs.Add(new(
                             new(rule.Id, PLACEHOLDER_TRIGGER),
@@ -437,10 +438,6 @@ namespace MachineControlPanel.Framework
                             [new RuleItem([QuestionIcon], [I18n.RuleList_SpecialInput()])]
                         ));
                     }
-                    // else if (placeholder != null)
-                    // {
-                    //     inputs.Add(new(new(rule.Id, PLACEHOLDER_TRIGGER, -1), false, [placeholder]));
-                    // }
                 }
 
                 if (withEmcFuel.Any())
@@ -493,87 +490,52 @@ namespace MachineControlPanel.Framework
                         ));
                     }
                 }
-
             }
+
+            populated = true;
+            return RuleEntries.Any();
         }
 
-        internal static RuleItem? GetPreserveRuleItem(List<string>? tags, int count, ParsedItemData baseItem, out string preserveTag)
+        internal static RuleItem MakeReprRuleItem(ImmutableList<ParsedItemData> matchingItemDatas, string condition)
         {
-            preserveTag = "none";
-            if (tags == null)
+            ParsedItemData firstItem = ItemRegistry.GetData(matchingItemDatas.First().QualifiedItemId);
+            if (matchingItemDatas.Count == 1)
             {
-                return null;
+                return new RuleItem(
+                    [new(new(firstItem.GetTexture(), firstItem.GetSourceRect()))],
+                    [firstItem.DisplayName],
+                    QId: firstItem.QualifiedItemId
+                );
             }
-            foreach (string tag in tags)
+            else
             {
-                bool negate = tag.StartsWith('!');
-                string realTag = negate ? tag[1..] : tag;
-                if (realTag.StartsWith("preserve_sheet_index_"))
+                List<string> tooltips = [];
+                foreach (string cond in condition.Split(','))
                 {
-                    preserveTag = tag;
-                    // id_o_itemid resolves but preserved_item_index_itemid cus that gets added for Object
-                    string idTag = $"id_o_{realTag[21..]}";
-                    if (ItemQueryResolver.TryResolve(
-                        "ALL_ITEMS",
-                        ItemQueryCache.Context,
-                        ItemQuerySearchMode.FirstOfTypeItem,
-                        $"ITEM_CONTEXT_TAG Target {idTag}"
-                    ).FirstOrDefault()?.Item is Item preserveItem)
+                    if (cond.StartsWith("ITEM_CONTEXT_TAG Target ") || cond.StartsWith("!ITEM_CONTEXT_TAG Target "))
                     {
-                        SObject.PreserveType? preserveType = baseItem.QualifiedItemId switch
+                        bool negate = cond[0] == '!';
+                        string[] tags = cond[(negate ? "!ITEM_CONTEXT_TAG Target ".Length : "ITEM_CONTEXT_TAG Target ".Length)..].Split(' ');
+                        foreach (string tag in tags)
                         {
-                            "(O)348" => SObject.PreserveType.Wine,
-                            "(O)344" => SObject.PreserveType.Jelly,
-                            "(O)342" => SObject.PreserveType.Pickle,
-                            "(O)350" => SObject.PreserveType.Juice,
-                            "(O)812" => SObject.PreserveType.Roe,
-                            "(O)447" => SObject.PreserveType.AgedRoe,
-                            "(O)340" => SObject.PreserveType.Honey,
-                            "(O)685" => SObject.PreserveType.Bait,
-                            "(O)DriedFruit" => SObject.PreserveType.DriedFruit,
-                            "(O)DriedMushrooms" => SObject.PreserveType.DriedMushroom,
-                            "(O)SmokedFish" => SObject.PreserveType.SmokedFish,
-                            _ => null
-                        };
-                        if (preserveType == null)
-                        {
-                            return null;
-                        }
-                        if (ItemQueryResolver.TryResolve($"FLAVORED_ITEM {preserveType} {preserveItem.ItemId}", ItemQueryCache.Context)
-                            .FirstOrDefault()?.Item is ColoredObject preserve)
-                        {
-                            List<IconEdge> icons = [];
-                            // drawing with layder 
-                            if (preserve.ColorSameIndexAsParentSheetIndex)
-                            {
-                                icons.Add(new(new(baseItem.GetTexture(), baseItem.GetSourceRect()), Tint: preserve.color.Value));
-                            }
+                            if (tag == "")
+                                continue;
+                            string realTag = tag[0] == '!' ? tag[1..] : tag;
+                            if (tag[0] == '!' != negate) // XOR
+                                tooltips.Add($"NOT {realTag}");
                             else
-                            {
-                                icons.Add(new(new(baseItem.GetTexture(), baseItem.GetSourceRect())));
-                                icons.Add(new(new(baseItem.GetTexture(), baseItem.GetSourceRect(1)), Tint: preserve.color.Value));
-                            }
-                            return new RuleItem(
-                                icons,
-                                [preserve.DisplayName],
-                                Count: count
-                            );
+                                tooltips.Add(realTag);
                         }
                     }
+                    else
+                    {
+                        tooltips.Add(cond);
+                    }
                 }
-            }
-            return null;
-        }
-
-        internal void PopulateContextTagValidInputs(IEnumerable<string> tags, RuleIdent ident)
-        {
-            if (ItemQueryCache.TryGetAllItemDataWithTags(tags, out ImmutableList<ParsedItemData>? matchingItemData))
-            {
-                foreach (ParsedItemData itemData in matchingItemData)
-                {
-                    if (!ValidInputs.ContainsKey(itemData.QualifiedItemId))
-                        AddValidInput(itemData, ident);
-                }
+                return new RuleItem(
+                    [new(new(firstItem.GetTexture(), firstItem.GetSourceRect()), Tint: Color.White * 0.5f), EmojiNote],
+                    tooltips
+                );
             }
         }
 

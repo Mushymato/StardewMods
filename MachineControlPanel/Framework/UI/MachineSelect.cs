@@ -6,7 +6,6 @@ using StardewValley.ItemTypeDefinitions;
 namespace MachineControlPanel.Framework.UI
 {
     internal sealed class MachineSelect(
-        ModConfig config,
         Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules,
         Action<bool> exitThisMenu
     ) : WrapperView
@@ -61,17 +60,16 @@ namespace MachineControlPanel.Framework.UI
             {
                 if (ItemRegistry.GetData(qId) is not ParsedItemData itemData)
                     continue;
-                if (machine.IsIncubator || machine.OutputRules == null || !machine.AllowFairyDust)
-                    continue;
 
-                RuleHelper ruleHelper = new(qId, itemData.DisplayName, machine, config);
-                MachineCell cell = new(ruleHelper, itemData)
+                if (RuleHelperCache.TryGetRuleHelper(itemData.QualifiedItemId, itemData.DisplayName, machine, out RuleHelper? ruleHelper))
                 {
-                    Name = $"MachineSelect.{qId}"
-                };
-                cell.LeftClick += ShowPanel;
-
-                cells.Add(cell);
+                    MachineCell cell = new(ruleHelper, itemData)
+                    {
+                        Name = $"MachineSelect.{qId}"
+                    };
+                    cell.LeftClick += ShowPanel;
+                    cells.Add(cell);
+                }
             }
             return new Grid()
             {
@@ -90,16 +88,15 @@ namespace MachineControlPanel.Framework.UI
         {
             if (sender is MachineCell machineCell)
             {
-                machineCell.ruleHelper.GetRuleEntries();
-                if (machineCell.ruleHelper.RuleEntries.Count == 0)
-                    return;
-
-                var overlay = new RuleListOverlay(
-                    machineCell.ruleHelper,
-                    saveMachineRules,
-                    machineCell.UpdateEdited
-                );
-                Overlay.Push(overlay);
+                if (machineCell.ruleHelper.GetRuleEntries())
+                {
+                    var overlay = new RuleListOverlay(
+                        machineCell.ruleHelper,
+                        saveMachineRules,
+                        machineCell.UpdateEdited
+                    );
+                    Overlay.Push(overlay);
+                }
             }
         }
 

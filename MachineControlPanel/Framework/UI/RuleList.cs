@@ -81,7 +81,7 @@ namespace MachineControlPanel.Framework.UI
                 inputsGrid.Layout = new() { Width = Length.Px(rulesList!.ContentSize.X), Height = Length.Content() };
                 scrollBox.FloatingElements.Add(new(CreateSidebar(), FloatingPosition.BeforeParent));
 
-                if (ruleHelper.Config.DefaultPage == DefaultPageOption.Inputs)
+                if (ModEntry.Config.DefaultPage == DefaultPageOption.Inputs)
                 {
                     container.Content = inputsGrid;
                     UpdateTabButtonMargins();

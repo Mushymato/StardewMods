@@ -1,5 +1,5 @@
 ﻿global using SObject = StardewValley.Object;
-// MachineOutputRule Id, MachineOutputTriggerRule Id, MachineOutputTriggerRule idx
+// MachineOutputRule Id, MachineOutputTriggerRule Id
 global using RuleIdent = System.Tuple<string, string>;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -14,7 +14,6 @@ using HarmonyLib;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using StardewValley.ItemTypeDefinitions;
-using System.Runtime.CompilerServices;
 
 namespace MachineControlPanel
 {
@@ -28,9 +27,9 @@ namespace MachineControlPanel
         /// Key for a partial message, e.g. only 1 machine's rules/inputs were changed.
         /// </summary>
         private const string SAVEDATA_ENTRY = "save-machine-rules-entry";
-        private ModConfig? config = null;
         private static IMonitor? mon = null;
         private static ModSaveData? saveData = null;
+        internal static ModConfig Config = null!;
 
         /// <summary>
         /// Attempt to get a save data entry for a machine
@@ -80,6 +79,11 @@ namespace MachineControlPanel
                 "Reset save data associated with this mod.",
                 ConsoleResetSaveData
             );
+            helper.ConsoleCommands.Add(
+                "mcp_debug_iqc",
+                "test the item query cache",
+                ConsoleDebugItemQueryCache
+            );
         }
 
         /// <summary>
@@ -102,10 +106,13 @@ namespace MachineControlPanel
         /// <param name="e"></param>
         private void OnAssetInvalidated(object? sender, AssetsInvalidatedEventArgs e)
         {
-            if (!Context.IsWorldReady)
-                return;
+            if (e.Names.Any((name) => name.IsEquivalentTo("Data/Machines")))
+            {
+                RuleHelperCache.Invalidate();
+            }
             if (e.Names.Any((name) => name.IsEquivalentTo("Data/Objects")))
             {
+                RuleHelperCache.Invalidate();
                 ItemQueryCache.Invalidate();
             }
         }
@@ -135,8 +142,8 @@ namespace MachineControlPanel
         /// <param name="e"></param>
         private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
         {
-            config = Helper.ReadConfig<ModConfig>();
-            config.Register(Helper, ModManifest, GetMachineSelectMenu);
+            Config = Helper.ReadConfig<ModConfig>();
+            Config.Register(Helper, ModManifest, GetMachineSelectMenu);
             var EMC = Helper.ModRegistry.GetApi<IExtraMachineConfigApi>("selph.ExtraMachineConfig");
             if (EMC != null)
                 RuleHelper.EMC = EMC;
@@ -229,6 +236,16 @@ namespace MachineControlPanel
                 saveData = new() { Version = ModManifest.Version };
             }
             LogSaveData();
+
+            // Console.WriteLine("test cwt 1");
+            // ConditionalWeakTable<Tuple<string, string>, string> testCWT1 = [];
+            // testCWT1.GetValue(new("test", "1"), (ths) => "HASH SET 1");
+            // testCWT1.GetValue(new("test", "2"), (ths) => "HASH SET 2");
+            // testCWT1.GetValue(new("test", "1"), (ths) => "HASH SET 3");
+            // foreach (var kv in testCWT1)
+            // {
+            //     Console.WriteLine($"{kv.Key}: {kv.Value}");
+            // }
         }
 
         /// <summary>
@@ -293,7 +310,7 @@ namespace MachineControlPanel
         /// <returns></returns>
         private bool ShowMachineSelect()
         {
-            if (Game1.activeClickableMenu == null && config!.MachineSelectKey.JustPressed() && saveData != null)
+            if (Game1.activeClickableMenu == null && Config.MachineSelectKey.JustPressed() && saveData != null)
             {
                 Game1.activeClickableMenu = GetMachineSelectMenu();
             }
@@ -306,7 +323,7 @@ namespace MachineControlPanel
         /// <returns></returns>
         private MachineMenu GetMachineSelectMenu()
         {
-            return new MachineMenu(config!, SaveMachineRules);
+            return new MachineMenu(SaveMachineRules);
         }
 
         /// <summary>
@@ -315,7 +332,7 @@ namespace MachineControlPanel
         /// <returns></returns>
         private bool ShowPanel()
         {
-            if (Game1.activeClickableMenu == null && config!.ControlPanelKey.JustPressed() && saveData != null)
+            if (Game1.activeClickableMenu == null && Config.ControlPanelKey.JustPressed() && saveData != null)
             {
                 // ICursorPosition.GrabTile is unreliable with gamepad controls. Instead recreate game logic.
                 Vector2 cursorTile = Game1.currentCursorTile;
@@ -341,19 +358,15 @@ namespace MachineControlPanel
             if (bigCraftable.GetMachineData() is not MachineData machine)
                 return false;
 
-            if (machine.IsIncubator || machine.OutputRules == null || machine.OutputRules.Count == 0 || !machine.AllowFairyDust)
-                return false;
-
-            RuleHelper ruleHelper = new(bigCraftable.QualifiedItemId, bigCraftable.DisplayName, machine, config!);
-            ruleHelper.GetRuleEntries();
-            if (ruleHelper.RuleEntries.Count == 0)
-                return false;
-
-            Game1.activeClickableMenu = new RuleListMenu(
-                ruleHelper,
-                SaveMachineRules,
-                true
-            );
+            if (RuleHelperCache.TryGetRuleHelper(bigCraftable.QualifiedItemId, bigCraftable.DisplayName, machine, out RuleHelper? ruleHelper)
+                && ruleHelper.GetRuleEntries())
+            {
+                Game1.activeClickableMenu = new RuleListMenu(
+                    ruleHelper,
+                    SaveMachineRules,
+                    true
+                );
+            }
 
             return true;
         }
@@ -373,6 +386,24 @@ namespace MachineControlPanel
             Helper.Data.WriteSaveData<ModSaveData>(SAVEDATA, null);
             saveData = new() { Version = ModManifest.Version };
         }
+
+
+        private void ConsoleDebugItemQueryCache(string command, string[] args)
+        {
+            Console.WriteLine($"Arguments: {string.Join(',', args)}");
+            string? normalized = ItemQueryCache.NormalizeCondition(args[0], args[1..], out List<string> _);
+            Console.WriteLine($"Normalized: {normalized}");
+
+            if (normalized != null && ItemQueryCache.TryGetConditionItemDatas(normalized, out ImmutableList<ParsedItemData>? matchingItemDatas))
+            {
+                Console.WriteLine("Matched:");
+                foreach (ParsedItemData itemData in matchingItemDatas)
+                {
+                    Console.WriteLine($"= {itemData.QualifiedItemId}: {itemData.DisplayName}");
+                }
+            }
+        }
+
 
         internal static void Log(string msg
 #if DEBUG
