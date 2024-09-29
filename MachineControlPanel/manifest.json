@@ -7,5 +7,12 @@
     "Description": "A control panel for machine rules.",
     "UniqueID": "mushymato.MachineControlPanel",
     "UpdateKeys": [],
-    "EntryDll": "MachineControlPanel.dll"
+    "EntryDll": "MachineControlPanel.dll",
+    "Dependencies": [
+        // ensure our data edits come after content patcher
+        {
+            "UniqueID": "Pathoschild.ContentPatcher",
+            "IsRequired": false
+        }
+    ]
 }

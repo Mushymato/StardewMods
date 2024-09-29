@@ -304,14 +304,14 @@ namespace MachineControlPanel.Framework.UI
             List<IView> children = [];
             if (Game1.IsMasterGame)
             {
-                foreach (var kv in ruleHelper.ValidInputs)
+                foreach ((string key, ValidInput input) in ruleHelper.ValidInputs)
                 {
                     InputCheckable inputCheck = new(
-                        kv.Value,
-                        FormRuleItemPanel(kv.Value.Item, $"Inputs.{++i}")
+                        input,
+                        FormRuleItemPanel(input.Item, $"Inputs.{++i}")
                     )
                     {
-                        IsChecked = !ruleHelper.CheckInputDisabled(kv.Key)
+                        IsChecked = !ruleHelper.CheckInputDisabled(key)
                     };
                     children.Add(inputCheck.Content);
                     inputChecks.Add(inputCheck);
@@ -319,10 +319,10 @@ namespace MachineControlPanel.Framework.UI
             }
             else
             {
-                foreach (var kv in ruleHelper.ValidInputs)
+                foreach ((string key, ValidInput input) in ruleHelper.ValidInputs)
                 {
-                    Panel inputIcon = FormRuleItemPanel(kv.Value.Item, $"Inputs.{++i}");
-                    ((Image)inputIcon.Children.First()).Tint = !ruleHelper.CheckInputDisabled(kv.Key) ?
+                    Panel inputIcon = FormRuleItemPanel(input.Item, $"Inputs.{++i}");
+                    ((Image)inputIcon.Children.First()).Tint = !ruleHelper.CheckInputDisabled(key) ?
                         Color.White : InputCheckable.COLOR_DISABLED;
                     children.Add(inputIcon);
                 }
@@ -424,20 +424,21 @@ namespace MachineControlPanel.Framework.UI
             {
                 if (ruleCheckBoxes.ContainsKey(rule.Ident))
                 {
-                    children.Add(new Image()
-                    {
-                        Sprite = ruleHelper.CheckRuleDisabled(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
-                        Tint = Color.White * 0.0f,
-                        Layout = LayoutParameters.FitContent(),
-                        IsFocusable = false
-                    });
+                    // children.Add(new Image()
+                    // {
+                    //     Sprite = ruleHelper.CheckRuleDisabled(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
+                    //     Tint = Color.White * 0.5f,
+                    //     Layout = LayoutParameters.FitContent(),
+                    //     IsFocusable = false
+                    // });
+                    children.Add(ruleCheckBoxes[rule.Ident]);
                 }
                 else
                 {
                     CheckBox checkBox = new()
                     {
                         IsChecked = !ruleHelper.CheckRuleDisabled(rule.Ident),
-                        // Tooltip = rule.Ident.ToString()
+                        Tooltip = rule.Ident.ToString()
                     };
                     ruleCheckBoxes[rule.Ident] = checkBox;
                     children.Add(checkBox);

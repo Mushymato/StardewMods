@@ -42,10 +42,8 @@ namespace MiscTweaks
         private void EditDataMachines(IAssetData asset)
         {
             IDictionary<string, MachineData> data = asset.AsDictionary<string, MachineData>().Data;
-            foreach (KeyValuePair<string, MachineData> kv in data)
+            foreach ((string qItemId, MachineData machine) in data)
             {
-                string qItemId = kv.Key;
-                MachineData machine = kv.Value;
                 if (machine.IsIncubator || machine.OutputRules == null || !machine.AllowFairyDust || ExcludedMachines.Contains(qItemId))
                     continue;
 

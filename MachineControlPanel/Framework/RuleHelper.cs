@@ -48,8 +48,8 @@ namespace MachineControlPanel.Framework
         internal RuleItem Copy()
         {
             return new RuleItem(
-                [.. Icons],
-                [.. Tooltip],
+                new(Icons),
+                new(Tooltip),
                 Count,
                 QId: QId
             );
@@ -70,7 +70,7 @@ namespace MachineControlPanel.Framework
         List<RuleItem> Outputs
     )
     {
-        internal string Repr => $"{Ident.Item1}.{Ident.Item2}({Ident.Item3})";
+        internal string Repr => $"{Ident.Item1}.{Ident.Item2}";
     };
 
     /// <summary>
@@ -339,10 +339,9 @@ namespace MachineControlPanel.Framework
                 // rule inputs (triggers)
                 List<Tuple<RuleIdent, bool, List<RuleItem>>> inputs = [];
                 // RuleItem? placeholder = null;
-                int seq = 0;
                 foreach (MachineOutputTriggerRule trigger in rule.Triggers)
                 {
-                    RuleIdent ident = new(rule.Id, trigger.Id, seq++);
+                    RuleIdent ident = new(rule.Id, trigger.Id);
                     List<RuleItem> inputLine = [];
                     List<ParsedItemData> inputItems = [];
                     // no item input
@@ -419,7 +418,7 @@ namespace MachineControlPanel.Framework
                     if (hasComplex)
                     {
                         inputs.Add(new(
-                            new(rule.Id, PLACEHOLDER_TRIGGER, -1),
+                            new(rule.Id, PLACEHOLDER_TRIGGER),
                             false,
                             [new RuleItem([QuestionIcon], [I18n.RuleList_SpecialInput()])]
                         ));
@@ -436,7 +435,7 @@ namespace MachineControlPanel.Framework
                     {
                         foreach ((List<RuleItem> optLine, List<RuleItem> emcFuel) in withEmcFuel)
                         {
-                            List<RuleItem> ipt = [.. inputLine];
+                            List<RuleItem> ipt = new(inputLine);
                             foreach (RuleItem emcF in emcFuel)
                             {
                                 if (ipt.FindIndex((inL) => (

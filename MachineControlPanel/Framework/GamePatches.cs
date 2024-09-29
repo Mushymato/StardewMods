@@ -48,9 +48,9 @@ namespace MachineControlPanel.Framework
         /// <param name="inputItem"></param>
         /// <param name="idx"></param>
         /// <returns></returns>
-        private static bool ShouldSkipMachineInput(MachineOutputTriggerRule trigger2, SObject machine, MachineOutputRule rule, Item inputItem, int idx)
+        private static bool ShouldSkipMachineInput(MachineOutputTriggerRule trigger2, SObject machine, MachineOutputRule rule, Item inputItem)
         {
-            RuleIdent ident = new(rule.Id, trigger2.Id, idx);
+            RuleIdent ident = new(rule.Id, trigger2.Id);
             if (!ModEntry.TryGetSavedEntry(machine.QualifiedItemId, out ModSaveDataEntry? msdEntry))
                 return false;
 
@@ -81,10 +81,10 @@ namespace MachineControlPanel.Framework
         /// <param name="inputItem"></param>
         /// <param name="idx"></param>
         /// <returns></returns>
-        private static bool ShouldSkipMachineInput_DayUpdate(MachineOutputTrigger trigger, MachineOutputTriggerRule trigger2, SObject machine, MachineOutputRule rule, Item inputItem, int idx)
+        private static bool ShouldSkipMachineInput_DayUpdate(MachineOutputTrigger trigger, MachineOutputTriggerRule trigger2, SObject machine, MachineOutputRule rule, Item inputItem)
         {
             if (trigger.HasFlag(MachineOutputTrigger.DayUpdate) || trigger.HasFlag(MachineOutputTrigger.MachinePutDown))
-                return ShouldSkipMachineInput(trigger2, machine, rule, inputItem, idx);
+                return ShouldSkipMachineInput(trigger2, machine, rule, inputItem);
             return false;
         }
 
@@ -106,13 +106,13 @@ namespace MachineControlPanel.Framework
             {
                 CodeMatcher matcher = new(instructions, generator);
 
-                // track enumeration index
-                // starting at -1 out of laziness
-                LocalBuilder idx = generator.DeclareLocal(typeof(int));
-                matcher.Start().Insert([
-                    new(OpCodes.Ldc_I4, -1),
-                    new(OpCodes.Stloc, idx)
-                ]);
+                // // track enumeration index
+                // // starting at -1 out of laziness
+                // LocalBuilder idx = generator.DeclareLocal(typeof(int));
+                // matcher.Start().Insert([
+                //     new(OpCodes.Ldc_I4, -1),
+                //     new(OpCodes.Stloc, idx)
+                // ]);
 
                 CodeMatch ldlocAny = new(OpCodes.Ldloc_0);
                 ldlocAny.opcodes.Add(OpCodes.Ldloc_1);
@@ -141,7 +141,7 @@ namespace MachineControlPanel.Framework
                     new(OpCodes.Ldarg_0), // Object machine
                     new(OpCodes.Ldarg_1), // MachineOutputRule rule
                     new(OpCodes.Ldarg_3), // Item inputItem
-                    new(OpCodes.Ldloc, idx), // foreach idx
+                    // new(OpCodes.Ldloc, idx), // foreach idx
                     new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(GamePatches), nameof(ShouldSkipMachineInput))),
                     new(OpCodes.Brtrue, lbl),
                     ldloc, // MachineOutputTriggerRule trigger2
@@ -164,31 +164,31 @@ namespace MachineControlPanel.Framework
                     new(OpCodes.Ldarg_0), // Object machine
                     new(OpCodes.Ldarg_1), // MachineOutputRule rule
                     new(OpCodes.Ldarg_3), // Item inputItem
-                    new(OpCodes.Ldloc, idx), // foreach idx
+                    // new(OpCodes.Ldloc, idx), // foreach idx
                     new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(GamePatches), nameof(ShouldSkipMachineInput_DayUpdate))),
                     new(OpCodes.Brtrue, lbl),
                     new(OpCodes.Ldarg_S, (byte)6)
                 ]);
 
-                // increment idx
-                var moveNext = AccessTools.EnumeratorMoveNext(
-                    AccessTools.Method(
-                        typeof(List<MachineOutputTriggerRule>),
-                        nameof(List<MachineOutputTriggerRule>.GetEnumerator)
-                    )
-                );
-                matcher.MatchStartForward([
-                    new(OpCodes.Call, moveNext),
-                ]).Advance(-1);
+                // // increment idx
+                // var moveNext = AccessTools.EnumeratorMoveNext(
+                //     AccessTools.Method(
+                //         typeof(List<MachineOutputTriggerRule>),
+                //         nameof(List<MachineOutputTriggerRule>.GetEnumerator)
+                //     )
+                // );
+                // matcher.MatchStartForward([
+                //     new(OpCodes.Call, moveNext),
+                // ]).Advance(-1);
 
-                CodeInstruction ldloca = new(matcher.Opcode, matcher.Operand);
-                matcher.SetAndAdvance(OpCodes.Ldloc, idx);
-                matcher.Insert([
-                    new(OpCodes.Ldc_I4, 1),
-                    new(OpCodes.Add),
-                    new(OpCodes.Stloc, idx),
-                    ldloca
-                ]);
+                // CodeInstruction ldloca = new(matcher.Opcode, matcher.Operand);
+                // matcher.SetAndAdvance(OpCodes.Ldloc, idx);
+                // matcher.Insert([
+                //     new(OpCodes.Ldc_I4, 1),
+                //     new(OpCodes.Add),
+                //     new(OpCodes.Stloc, idx),
+                //     ldloca
+                // ]);
 
                 return matcher.Instructions();
             }

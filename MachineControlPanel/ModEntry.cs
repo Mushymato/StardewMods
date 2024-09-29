@@ -1,8 +1,7 @@
 ﻿global using SObject = StardewValley.Object;
-// BigCraftable Id, MachineOutputRule Id, MachineOutputTriggerRule Id, MachineOutputTriggerRule idx
-global using RuleIdent = System.Tuple<string, string, int>;
+// MachineOutputRule Id, MachineOutputTriggerRule Id, MachineOutputTriggerRule idx
+global using RuleIdent = System.Tuple<string, string>;
 using Microsoft.Xna.Framework;
-using Newtonsoft.Json;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewUI;
@@ -67,6 +66,8 @@ namespace MachineControlPanel
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
             helper.Events.Input.ButtonsChanged += OnButtonsChanged;
+            helper.Events.Content.AssetRequested += OnAssetRequested;
+            // helper.Events.Content.AssetsInvalidated += OnAssetInvalidated;
 
             // host only events
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
@@ -78,6 +79,42 @@ namespace MachineControlPanel
                 ConsoleResetSaveData
             );
         }
+
+        /// <summary>
+        /// Edit machine info to ensure unique rule ids
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
+        {
+            if (e.Name.IsEquivalentTo("Data/Machines"))
+            {
+                e.Edit(Quirks.EnsureUniqueMachineOutputRuleId, AssetEditPriority.Late + 100);
+            }
+        }
+
+        // Decided against rechecking save when Data/Machine changes.
+        // Checking the save is not a huge performance drain, but being eventually correct is good enough for me.
+        // /// <summary>
+        // /// When Data/Machines changes, check whether current save data is consistent again
+        // /// </summary>
+        // /// <param name="sender"></param>
+        // /// <param name="e"></param>
+        // private void OnAssetInvalidated(object? sender, AssetsInvalidatedEventArgs e)
+        // {
+        //     if (!Game1.IsMasterGame)
+        //         return;
+        //     if (saveData != null && e.Names.Any((name) => name.IsEquivalentTo("Data/Machines")))
+        //     {
+        //         if (saveData.ClearInvalidData())
+        //         {
+        //             Helper.Multiplayer.SendMessage(
+        //                 saveData, SAVEDATA,
+        //                 modIDs: [ModManifest.UniqueID]
+        //             );
+        //         }
+        //     }
+        // }
 
         /// <summary>
         /// Read config, get EMC api, do patches
@@ -131,7 +168,7 @@ namespace MachineControlPanel
                             LogSaveData();
 
                         }
-                        catch (JsonSerializationException)
+                        catch (InvalidOperationException)
                         {
                             Log($"Failed to read save data sent by host.", LogLevel.Warn);
                             saveData = null;
@@ -174,7 +211,7 @@ namespace MachineControlPanel
                 saveData.Version = ModManifest.Version;
                 Helper.Data.WriteSaveData(SAVEDATA, saveData);
             }
-            catch (JsonSerializationException)
+            catch (InvalidOperationException)
             {
                 Log($"Failed to read existing save data, previous settings lost.", LogLevel.Warn);
                 saveData = new() { Version = ModManifest.Version };
@@ -357,12 +394,12 @@ namespace MachineControlPanel
                 Log("Disabled machine rules:");
             else
                 Log("Disabled machine rules (from host):");
-            foreach (var kv in saveData.Disabled)
+            foreach ((string key, ModSaveDataEntry value) in saveData.Disabled)
             {
-                Log(kv.Key);
-                foreach (RuleIdent ident in kv.Value.Rules)
+                Log(key);
+                foreach (RuleIdent ident in value.Rules)
                     Log($"* {ident}");
-                foreach (string inputQId in kv.Value.Inputs)
+                foreach (string inputQId in value.Inputs)
                     Log($"- {inputQId}");
             }
         }

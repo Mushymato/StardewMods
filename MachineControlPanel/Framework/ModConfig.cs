@@ -75,6 +75,7 @@ namespace MachineControlPanel.Framework
         public KeybindList MachineSelectKey { get; set; } = KeybindList.Parse($"{SButton.LeftControl}+{SButton.Q}");
         /// <summary>Default page to use</summary>
         public DefaultPageOption DefaultPage { get; set; } = DefaultPageOption.Rules;
+        public bool AlwaysShowCheckbox { get; set; } = false;
 
         private void Reset()
         {
