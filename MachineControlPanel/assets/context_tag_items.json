@@ -1,0 +1,8 @@
+// Define a specific item to use as representative of a context tag.
+{
+    "egg_item": "(O)176",
+    "large_egg_item": "(O)174",
+    "category_vegetable": null,
+    "category_fruits": null,
+    "category_fish": "(O)142",
+}

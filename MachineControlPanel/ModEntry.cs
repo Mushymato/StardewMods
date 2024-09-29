@@ -13,6 +13,8 @@ using MachineControlPanel.Framework.Integration;
 using HarmonyLib;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using StardewValley.ItemTypeDefinitions;
+using System.Runtime.CompilerServices;
 
 namespace MachineControlPanel
 {
@@ -67,7 +69,7 @@ namespace MachineControlPanel
             helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
             helper.Events.Input.ButtonsChanged += OnButtonsChanged;
             helper.Events.Content.AssetRequested += OnAssetRequested;
-            // helper.Events.Content.AssetsInvalidated += OnAssetInvalidated;
+            helper.Events.Content.AssetsInvalidated += OnAssetInvalidated;
 
             // host only events
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
@@ -93,14 +95,24 @@ namespace MachineControlPanel
             }
         }
 
-        // Decided against rechecking save when Data/Machine changes.
-        // Checking the save is not a huge performance drain, but being eventually correct is good enough for me.
-        // /// <summary>
-        // /// When Data/Machines changes, check whether current save data is consistent again
-        // /// </summary>
-        // /// <param name="sender"></param>
-        // /// <param name="e"></param>
-        // private void OnAssetInvalidated(object? sender, AssetsInvalidatedEventArgs e)
+        /// <summary>
+        /// When Data/Objects changes, reset the context tag item cache.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnAssetInvalidated(object? sender, AssetsInvalidatedEventArgs e)
+        {
+            if (!Context.IsWorldReady)
+                return;
+            if (e.Names.Any((name) => name.IsEquivalentTo("Data/Objects")))
+            {
+                ItemQueryCache.Invalidate();
+            }
+        }
+
+        // // Decided against rechecking save when Data/Machine changes.
+        // // Checking the save is not a huge performance drain, but being eventually correct is good enough for me.
+        // private void RecheckSaveData(AssetsInvalidatedEventArgs e)
         // {
         //     if (!Game1.IsMasterGame)
         //         return;
