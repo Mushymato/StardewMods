@@ -214,7 +214,8 @@ namespace MachineControlPanel.Framework.UI
             else
             {
                 children = [new Frame(){
-                    Background = UiSprites.ButtonLight,
+                    Padding = new(12),
+                    Background = UiSprites.ButtonDark,
                     BorderThickness = UiSprites.ButtonLight.FixedEdges!,
                     Content = new Label(){
                         Text = I18n.RuleList_FooterNote()
