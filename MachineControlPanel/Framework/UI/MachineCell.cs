@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using StardewUI;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
+using MachineControlPanel.Framework.UI.Integration;
 
 namespace MachineControlPanel.Framework.UI
 {
@@ -21,12 +22,16 @@ namespace MachineControlPanel.Framework.UI
             Tooltip = ruleHelper.Name;
             IsFocusable = true;
             UpdateEdited();
-            Content = new Image()
+            Content = new HoveredItemPanel()
             {
-                Sprite = new(itemData.GetTexture(), itemData.GetSourceRect()),
-                Layout = LayoutParameters.FixedSize(64, 128),
-                ShadowAlpha = 1,
-                IsFocusable = false
+                Children = [
+                    new Image()
+                    {
+                        Sprite = new(itemData.GetTexture(), itemData.GetSourceRect()),
+                        Layout = LayoutParameters.FixedSize(64, 128),
+                        ShadowAlpha = 1,
+                        IsFocusable = false
+                    }]
             };
         }
 

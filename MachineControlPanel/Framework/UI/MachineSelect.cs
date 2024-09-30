@@ -2,11 +2,13 @@ using StardewUI;
 using StardewValley;
 using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
+using MachineControlPanel.Framework.UI.Integration;
 
 namespace MachineControlPanel.Framework.UI
 {
     internal sealed class MachineSelect(
         Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules,
+        Action<HoveredItemPanel> setHoverEvents,
         Action<bool> exitThisMenu
     ) : WrapperView
     {
@@ -68,6 +70,7 @@ namespace MachineControlPanel.Framework.UI
                         Name = $"MachineSelect.{qId}"
                     };
                     cell.LeftClick += ShowPanel;
+                    setHoverEvents((HoveredItemPanel)cell.Content!);
                     cells.Add(cell);
                 }
             }
@@ -93,6 +96,7 @@ namespace MachineControlPanel.Framework.UI
                     var overlay = new RuleListOverlay(
                         machineCell.ruleHelper,
                         saveMachineRules,
+                        setHoverEvents,
                         machineCell.UpdateEdited
                     );
                     Overlay.Push(overlay);

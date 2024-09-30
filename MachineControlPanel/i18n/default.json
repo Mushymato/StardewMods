@@ -17,6 +17,7 @@
     "rule-list.reset": "Reset",
     "rule-list.rules": "Rules",
     "rule-list.inputs": "Inputs",
+    "rule-list.footer-note": "Only the host can change machine settings.",
     "skip-reason.rules": "Input rejected due to disabled machine rules.",
     "skip-reason.inputs": "Input '{{Name}}' disabled."
 }

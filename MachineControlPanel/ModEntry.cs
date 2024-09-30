@@ -13,7 +13,6 @@ using MachineControlPanel.Framework.Integration;
 using HarmonyLib;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using StardewValley.ItemTypeDefinitions;
 
 namespace MachineControlPanel
 {
@@ -79,11 +78,13 @@ namespace MachineControlPanel
                 "Reset save data associated with this mod.",
                 ConsoleResetSaveData
             );
+#if DEBUG
             helper.ConsoleCommands.Add(
-                "mcp_debug_iqc",
-                "test the item query cache",
-                ConsoleDebugItemQueryCache
+                "mcp_export_iqc",
+                "export the item query cache",
+                ConsoleExportItemQueryCache
             );
+#endif
         }
 
         /// <summary>
@@ -236,16 +237,6 @@ namespace MachineControlPanel
                 saveData = new() { Version = ModManifest.Version };
             }
             LogSaveData();
-
-            // Console.WriteLine("test cwt 1");
-            // ConditionalWeakTable<Tuple<string, string>, string> testCWT1 = [];
-            // testCWT1.GetValue(new("test", "1"), (ths) => "HASH SET 1");
-            // testCWT1.GetValue(new("test", "2"), (ths) => "HASH SET 2");
-            // testCWT1.GetValue(new("test", "1"), (ths) => "HASH SET 3");
-            // foreach (var kv in testCWT1)
-            // {
-            //     Console.WriteLine($"{kv.Key}: {kv.Value}");
-            // }
         }
 
         /// <summary>
@@ -387,23 +378,10 @@ namespace MachineControlPanel
             saveData = new() { Version = ModManifest.Version };
         }
 
-
-        private void ConsoleDebugItemQueryCache(string command, string[] args)
+        private void ConsoleExportItemQueryCache(string command, string[] args)
         {
-            Console.WriteLine($"Arguments: {string.Join(',', args)}");
-            string? normalized = ItemQueryCache.NormalizeCondition(args[0], args[1..], out List<string> _);
-            Console.WriteLine($"Normalized: {normalized}");
-
-            if (normalized != null && ItemQueryCache.TryGetConditionItemDatas(normalized, out ImmutableList<ParsedItemData>? matchingItemDatas))
-            {
-                Console.WriteLine("Matched:");
-                foreach (ParsedItemData itemData in matchingItemDatas)
-                {
-                    Console.WriteLine($"= {itemData.QualifiedItemId}: {itemData.DisplayName}");
-                }
-            }
+            ItemQueryCache.Export(Helper);
         }
-
 
         internal static void Log(string msg
 #if DEBUG

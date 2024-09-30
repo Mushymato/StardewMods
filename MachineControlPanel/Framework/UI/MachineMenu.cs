@@ -1,15 +1,15 @@
-using StardewUI;
+using MachineControlPanel.Framework.UI.Integration;
 
 namespace MachineControlPanel.Framework.UI
 {
     internal sealed class MachineMenu(
         Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules
-    ) : ViewMenu<MachineSelect>
+    ) : HoveredItemMenu<MachineSelect>
     {
         protected override MachineSelect CreateView()
         {
             initializeUpperRightCloseButton();
-            return new(saveMachineRules, exitThisMenu: exitThisMenu);
+            return new(saveMachineRules, SetHoverEvents, exitThisMenu: exitThisMenu);
         }
     }
 }

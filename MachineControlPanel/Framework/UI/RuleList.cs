@@ -1,5 +1,5 @@
 using System.Collections.Immutable;
-using System.Reflection;
+using MachineControlPanel.Framework.UI.Integration;
 using Microsoft.Xna.Framework;
 using StardewUI;
 using StardewValley;
@@ -11,6 +11,7 @@ namespace MachineControlPanel.Framework.UI
     internal sealed class RuleListView(
         RuleHelper ruleHelper,
         Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules,
+        Action<HoveredItemPanel> setHoverEvents,
         Action<bool>? exitThisMenu = null,
         Action? updateEdited = null
     ) : WrapperView, IPageable
@@ -102,8 +103,7 @@ namespace MachineControlPanel.Framework.UI
 
             vItems.Add(banner);
             vItems.Add(scrollBox);
-            if (Game1.IsMasterGame)
-                vItems.Add(CreateFooter());
+            vItems.Add(CreateFooter());
 
             Lane center = new()
             {
@@ -194,24 +194,39 @@ namespace MachineControlPanel.Framework.UI
         /// <returns></returns>
         private Lane CreateFooter()
         {
-            Button saveBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
+            List<IView> children;
+            if (Game1.IsMasterGame)
             {
-                Name = "SaveBtn",
-                Text = I18n.RuleList_Save()
-            };
-            saveBtn.LeftClick += SaveRules;
-            Button resetBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
+                Button saveBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
+                {
+                    Name = "SaveBtn",
+                    Text = I18n.RuleList_Save()
+                };
+                saveBtn.LeftClick += SaveRules;
+                Button resetBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
+                {
+                    Name = "ResetBtn",
+                    Text = I18n.RuleList_Reset()
+                };
+                resetBtn.LeftClick += ResetRules;
+                children = [saveBtn, resetBtn];
+            }
+            else
             {
-                Name = "ResetBtn",
-                Text = I18n.RuleList_Reset()
-            };
-            resetBtn.LeftClick += ResetRules;
+                children = [new Frame(){
+                    Background = UiSprites.ButtonLight,
+                    BorderThickness = UiSprites.ButtonLight.FixedEdges!,
+                    Content = new Label(){
+                        Text = I18n.RuleList_FooterNote()
+                    }
+                }];
+            }
 
             return new Lane()
             {
                 Layout = LayoutParameters.FitContent(),
                 Orientation = Orientation.Horizontal,
-                Children = [saveBtn, resetBtn]
+                Children = children
             };
         }
 
@@ -262,6 +277,9 @@ namespace MachineControlPanel.Framework.UI
                 inputChecks.Where((ic) => !ic.IsChecked).Select((ic) => ic.QId)
             );
             updateEdited?.Invoke();
+
+            foreach (InputCheckable checkable in inputChecks)
+                checkable.IsImplicitOff = ruleHelper.CheckInputImplicitDisabled(checkable.Idents);
         }
 
         /// <summary>
@@ -282,6 +300,9 @@ namespace MachineControlPanel.Framework.UI
 
             saveMachineRules(ruleHelper.QId, [], []);
             updateEdited?.Invoke();
+
+            foreach (InputCheckable checkable in inputChecks)
+                checkable.IsImplicitOff = ruleHelper.CheckInputImplicitDisabled(checkable.Idents);
         }
 
         /// <summary>
@@ -302,35 +323,25 @@ namespace MachineControlPanel.Framework.UI
         {
             int i = 0;
             List<IView> children = [];
-            if (Game1.IsMasterGame)
+            foreach ((string key, ValidInput input) in ruleHelper.ValidInputs)
             {
-                foreach ((string key, ValidInput input) in ruleHelper.ValidInputs)
+                InputCheckable inputCheck = new(
+                    input,
+                    FormRuleItemPanel(input.Rule, $"Inputs.{++i}"),
+                    Game1.IsMasterGame
+                )
                 {
-                    InputCheckable inputCheck = new(
-                        input,
-                        FormRuleItemPanel(input.Item, $"Inputs.{++i}")
-                    )
-                    {
-                        IsChecked = !ruleHelper.CheckInputDisabled(key)
-                    };
-                    children.Add(inputCheck.Content);
+                    IsChecked = !ruleHelper.CheckInputDisabled(key),
+                    IsImplicitOff = ruleHelper.CheckInputImplicitDisabled(input.Idents)
+                };
+                children.Add(inputCheck.Content);
+                if (Game1.IsMasterGame)
                     inputChecks.Add(inputCheck);
-                }
             }
-            else
-            {
-                foreach ((string key, ValidInput input) in ruleHelper.ValidInputs)
-                {
-                    Panel inputIcon = FormRuleItemPanel(input.Item, $"Inputs.{++i}");
-                    ((Image)inputIcon.Children.First()).Tint = !ruleHelper.CheckInputDisabled(key) ?
-                        Color.White : InputCheckable.COLOR_DISABLED;
-                    children.Add(inputIcon);
-                }
-            }
+
             return new Grid()
             {
                 Name = "InputsGrid",
-                // Layout = new() { Width = Length.Px(INPUT_GRID_COUNT * ROW_W), Height = Length.Content() },
                 ItemLayout = GridItemLayout.Length(ROW_W),
                 Children = children
             };
@@ -424,14 +435,17 @@ namespace MachineControlPanel.Framework.UI
             {
                 if (ruleCheckBoxes.ContainsKey(rule.Ident))
                 {
-                    // children.Add(new Image()
-                    // {
-                    //     Sprite = ruleHelper.CheckRuleDisabled(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
-                    //     Tint = Color.White * 0.5f,
-                    //     Layout = LayoutParameters.FitContent(),
-                    //     IsFocusable = false
-                    // });
+#if DEBUG
+                    children.Add(new Image()
+                    {
+                        Sprite = ruleHelper.CheckRuleDisabled(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
+                        Tint = Color.White * 0.5f,
+                        Layout = LayoutParameters.FitContent(),
+                        IsFocusable = false
+                    });
+#else
                     children.Add(ruleCheckBoxes[rule.Ident]);
+#endif
                 }
                 else
                 {
@@ -493,14 +507,14 @@ namespace MachineControlPanel.Framework.UI
         /// <param name="ruleItems"></param>
         /// <param name="prefix"></param>
         /// <returns></returns>
-        private static Lane FormRuleItemLane(List<RuleItem> ruleItems, string prefix)
+        private Lane FormRuleItemLane(List<RuleItem> ruleItems, string prefix)
         {
             List<IView> content = [];
             int i = 0;
             foreach (var ruleItem in ruleItems)
             {
                 Panel itemPanel = FormRuleItemPanel(ruleItem, $"{prefix}.{i++}");
-                if (ruleItem.Count >= 1)
+                if (ruleItem.Count > 1)
                 {
                     int num = ruleItem.Count;
                     int offset = 44;
@@ -538,7 +552,7 @@ namespace MachineControlPanel.Framework.UI
         /// <param name="ruleItem"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        private static Panel FormRuleItemPanel(RuleItem ruleItem, string name)
+        private Panel FormRuleItemPanel(RuleItem ruleItem, string name)
         {
             List<IView> iconImgs = [];
             foreach (var icon in ruleItem.Icons)
@@ -554,15 +568,18 @@ namespace MachineControlPanel.Framework.UI
                     Tint = icon.Tint ?? Color.White
                 });
             }
-            return new Panel()
+            HoveredItemPanel itemPanel = new()
             {
                 Name = name,
                 Layout = IconLayout,
                 Margin = new Edges(ROW_MARGIN),
                 Children = iconImgs,
                 Tooltip = string.Join('\n', ruleItem.Tooltip.Select((tip) => tip.Trim())),
-                IsFocusable = true
+                IsFocusable = true,
+                HoveredItem = ruleItem.Item
             };
+            setHoverEvents(itemPanel);
+            return itemPanel;
         }
 
         /// <summary>

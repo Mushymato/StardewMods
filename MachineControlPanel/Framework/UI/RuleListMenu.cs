@@ -1,4 +1,4 @@
-using StardewUI;
+using MachineControlPanel.Framework.UI.Integration;
 
 namespace MachineControlPanel.Framework.UI
 {
@@ -7,11 +7,17 @@ namespace MachineControlPanel.Framework.UI
         Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules,
         bool showExitX = false,
         Action? updateEdited = null
-    ) : ViewMenu<RuleListView>
+    ) : HoveredItemMenu<RuleListView>
     {
         protected override RuleListView CreateView()
         {
-            return new(ruleHelper, saveMachineRules, showExitX ? exitThisMenu : null, updateEdited: updateEdited);
+            return new(
+                ruleHelper,
+                saveMachineRules,
+                SetHoverEvents,
+                showExitX ? exitThisMenu : null,
+                updateEdited: updateEdited
+            );
         }
     }
 }
