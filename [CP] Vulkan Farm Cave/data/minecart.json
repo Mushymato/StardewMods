@@ -1,0 +1,40 @@
+{
+  "Changes": [
+    {
+      "Action": "EditMap",
+      "Target": "Maps/FarmCave",
+      "MapTiles": [
+        {
+          "Position": {
+            "X": 12,
+            "Y": 2
+          },
+          "Layer": "Buildings",
+          "SetProperties": {
+            "Action": "MinecartTransport Default {{ModID}}_FarmCaveMineCart"
+          }
+        },
+      ]
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Minecarts",
+      "TargetField": [
+        "Default",
+        "Destinations"
+      ],
+      "Entries": {
+        "{{ModID}}_FarmCaveMineCart": {
+          "Id": "{{ModID}}_FarmCaveMineCart",
+          "DisplayName": "[LocationName Farm] Cave",
+          "TargetLocation": "FarmCave",
+          "TargetTile": {
+            "X": 12,
+            "Y": 3
+          },
+          "TargetDirection": "down"
+        }
+      }
+    },
+  ]
+}

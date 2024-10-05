@@ -65,49 +65,18 @@
         }
       },
     },
+    // Make configs for these later, or maybe not :)
+    // Optional: Add farm cave to minecart network
+    {
+      "Action": "Include",
+      "FromFile": "data/minecart.json"
+    },
     // Optional: Show a table that opens the carpenter's if MMAP is installed
     {
       "Action": "Include",
       "FromFile": "data/construct.json",
       "When": {
         "HasMod": "mushymato.MMAP"
-      }
-    },
-    // Minecart
-    {
-      "Action": "EditMap",
-      "Target": "Maps/FarmCave",
-      "MapTiles": [
-        {
-          "Position": {
-            "X": 12,
-            "Y": 2
-          },
-          "Layer": "Buildings",
-          "SetProperties": {
-            "Action": "MinecartTransport Default {{ModID}}_FarmCaveMineCart"
-          }
-        },
-      ]
-    },
-    {
-      "Action": "EditData",
-      "Target": "Data/Minecarts",
-      "TargetField": [
-        "Default",
-        "Destinations"
-      ],
-      "Entries": {
-        "{{ModID}}_FarmCaveMineCart": {
-          "Id": "{{ModID}}_FarmCaveMineCart",
-          "DisplayName": "[LocationName Farm] Cave",
-          "TargetLocation": "FarmCave",
-          "TargetTile": {
-            "X": 12,
-            "Y": 3
-          },
-          "TargetDirection": "down"
-        }
       }
     },
   ]
