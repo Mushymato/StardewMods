@@ -1,0 +1,114 @@
+{
+  "Format": "2.3.0",
+  "Changes": [
+    // Location
+    {
+      "Action": "Load",
+      "Target": "Maps/FarmCave",
+      "FromFile": "assets/FarmCave.tmx"
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Machines",
+      "TargetField": [
+        "(BC)128",
+        "OutputRules",
+        "Default",
+        "OutputItem"
+      ],
+      "Entries": {
+        "{{ModId}}_MagmaCap_(O)851": {
+          "Id": "{{ModId}}_MagmaCap_(O)851",
+          "Condition": "RANDOM .025",
+          "ItemId": "(O)851"
+        }
+      },
+      "MoveEntries": [
+        {
+          "Id": "{{ModId}}_MagmaCap_(O)851",
+          "ToPosition": "Top"
+        }
+      ]
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Locations",
+      "TargetField": [
+        "FarmCave"
+      ],
+      "Entries": {
+        "DisplayName": "[LocationName Farm]{{i18n:FarmCave.DisplayName}}",
+        "MusicDefault": "Volcano_Ambient",
+        "FishAreas": {
+          "FarmCave": {
+            "CrabPotJunkChance": 1.0
+          }
+        },
+        "Fish": [
+          {
+            "Chance": 1.0,
+            "Id": "FarmCave_Junk",
+            "RandomItemId": [
+              "(O)80", // quartz
+              "(O)82", // fire quartz
+              "(O)330", // clay
+              "(O)378", // copper ore
+              "(O)380", // iron ore
+              "(O)382", // coal
+              "(O)384", // gold ore
+              "(O)390", // stone
+            ]
+          },
+        ],
+        "CustomFields": {
+          "mushymato.MMAP/hoeDirtOverride.texture": "TerrainFeatures/hoeDirtDark",
+        }
+      },
+    },
+    // Optional: Show a table that opens the carpenter's if MMAP is installed
+    {
+      "Action": "Include",
+      "FromFile": "data/construct.json",
+      "When": {
+        "HasMod": "mushymato.MMAP"
+      }
+    },
+    // Minecart
+    {
+      "Action": "EditMap",
+      "Target": "Maps/FarmCave",
+      "MapTiles": [
+        {
+          "Position": {
+            "X": 12,
+            "Y": 2
+          },
+          "Layer": "Buildings",
+          "SetProperties": {
+            "Action": "MinecartTransport Default {{ModID}}_FarmCaveMineCart"
+          }
+        },
+      ]
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Minecarts",
+      "TargetField": [
+        "Default",
+        "Destinations"
+      ],
+      "Entries": {
+        "{{ModID}}_FarmCaveMineCart": {
+          "Id": "{{ModID}}_FarmCaveMineCart",
+          "DisplayName": "[LocationName Farm] Cave",
+          "TargetLocation": "FarmCave",
+          "TargetTile": {
+            "X": 12,
+            "Y": 3
+          },
+          "TargetDirection": "down"
+        }
+      }
+    },
+  ]
+}

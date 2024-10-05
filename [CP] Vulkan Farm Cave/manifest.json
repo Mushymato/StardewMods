@@ -1,0 +1,12 @@
+{
+  "Name": "[CP] Vulkan Farm Cave",
+  "Author": "mushymato",
+  "Version": "1.0.0",
+  "Description": "Volcano dungeon themed farm cave.",
+  "UniqueID": "mushymato.VulkanFarmCave",
+  "MinimumApiVersion": "4.0.0",
+  "UpdateKeys": [],
+  "ContentPackFor": {
+    "UniqueID": "Pathoschild.ContentPatcher"
+  }
+}

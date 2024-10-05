@@ -15,8 +15,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScytheToolEnchantments", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiscTweaks", "MiscTweaks\MiscTweaks.csproj", "{E067A665-52E1-424E-BD51-826AB892ED26}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MachineControlPanel", "MachineControlPanel\MachineControlPanel.csproj", "{1FDE4431-768F-4E33-B112-6B7D85630FAF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiscMapActionsProperties", "MiscMapActionsProperties\MiscMapActionsProperties.csproj", "{6D382641-C254-4F18-A01D-B9617D0E76DD}"
 EndProject
 Global
@@ -49,10 +47,6 @@ Global
 		{E067A665-52E1-424E-BD51-826AB892ED26}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E067A665-52E1-424E-BD51-826AB892ED26}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E067A665-52E1-424E-BD51-826AB892ED26}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1FDE4431-768F-4E33-B112-6B7D85630FAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1FDE4431-768F-4E33-B112-6B7D85630FAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1FDE4431-768F-4E33-B112-6B7D85630FAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1FDE4431-768F-4E33-B112-6B7D85630FAF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6D382641-C254-4F18-A01D-B9617D0E76DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6D382641-C254-4F18-A01D-B9617D0E76DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D382641-C254-4F18-A01D-B9617D0E76DD}.Release|Any CPU.ActiveCfg = Release|Any CPU

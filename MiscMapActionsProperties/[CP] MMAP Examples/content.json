@@ -86,6 +86,17 @@
           "SetProperties": {
             "Action": "mushymato.MMAP_ShowConstruct Wizard"
           }
+        },
+        // This one will not do anything, unless bus stop is made buildable
+        {
+          "Position": {
+            "X": 27,
+            "Y": 21
+          },
+          "Layer": "Buildings",
+          "SetProperties": {
+            "Action": "mushymato.MMAP_ShowConstructForCurrentLocation Robin"
+          }
         }
       ]
     }

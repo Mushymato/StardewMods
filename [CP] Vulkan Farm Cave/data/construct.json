@@ -1,0 +1,34 @@
+{
+  "Changes": [
+    {
+      "Action": "EditMap",
+      "Target": "Maps/FarmCave",
+      "MapProperties": {
+        "BuildConditions": "PLAYER_LOCATION_NAME Current FarmCave"
+      },
+      "MapTiles": [
+        {
+          "Position": {
+            "X": 14,
+            "Y": 4
+          },
+          "Layer": "Buildings",
+          "SetTilesheet": "z_volcano_dungeon",
+          "SetIndex": 94
+        },
+        {
+          "Position": {
+            "X": 14,
+            "Y": 5
+          },
+          "Layer": "Buildings",
+          "SetProperties": {
+            "Action": "mushymato.MMAP_ShowConstructForCurrent Robin"
+          },
+          "SetTilesheet": "z_volcano_dungeon",
+          "SetIndex": 110
+        },
+      ]
+    },
+  ]
+}
