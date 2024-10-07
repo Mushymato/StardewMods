@@ -13,8 +13,11 @@
             "Y": 4
           },
           "Layer": "Buildings",
+          "SetProperties": {
+            "Action": "mushymato.MMAP_ShowConstructForCurrent Robin"
+          },
           "SetTilesheet": "z_volcano_dungeon",
-          "SetIndex": 94
+          "SetIndex": 111
         },
         {
           "Position": {
@@ -25,8 +28,6 @@
           "SetProperties": {
             "Action": "mushymato.MMAP_ShowConstructForCurrent Robin"
           },
-          "SetTilesheet": "z_volcano_dungeon",
-          "SetIndex": 110
         },
       ]
     },

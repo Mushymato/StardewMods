@@ -11,14 +11,18 @@ namespace SpecialOrderNotifications.Framework
     {
         private static Texture2D? JunimoKart;
         private static Texture2D? MineTiles;
-        private static readonly Lazy<FieldInfo> questPingTextureField =
-            new(() => Game1.dayTimeMoneyBox.GetType().GetField("questPingTexture", BindingFlags.NonPublic | BindingFlags.Instance)!);
-        private static readonly Lazy<FieldInfo> questPingSourceRectField =
-            new(() => Game1.dayTimeMoneyBox.GetType().GetField("questPingSourceRect", BindingFlags.NonPublic | BindingFlags.Instance)!);
-        private static readonly Lazy<FieldInfo> questPingStringField =
-            new(() => Game1.dayTimeMoneyBox.GetType().GetField("questPingString", BindingFlags.NonPublic | BindingFlags.Instance)!);
-        private static readonly Lazy<FieldInfo> questNotificationTimerField =
-            new(() => Game1.dayTimeMoneyBox.GetType().GetField("questNotificationTimer", BindingFlags.NonPublic | BindingFlags.Instance)!);
+        // private static readonly Lazy<FieldInfo> questPingTextureField =
+        //     new(() => Game1.dayTimeMoneyBox.GetType().GetField("questPingTexture", BindingFlags.NonPublic | BindingFlags.Instance)!);
+        // private static readonly Lazy<FieldInfo> questPingSourceRectField =
+        //     new(() => Game1.dayTimeMoneyBox.GetType().GetField("questPingSourceRect", BindingFlags.NonPublic | BindingFlags.Instance)!);
+        // private static readonly Lazy<FieldInfo> questPingStringField =
+        //     new(() => Game1.dayTimeMoneyBox.GetType().GetField("questPingString", BindingFlags.NonPublic | BindingFlags.Instance)!);
+        // private static readonly Lazy<FieldInfo> questNotificationTimerField =
+        //     new(() => Game1.dayTimeMoneyBox.GetType().GetField("questNotificationTimer", BindingFlags.NonPublic | BindingFlags.Instance)!);
+        private static readonly FieldInfo questPingTextureField = Game1.dayTimeMoneyBox.GetType().GetField("questPingTexture", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        private static readonly FieldInfo questPingSourceRectField = Game1.dayTimeMoneyBox.GetType().GetField("questPingSourceRect", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        private static readonly FieldInfo questPingStringField = Game1.dayTimeMoneyBox.GetType().GetField("questPingString", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        private static readonly FieldInfo questNotificationTimerField = Game1.dayTimeMoneyBox.GetType().GetField("questNotificationTimer", BindingFlags.NonPublic | BindingFlags.Instance)!;
 
         /// <summary>
         /// Set questPing(Texture|SourceRect|String) and questNotificationTimer fields on Game1.dayTimeMoneyBox via reflection
@@ -29,10 +33,16 @@ namespace SpecialOrderNotifications.Framework
         /// <param name="questNotificationTimer"></param>
         public static void SetQuestPing(Texture2D questPingTexture, Rectangle questPingSourceRect, string? questPingString, int questNotificationTimer = 3000)
         {
-            questPingTextureField.Value.SetValue(Game1.dayTimeMoneyBox, questPingTexture);
-            questPingSourceRectField.Value.SetValue(Game1.dayTimeMoneyBox, questPingSourceRect);
-            questPingStringField.Value.SetValue(Game1.dayTimeMoneyBox, questPingString);
-            questNotificationTimerField.Value.SetValue(Game1.dayTimeMoneyBox, questNotificationTimer);
+            // questPingTextureField.Value.SetValue(Game1.dayTimeMoneyBox, questPingTexture);
+            // questPingSourceRectField.Value.SetValue(Game1.dayTimeMoneyBox, questPingSourceRect);
+            // questPingStringField.Value.SetValue(Game1.dayTimeMoneyBox, questPingString);
+            // questNotificationTimerField.Value.SetValue(Game1.dayTimeMoneyBox, questNotificationTimer);
+
+            questPingTextureField.SetValue(Game1.dayTimeMoneyBox, questPingTexture);
+            questPingSourceRectField.SetValue(Game1.dayTimeMoneyBox, questPingSourceRect);
+            questPingStringField.SetValue(Game1.dayTimeMoneyBox, questPingString);
+            questNotificationTimerField.SetValue(Game1.dayTimeMoneyBox, questNotificationTimer);
+
         }
 
         /// <summary>

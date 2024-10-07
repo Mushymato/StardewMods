@@ -7,12 +7,23 @@
         {
           "Position": {
             "X": 12,
+            "Y": 1
+          },
+          "Layer": "Buildings",
+          "SetTilesheet": "cave",
+          "SetIndex": 179
+        },
+        {
+          "Position": {
+            "X": 12,
             "Y": 2
           },
           "Layer": "Buildings",
           "SetProperties": {
             "Action": "MinecartTransport Default {{ModID}}_FarmCaveMineCart"
-          }
+          },
+          "SetTilesheet": "cave",
+          "SetIndex": 195
         },
       ]
     },
@@ -26,7 +37,7 @@
       "Entries": {
         "{{ModID}}_FarmCaveMineCart": {
           "Id": "{{ModID}}_FarmCaveMineCart",
-          "DisplayName": "[LocationName Farm] Cave",
+          "DisplayName": "[LocationName FarmCave]",
           "TargetLocation": "FarmCave",
           "TargetTile": {
             "X": 12,

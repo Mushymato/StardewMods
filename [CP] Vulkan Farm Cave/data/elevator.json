@@ -1,0 +1,31 @@
+{
+  "Changes": [
+    {
+      "Action": "EditMap",
+      "Target": "Maps/FarmCave",
+      "MapTiles": [
+        {
+          "Position": {
+            "X": 12,
+            "Y": 1
+          },
+          "Layer": "Buildings",
+          "SetTilesheet": "cave",
+          "SetIndex": 270
+        },
+        {
+          "Position": {
+            "X": 12,
+            "Y": 2
+          },
+          "Layer": "Buildings",
+          "SetProperties": {
+            "Action": "MineElevator"
+          },
+          "SetTilesheet": "cave",
+          "SetIndex": 286
+        },
+      ]
+    },
+  ]
+}

@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
+using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Extensions;
 
@@ -14,7 +15,12 @@ namespace MiscMapActionsProperties.Framework.Tile
     internal static class AnimalSpot
     {
         internal readonly static string TileProp_AnimalSpot = $"{ModEntry.ModId}_AnimalSpot";
-        internal static ConditionalWeakTable<GameLocation, List<Vector2>> animalSpotsCache = [];
+        private static readonly ConditionalWeakTable<GameLocation, List<Vector2>> animalSpotsCache = [];
+
+        internal static void Register(IModHelper helper)
+        {
+            helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
+        }
 
         internal static void Patch(Harmony harmony)
         {
@@ -29,6 +35,11 @@ namespace MiscMapActionsProperties.Framework.Tile
             {
                 ModEntry.Log($"Failed to patch AnimalSpot:\n{err}", LogLevel.Error);
             }
+        }
+
+        private static void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
+        {
+            animalSpotsCache.Clear();
         }
 
         private static List<Vector2> GetAnimalSpots(GameLocation location)

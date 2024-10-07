@@ -1,11 +1,26 @@
 {
   "Format": "2.3.0",
+  "ConfigSchema": {
+    "EnableMinecart": {
+      "AllowValues": "true, false",
+      "Default": true,
+    },
+    "EnableConstructionMenu": {
+      "AllowValues": "true, false",
+      "Default": true,
+    }
+  },
   "Changes": [
     // Location
     {
       "Action": "Load",
       "Target": "Maps/FarmCave",
       "FromFile": "assets/FarmCave.tmx"
+    },
+    {
+      "Action": "Load",
+      "Target": "Mods/{{ModId}}/hoeDirtVolcano",
+      "FromFile": "assets/{{TargetWithoutPath}}.png"
     },
     {
       "Action": "EditData",
@@ -61,7 +76,7 @@
           },
         ],
         "CustomFields": {
-          "mushymato.MMAP/hoeDirtOverride.texture": "TerrainFeatures/hoeDirtDark",
+          "mushymato.MMAP/HoeDirt.texture": "Mods/{{ModId}}/hoeDirtVolcano",
         }
       },
     },
@@ -69,14 +84,18 @@
     // Optional: Add farm cave to minecart network
     {
       "Action": "Include",
-      "FromFile": "data/minecart.json"
+      "FromFile": "data/minecart.json",
+      "When": {
+        "EnableMinecart": true
+      }
     },
     // Optional: Show a table that opens the carpenter's if MMAP is installed
     {
       "Action": "Include",
       "FromFile": "data/construct.json",
       "When": {
-        "HasMod": "mushymato.MMAP"
+        "HasMod": "mushymato.MMAP",
+        "EnableConstructionMenu": true
       }
     },
   ]

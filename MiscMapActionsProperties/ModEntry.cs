@@ -1,7 +1,6 @@
 ﻿global using MapTile = xTile.Tiles.Tile;
 using HarmonyLib;
 using StardewModdingAPI;
-using StardewModdingAPI.Events;
 
 
 namespace MiscMapActionsProperties
@@ -20,15 +19,11 @@ namespace MiscMapActionsProperties
 
             Framework.Map.BuildingEntry.Patch(harmony);
 
+            Framework.Terrain.HoeDirtOverride.Register(helper);
+
             Framework.Tile.ShowConstruct.Register();
             Framework.Tile.AnimalSpot.Patch(harmony);
-
-            helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
-        }
-
-        private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
-        {
-            Framework.Tile.AnimalSpot.animalSpotsCache.Clear();
+            Framework.Tile.AnimalSpot.Register(helper);
         }
 
         internal static void Log(string msg, LogLevel level = LogLevel.Debug)
