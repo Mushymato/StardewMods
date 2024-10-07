@@ -179,7 +179,7 @@ namespace SpecialOrderNotifications.Framework
         /// <param name="max"></param>
         public static void PingJunimoKart(int current, int max)
         {
-            JunimoKart ??= Game1.content.Load<Texture2D>("Minigames\\MineCart");
+            JunimoKart ??= Game1.content.Load<Texture2D>("Minigames\\Minecart");
             SetQuestPing(JunimoKart, new Rectangle(400, 512, 16, 16), current, max);
         }
 

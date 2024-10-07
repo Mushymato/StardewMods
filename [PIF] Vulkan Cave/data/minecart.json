@@ -2,7 +2,7 @@
   "Changes": [
     {
       "Action": "EditMap",
-      "Target": "Maps/FarmCave",
+      "Target": "Mods/{{ModID}}/FarmCave",
       "MapTiles": [
         {
           "Position": {
@@ -20,12 +20,26 @@
           },
           "Layer": "Buildings",
           "SetProperties": {
-            "Action": "MineElevator"
+            "Action": "MinecartTransport Default DLX.PIF_MinecartTransport"
           },
           "SetTilesheet": "cave",
-          "SetIndex": 286
+          "SetIndex": 195
         },
       ]
+    },
+    {
+      "Action": "EditData",
+      "Target": "DLX.PIF/Farms",
+      "TargetField": "{{ModId}}",
+      "Entries": {
+        "{{ModID}}_PIFMinecart": {
+          "TargetTile": {
+            "X": 12,
+            "Y": 3
+          },
+          "TargetDirection": "down"
+        },
+      },
     },
   ]
 }

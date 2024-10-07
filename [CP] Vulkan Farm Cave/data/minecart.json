@@ -20,7 +20,7 @@
           },
           "Layer": "Buildings",
           "SetProperties": {
-            "Action": "MinecartTransport Default {{ModID}}_FarmCaveMineCart"
+            "Action": "MinecartTransport Default {{ModID}}_FarmCaveMinecart"
           },
           "SetTilesheet": "cave",
           "SetIndex": 195
@@ -35,8 +35,8 @@
         "Destinations"
       ],
       "Entries": {
-        "{{ModID}}_FarmCaveMineCart": {
-          "Id": "{{ModID}}_FarmCaveMineCart",
+        "{{ModID}}_FarmCaveMinecart": {
+          "Id": "{{ModID}}_FarmCaveMinecart",
           "DisplayName": "[LocationName FarmCave]",
           "TargetLocation": "FarmCave",
           "TargetTile": {

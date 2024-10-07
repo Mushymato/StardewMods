@@ -1,0 +1,86 @@
+{
+  "Format": "2.3.0",
+  "ConfigSchema": {
+    "EnableMinecart": {
+      "AllowValues": "true, false",
+      "Default": true,
+    },
+  },
+  "Changes": [
+    // PIF
+    {
+      "Action": "Load",
+      "Target": "Mods/{{ModID}}/FarmCave",
+      "FromFile": "assets/{{TargetWithoutPath}}.tmx"
+    },
+    {
+      "Action": "EditMap",
+      "Target": "Mods/{{ModID}}/FarmCave",
+      "MapTiles": [
+        {
+          "Position": {
+            "X": 8,
+            "Y": 12
+          },
+          "Layer": "Back",
+          "SetProperties": {
+            "TouchAction": "DLX.PIF_WarpToFarmHouse"
+          },
+        },
+      ]
+    },
+    {
+      "Action": "Load",
+      "Target": "Mods/{{ModId}}/FarmCaveHoeDirt",
+      "FromFile": "assets/{{TargetWithoutPath}}.png",
+      "Priority": "Low"
+    },
+    {
+      "Action": "Load",
+      "Target": "Mods/{{ModID}}/FarmCavePreview",
+      "FromFile": "assets/{{TargetWithoutPath}}.png"
+    },
+    {
+      "Action": "EditData",
+      "Target": "DLX.PIF/Farms",
+      "Entries": {
+        "{{ModId}}": {
+          // PIF Data
+          "Preview": "Mods/{{ModID}}/FarmCavePreview",
+          "DisplayName": "{{i18n:PIFCave.DisplayName}}",
+          "ArrivalTile_T0": {
+            "X": 8,
+            "Y": 11
+          },
+          "MapAsset_T0": "Mods/{{ModID}}/FarmCave",
+          // Vanilla Location Data
+          "DefaultArrivalTile": {
+            "X": 8,
+            "Y": 11
+          },
+          "Music": [
+            {
+              "Id": "VolcanoMines",
+              "Track": "VolcanoMines",
+              "Condition": "RANDOM .20"
+            }
+          ],
+          "MusicDefault": "Volcano_Ambient",
+          "MinDailyWeeds": 0,
+          "MaxDailyWeeds": 0,
+          "CustomFields": {
+            "mushymato.MMAP/HoeDirt.texture": "Mods/{{ModId}}/FarmCaveHoeDirt"
+          },
+        }
+      }
+    },
+    // Optional: Add farm cave to minecart network
+    {
+      "Action": "Include",
+      "FromFile": "data/minecart.json",
+      "When": {
+        "EnableMinecart": true
+      }
+    },
+  ]
+}

@@ -15,6 +15,12 @@
   "MinimumApiVersion": "4.1.0-beta.4+66d9e82fffb61c6cf3347c9f7278bc56b0687aae",
   "MinimumGameVersion": "1.6",
   "EntryDll": "SprinklerAttachments.dll",
+  "Dependencies": [
+    {
+      "UniqueID": "Pathoschild.ContentPatcher",
+      "MinimumVersion": "2.4.0-alpha.20240818"
+    }
+  ],
   "UpdateKeys": [
     "Nexus:25326"
   ]

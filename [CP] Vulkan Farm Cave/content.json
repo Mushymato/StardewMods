@@ -15,7 +15,14 @@
     {
       "Action": "Load",
       "Target": "Maps/FarmCave",
-      "FromFile": "assets/FarmCave.tmx"
+      "FromFile": "assets/{{TargetWithoutPath}}.tmx"
+    },
+    {
+      "Action": "EditMap",
+      "Target": "Maps/FarmCave",
+      "AddWarps": [
+        "8 12 Farm 34 6"
+      ]
     },
     {
       "Action": "Load",
@@ -61,33 +68,13 @@
           }
         ],
         "MusicDefault": "Volcano_Ambient",
-        "FishAreas": {
-          "FarmCave": {
-            "CrabPotJunkChance": 1.0
-          }
-        },
-        "Fish": [
-          {
-            "Chance": 1.0,
-            "Id": "FarmCave_Junk",
-            "RandomItemId": [
-              "(O)80", // quartz
-              "(O)82", // fire quartz
-              "(O)330", // clay
-              "(O)378", // copper ore
-              "(O)380", // iron ore
-              "(O)382", // coal
-              "(O)384", // gold ore
-              "(O)390", // stone
-            ]
-          },
-        ],
+        "MinDailyWeeds": 0,
+        "MaxDailyWeeds": 0,
         "CustomFields": {
           "mushymato.MMAP/HoeDirt.texture": "Mods/{{ModId}}/FarmCaveHoeDirt",
         }
       },
     },
-    // Make configs for these later, or maybe not :)
     // Optional: Add farm cave to minecart network
     {
       "Action": "Include",
@@ -96,7 +83,7 @@
         "EnableMinecart": true
       }
     },
-    // Optional: Show a table that opens the carpenter's if MMAP is installed
+    // Optional: Make location buildable (but only with Carpenter's buildings) via MMAP tile action
     {
       "Action": "Include",
       "FromFile": "data/construct.json",

@@ -18,6 +18,9 @@
     <MinimumGameVersion_Behavior>Update</MinimumGameVersion_Behavior>
     <Dependencies_VersionBehavior>Update</Dependencies_VersionBehavior>
   </PropertyGroup>
+  <ItemGroup>
+    <SMAPIDependency Include="Pathoschild.ContentPatcher" />
+  </ItemGroup>
 
   <ItemGroup>
     <ContentPacks Include="[CP] Sprinkler Attachments" Version="1.1.1" />
