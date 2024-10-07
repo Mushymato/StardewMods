@@ -2,7 +2,7 @@
   "Name": "[CP] Vulkan Farm Cave",
   "Author": "mushymato",
   "Version": "1.0.0",
-  "Description": "Volcano dungeon themed farm cave.",
+  "Description": "Volcano dungeon themed farm cave, acts as greenhouse and can hold buildings.",
   "UniqueID": "mushymato.VulkanFarmCave",
   "MinimumApiVersion": "4.0.0",
   "UpdateKeys": [],

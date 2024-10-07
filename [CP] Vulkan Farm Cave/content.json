@@ -19,7 +19,7 @@
     },
     {
       "Action": "Load",
-      "Target": "Mods/{{ModId}}/hoeDirtDark",
+      "Target": "Mods/{{ModId}}/FarmCaveHoeDirt",
       "FromFile": "assets/{{TargetWithoutPath}}.png"
     },
     {
@@ -53,6 +53,13 @@
       ],
       "Entries": {
         "DisplayName": "[LocationName Farm]{{i18n:FarmCave.DisplayName}}",
+        "Music": [
+          {
+            "Id": "VolcanoMines",
+            "Track": "VolcanoMines",
+            "Condition": "RANDOM .20"
+          }
+        ],
         "MusicDefault": "Volcano_Ambient",
         "FishAreas": {
           "FarmCave": {

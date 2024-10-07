@@ -3,7 +3,6 @@
  <properties>
   <property name="AmbientLight" value="90 90 35"/>
   <property name="BrookSounds" value="24 1 0"/>
-  <property name="CanBuildHere" value="T"/>
   <property name="EnableGrassSpread" value="T"/>
   <property name="IsGreenhouse" value="T"/>
   <property name="SeasonOverride" value="Fall"/>
