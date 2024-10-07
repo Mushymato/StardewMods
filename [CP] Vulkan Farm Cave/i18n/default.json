@@ -1,3 +1,7 @@
 {
-    "FarmCave.DisplayName": " Cave",
+  "FarmCave.DisplayName": " Cave",
+  "config.EnableMinecart.name": "Enable Minecart",
+  "config.EnableMinecart.description": "Adds a functional minecart to the cave.",
+  "config.EnableConstructionMenu.name": "Enable Construction Menu",
+  "config.EnableConstructionMenu.description": "Adds an interactable chest that opens the carpenter menu for building in the farm cave, while hiding the farm cave from the regular carpenter shop menu. Requires Misc Map Action Properties. Having this option means you cannot construct wizard buildings in the cave, which is intended."
 }

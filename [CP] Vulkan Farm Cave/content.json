@@ -19,7 +19,7 @@
     },
     {
       "Action": "Load",
-      "Target": "Mods/{{ModId}}/hoeDirtVolcano",
+      "Target": "Mods/{{ModId}}/hoeDirtDark",
       "FromFile": "assets/{{TargetWithoutPath}}.png"
     },
     {
@@ -76,7 +76,7 @@
           },
         ],
         "CustomFields": {
-          "mushymato.MMAP/HoeDirt.texture": "Mods/{{ModId}}/hoeDirtVolcano",
+          "mushymato.MMAP/HoeDirt.texture": "Mods/{{ModId}}/FarmCaveHoeDirt",
         }
       },
     },

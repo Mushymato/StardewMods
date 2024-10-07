@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" compressionlevel="0" width="32" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="14" nextobjectid="49">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" compressionlevel="0" width="32" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="14" nextobjectid="50">
  <properties>
   <property name="AmbientLight" value="90 90 35"/>
   <property name="BrookSounds" value="24 1 0"/>
   <property name="CanBuildHere" value="T"/>
   <property name="EnableGrassSpread" value="T"/>
+  <property name="IsGreenhouse" value="T"/>
   <property name="SeasonOverride" value="Fall"/>
   <property name="TreatAsOutdoors" value="T"/>
   <property name="Warp" value="8 12 Farm 34 6"/>
@@ -283,8 +284,8 @@
  <layer id="2" name="Buildings" width="32" height="20">
   <data encoding="csv">
 78,78,78,536,535,535,536,535,535,533,78,78,78,78,795,790,793,790,791,793,790,790,793,788,533,789,793,792,790,793,790,794,
-78,78,539,552,551,551,552,551,551,549,531,650,271,652,785,806,809,806,807,809,806,806,809,804,466,805,809,808,806,809,806,785,
-78,476,554,2147484216,567,0,0,0,567,565,547,666,287,668,785,0,0,0,0,0,0,0,825,820,482,821,825,824,822,825,822,785,
+78,78,539,552,551,551,552,551,551,549,531,650,653,652,785,806,809,806,807,809,806,806,809,804,466,805,809,808,806,809,806,785,
+78,476,554,2147484216,567,0,0,0,567,565,547,666,669,668,785,0,0,0,0,0,0,0,825,820,482,821,825,824,822,825,822,785,
 78,492,570,2147484232,583,0,0,0,583,581,563,682,0,684,801,0,0,0,0,0,0,0,509,2147484158,498,0,0,0,0,510,512,785,
 78,508,586,0,0,0,0,0,0,0,579,698,0,700,817,0,0,0,0,0,0,0,525,0,0,0,0,0,0,0,528,785,
 78,524,0,0,0,0,0,0,0,0,0,0,0,0,833,0,0,0,0,0,0,0,557,557,557,557,557,557,559,559,560,785,
@@ -330,7 +331,7 @@
  </layer>
  <layer id="4" name="Front" width="32" height="20">
   <data encoding="csv">
-461,461,477,0,0,0,0,0,0,0,478,461,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+461,461,477,0,0,0,0,0,0,0,478,461,78,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 461,477,0,0,0,0,0,0,0,0,0,0,651,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 461,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 461,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -365,13 +366,7 @@
    </properties>
   </object>
  </objectgroup>
- <objectgroup id="6" name="Buildings">
-  <object id="48" name="TileData" x="192" y="32" width="16" height="16">
-   <properties>
-    <property name="Action" value="MineElevator"/>
-   </properties>
-  </object>
- </objectgroup>
+ <objectgroup id="6" name="Buildings"/>
  <objectgroup id="7" name="Paths"/>
  <objectgroup id="8" name="Front"/>
 </map>
