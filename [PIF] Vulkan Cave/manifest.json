@@ -5,7 +5,9 @@
   "Description": "Volcano dungeon themed PIF room.",
   "UniqueID": "mushymato.VulkanCave.PIF",
   "MinimumApiVersion": "4.0.0",
-  "UpdateKeys": [],
+  "UpdateKeys": [
+    "Nexus:28445"
+  ],
   "ContentPackFor": {
     "UniqueID": "Pathoschild.ContentPatcher"
   },

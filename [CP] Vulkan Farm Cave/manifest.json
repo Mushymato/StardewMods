@@ -5,7 +5,9 @@
   "Description": "Volcano dungeon themed farm cave, acts as greenhouse and can hold buildings.",
   "UniqueID": "mushymato.VulkanFarmCave",
   "MinimumApiVersion": "4.0.0",
-  "UpdateKeys": [],
+  "UpdateKeys": [
+    "Nexus:28445"
+  ],
   "ContentPackFor": {
     "UniqueID": "Pathoschild.ContentPatcher"
   }
