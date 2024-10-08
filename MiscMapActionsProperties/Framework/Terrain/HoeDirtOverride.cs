@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.GameData.Locations;
 using StardewValley.TerrainFeatures;
 
 
@@ -22,30 +23,28 @@ namespace MiscMapActionsProperties.Framework.Terrain
 
         internal static void Register(IModHelper helper)
         {
-            helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
-            helper.Events.GameLoop.DayStarted += OnDayStarted;
+            helper.Events.Player.Warped += OnWarped;
             helper.Events.Content.AssetsInvalidated += OnAssetsInvalidated;
+        }
+
+        private static void OnWarped(object? sender, WarpedEventArgs e)
+        {
+            if (HasHoeDirtOverride(e.NewLocation))
+            {
+                ModifyHoeDirtTextureForLocation(e.NewLocation);
+                e.NewLocation.terrainFeatures.OnValueAdded += ModifyHoeDirtTexture;
+            }
+            e.OldLocation.terrainFeatures.OnValueAdded -= ModifyHoeDirtTexture;
         }
 
         private static bool HasHoeDirtOverride(GameLocation location)
         {
             return (
-                location.GetData().CustomFields is Dictionary<string, string> customFields
+                location != null
+                && location.GetData() is LocationData locData
+                && locData.CustomFields is Dictionary<string, string> customFields
                 && customFields.ContainsKey(CustomFields_HoeDirtTexture)
             );
-        }
-
-        private static void OnDayStarted(object? sender, DayStartedEventArgs e)
-        {
-            if (Game1.dayOfMonth == 1)
-            {
-                Utility.ForEachLocation((GameLocation location) =>
-                {
-                    if (HasHoeDirtOverride(location))
-                        ModifyHoeDirtTextureForLocation(location);
-                    return true;
-                });
-            }
         }
 
         private static void OnAssetsInvalidated(object? sender, AssetsInvalidatedEventArgs e)
@@ -54,19 +53,6 @@ namespace MiscMapActionsProperties.Framework.Terrain
             {
                 hoeDirtTextureCache.Clear();
             }
-        }
-
-        private static void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
-        {
-            Utility.ForEachLocation((GameLocation location) =>
-            {
-                if (HasHoeDirtOverride(location))
-                {
-                    location.terrainFeatures.OnValueAdded += ModifyHoeDirtTexture;
-                    ModifyHoeDirtTextureForLocation(location);
-                }
-                return true;
-            });
         }
 
         private static bool ModifyHoeDirtTextureForLocation(GameLocation location)
