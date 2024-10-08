@@ -3,7 +3,7 @@
   "ConfigSchema": {
     "EnableMinecart": {
       "AllowValues": "true, false",
-      "Default": true,
+      "Default": false,
     },
   },
   "Changes": [
@@ -12,6 +12,22 @@
       "Action": "Load",
       "Target": "Mods/{{ModID}}/FarmCave",
       "FromFile": "assets/{{TargetWithoutPath}}.tmx"
+    },
+    {
+      "Action": "EditMap",
+      "Target": "Mods/{{ModID}}/FarmCave",
+      "MapTiles": [
+        {
+          "Position": {
+            "X": 8,
+            "Y": 12
+          },
+          "Layer": "Back",
+          "SetProperties": {
+            "TouchAction": "DLX.PIF_WarpToFarmHouse"
+          },
+        },
+      ]
     },
     {
       "Action": "EditMap",
@@ -73,6 +89,11 @@
           },
         }
       }
+    },
+    // Workaround: Making cave able to take wall furniture is hard, add a ladder to address this
+    {
+      "Action": "Include",
+      "FromFile": "data/ladder.json",
     },
     // Optional: Add farm cave to minecart network
     {

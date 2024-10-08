@@ -1,7 +1,5 @@
 {
-    "FarmCave.DisplayName": "洞",
-    "config.EnableMinecart.name": "矿车",
-    "config.EnableMinecart.description": "添加农场洞穴矿车",
-    "config.EnableConstructionMenu.name": "建造菜单",
-    "config.EnableConstructionMenu.description": "添加一个可互动的宝箱，用于打开建筑菜单。需前置模组MMAP (Nexus 28423)"
+  "config.EnableMinecart.name": "矿车",
+  "config.EnableMinecart.description": "添加PIF房间矿车",
+  "PIFCave.DisplayName": "武尔坎洞穴",
 }
