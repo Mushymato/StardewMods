@@ -1,11 +1,21 @@
 {
-    "Name": "Misc Map Actions + Properties",
-    "Author": "mushymato",
-    "Version": "1.0.0",
-    "MinimumApiVersion": "4.0.8",
-    "MinimumGameVersion": "1.6.8",
-    "Description": "Random map stuff for people who make maps.",
-    "UniqueID": "mushymato.MMAP",
-    "UpdateKeys": [],
-    "EntryDll": "MiscMapActionsProperties.dll"
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
+  "UniqueID": "mushymato.MMAP",
+  "Name": "Misc Map Actions & Properties",
+  "Author": "mushymato",
+  "Version": "1.0.0",
+  "Description": "Various map stuff for modders.",
+  "MinimumApiVersion": "4.0",
+  "MinimumGameVersion": "1.6",
+  "EntryDll": "MiscMapActionsProperties.dll",
+  "UpdateKeys": [
+    "Nexus:28423"
+  ]
 }

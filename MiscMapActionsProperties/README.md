@@ -31,6 +31,8 @@ See `[CP] MMAP Examples` for samples.
 - Opens the construction menu for the current area.
 - Does nothing if the current area is not buildable.
 
+## Data/Locations CustomFields
+
 #### mushymato.MMAP/HoeDirt.texture: <texture>
 
 - Location CustomFields, for use in places with tillable soil.
