@@ -19,6 +19,7 @@ See `[CP] MMAP Examples` for samples.
 - Changes what tiles the animals will start in.
 - If building has less AnimalSpot tiles than animals, the remaining animals get random spots.
 - 1 AnimalSpot tile will get 1 animal, 2 AnimalSpot next to each other means 2 animals get to start around that area.
+- The spawn point of the animal is based on their top left tile, for 2x2 tile animals it's best to put this tile prop top left of where you want them to go.
 
 ### Action
 
