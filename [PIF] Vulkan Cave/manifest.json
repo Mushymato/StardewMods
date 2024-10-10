@@ -1,7 +1,7 @@
 {
   "Name": "[PIF] Vulkan Cave",
   "Author": "mushymato",
-  "Version": "1.0.0",
+  "Version": "1.0.1",
   "Description": "Volcano dungeon themed PIF room.",
   "UniqueID": "mushymato.VulkanCave.PIF",
   "MinimumApiVersion": "4.0.0",
@@ -15,6 +15,11 @@
     {
       "UniqueID": "DLX.PIF",
       "MinimumVersion": "1.1.9"
+    },
+    {
+      "UniqueID": "mushymato.MMAP",
+      "MinimumVersion": "1.0.0",
+      "IsRequired": false
     }
   ],
 }

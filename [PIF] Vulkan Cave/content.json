@@ -5,6 +5,10 @@
       "AllowValues": "true, false",
       "Default": false,
     },
+    "EnableConstructionMenu": {
+      "AllowValues": "true, false",
+      "Default": true,
+    },
   },
   "Changes": [
     // PIF
@@ -70,6 +74,9 @@
           },
           "MapAsset_T0": "Mods/{{ModID}}/FarmCave",
           // Vanilla Location Data
+          "CreateOnLoad": {
+            "AlwaysActive": true
+          },
           "DefaultArrivalTile": {
             "X": 8,
             "Y": 11
@@ -85,12 +92,13 @@
           "MinDailyWeeds": 0,
           "MaxDailyWeeds": 0,
           "CustomFields": {
+            "{{ModID}}": "T",
             "mushymato.MMAP/HoeDirt.texture": "Mods/{{ModId}}/FarmCaveHoeDirt"
           },
         }
       }
     },
-    // Workaround: Making cave able to take wall furniture is hard, add a ladder to address this
+    // Add a ladder so people aren't ever 1 PIF door short.
     {
       "Action": "Include",
       "FromFile": "data/ladder.json",
@@ -101,6 +109,15 @@
       "FromFile": "data/minecart.json",
       "When": {
         "EnableMinecart": true
+      }
+    },
+    // Optional: Make location buildable (but only with Carpenter's buildings) via MMAP tile action
+    {
+      "Action": "Include",
+      "FromFile": "data/construct.json",
+      "When": {
+        "HasMod": "mushymato.MMAP",
+        "EnableConstructionMenu": true
       }
     },
   ]
