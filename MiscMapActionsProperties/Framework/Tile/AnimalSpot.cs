@@ -56,7 +56,7 @@ namespace MiscMapActionsProperties.Framework.Tile
                     MapTile tile = backLayer.Tiles[x, y];
                     if (tile == null)
                         continue;
-                    if (backLayer.Tiles[x, y].Properties.ContainsKey(TileProp_AnimalSpot))
+                    if (tile.Properties.ContainsKey(TileProp_AnimalSpot))
                     {
                         animalSpots.Add(pos);
                     }
