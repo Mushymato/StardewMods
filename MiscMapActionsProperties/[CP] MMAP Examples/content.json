@@ -99,6 +99,22 @@
           }
         }
       ]
+    },
+    {
+      "Action": "EditMap",
+      "Target": "Maps/BusStop",
+      "MapTiles": [
+        {
+          "Position": {
+            "X": 14,
+            "Y": 23
+          },
+          "Layer": "Back",
+          "SetProperties": {
+            "TouchAction": "mushymato.MMAP_HoleWarp WitchHut 7 15"
+          }
+        }
+      ]
     }
   ]
 }

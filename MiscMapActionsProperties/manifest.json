@@ -10,9 +10,9 @@
   "UniqueID": "mushymato.MMAP",
   "Name": "Misc Map Actions & Properties",
   "Author": "mushymato",
-  "Version": "1.0.0",
+  "Version": "1.0.1-Debug",
   "Description": "Various map stuff for modders.",
-  "MinimumApiVersion": "4.0",
+  "MinimumApiVersion": "4.1.0-beta.4+66d9e82fffb61c6cf3347c9f7278bc56b0687aae",
   "MinimumGameVersion": "1.6",
   "EntryDll": "MiscMapActionsProperties.dll",
   "UpdateKeys": [
