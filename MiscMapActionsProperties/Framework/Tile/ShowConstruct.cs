@@ -26,7 +26,7 @@ namespace MiscMapActionsProperties.Framework.Tile
                 {
                     if (args.Length < 2)
                     {
-                        ModEntry.LogOnce($"Not enough arguments, Usage: {TileAction_ShowConstruct} <builder> <restrict>", LogLevel.Warn);
+                        ModEntry.LogOnce($"Not enough arguments, Usage: {TileAction_ShowConstruct} <builder> [restrict]", LogLevel.Warn);
                         return false;
                     }
                     try
@@ -49,7 +49,7 @@ namespace MiscMapActionsProperties.Framework.Tile
                 {
                     if (args.Length < 2)
                     {
-                        ModEntry.LogOnce($"Not enough arguments, Usage: {TileAction_ShowConstructForCurrent} <builder> <restrict>", LogLevel.Warn);
+                        ModEntry.LogOnce($"Not enough arguments, Usage: {TileAction_ShowConstructForCurrent} <builder> [restrict]", LogLevel.Warn);
                         return false;
                     }
                     try
