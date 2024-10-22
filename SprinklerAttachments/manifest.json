@@ -12,13 +12,13 @@
   "Author": "mushymato",
   "Version": "1.1.1-Debug",
   "Description": "Add new sprinkler add-on items similar to pressure nozzle and enricher.",
-  "MinimumApiVersion": "4.1.0-beta.4+66d9e82fffb61c6cf3347c9f7278bc56b0687aae",
+  "MinimumApiVersion": "4.1.0-beta.5+38a2d2d90049a9ad00e11d5e7ef638380ecb380c",
   "MinimumGameVersion": "1.6",
   "EntryDll": "SprinklerAttachments.dll",
   "Dependencies": [
     {
       "UniqueID": "Pathoschild.ContentPatcher",
-      "MinimumVersion": "2.4.0-alpha.20240818"
+      "MinimumVersion": "2.4.0-beta.20241011"
     }
   ],
   "UpdateKeys": [

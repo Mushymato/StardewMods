@@ -27,6 +27,7 @@ namespace MiscMapActionsProperties
 #if SDV_169
             Framework.Tile.HoleWarp.Register();
 #endif
+            Framework.Tile.LightSpot.Patch(harmony);
         }
 
         internal static void Log(string msg, LogLevel level = LogLevel.Debug)

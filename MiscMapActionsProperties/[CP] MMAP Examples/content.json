@@ -100,21 +100,43 @@
         }
       ]
     },
+    // {
+    //   "Action": "EditMap",
+    //   "Target": "Maps/BusStop",
+    //   "MapTiles": [
+    //     {
+    //       "Position": {
+    //         "X": 14,
+    //         "Y": 23
+    //       },
+    //       "Layer": "Back",
+    //       "SetProperties": {
+    //         "TouchAction": "mushymato.MMAP_HoleWarp WitchHut 7 15"
+    //       }
+    //     }
+    //   ]
+    // }
     {
-      "Action": "EditMap",
-      "Target": "Maps/BusStop",
-      "MapTiles": [
-        {
-          "Position": {
-            "X": 14,
-            "Y": 23
-          },
-          "Layer": "Back",
-          "SetProperties": {
-            "TouchAction": "mushymato.MMAP_HoleWarp WitchHut 7 15"
+      "Action": "EditData",
+      "Target": "Data/Buildings",
+      "TargetField": [
+        "Well",
+        "TileProperties"
+      ],
+      "Entries": {
+        "{{ModId}}_Light": {
+          "Id": "{{ModId}}_Light",
+          "Name": "mushymato.MMAP_Light",
+          "Value": "4 Red",
+          "Layer": "Front",
+          "TileArea": {
+            "X": 1,
+            "Y": 1,
+            "Width": 1,
+            "Height": 1
           }
         }
-      ]
+      }
     }
   ]
 }
