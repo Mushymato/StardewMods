@@ -28,7 +28,6 @@ namespace MiscMapActionsProperties.Framework.Tile
             {
                 ModEntry.Log($"Failed to patch LightSpot:\n{err}", LogLevel.Error);
             }
-
         }
 
         private static LightSource? MakeMapLightFromProps(string mapName, Vector2 pos, string lightProps)
@@ -44,9 +43,10 @@ namespace MiscMapActionsProperties.Framework.Tile
             Color color = Utility.StringToColor(colorStr) ?? Color.White;
             color = new Color(color.PackedValue ^ 0x00FFFFFF);
             return new LightSource(
-                $"{mapName}_{TileProp_Light}_{pos.X}_{pos.Y}",
+                $"{mapName}_MapLight_{pos.X},{pos.Y}",
                 textureIndex, pos * Game1.tileSize + new Vector2(Game1.tileSize / 2, Game1.tileSize / 2), radius, color,
-                LightSource.LightContext.None
+                LightSource.LightContext.MapLight,
+                onlyLocation: mapName
             );
         }
 
@@ -81,19 +81,20 @@ namespace MiscMapActionsProperties.Framework.Tile
                     if (btp.Name != TileProp_Light || btp.Layer != "Front")
                         continue;
                     string lightProps = btp.Value;
-                    // if (MakeMapLightFromProps(location.NameOrUniqueName, Vector2.Zero, lightProps) is not LightSource baseLight)
-                    //     continue;
+                    if (MakeMapLightFromProps(
+                        location.NameOrUniqueName,
+                        new Vector2(building.tileX.Value, building.tileY.Value),
+                        lightProps) is not LightSource baseLight)
+                        continue;
                     for (int i = 0; i < btp.TileArea.Width; i++)
                     {
                         for (int j = 0; j < btp.TileArea.Height; j++)
                         {
                             Vector2 pos = new(building.tileX.Value + btp.TileArea.X + i, building.tileY.Value + btp.TileArea.Y + j);
-                            // LightSource light = baseLight.Clone();
-                            // light.Id = $"{location.NameOrUniqueName}_{TileProp_Light}_{pos.X}_{pos.Y}";
-                            // light.position.Value = pos;
-                            // yield return light;
-                            if (MakeMapLightFromProps(location.NameOrUniqueName, pos, lightProps) is LightSource light)
-                                yield return light;
+                            LightSource light = baseLight.Clone();
+                            light.Id = $"{light.Id}+{btp.TileArea.X + i},{btp.TileArea.Y + j}";
+                            light.position.Value = pos * Game1.tileSize + new Vector2(Game1.tileSize / 2, Game1.tileSize / 2);
+                            yield return light;
                         }
                     }
                 }
@@ -106,7 +107,6 @@ namespace MiscMapActionsProperties.Framework.Tile
                 return;
             foreach (LightSource light in GetMapTileLights(__instance))
             {
-                Console.WriteLine(light.Id);
                 Game1.currentLightSources.Add(light);
             }
         }

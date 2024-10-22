@@ -24,18 +24,24 @@ namespace MiscMapActionsProperties
             Framework.Tile.ShowConstruct.Register();
             Framework.Tile.AnimalSpot.Patch(harmony);
             Framework.Tile.AnimalSpot.Register(helper);
-#if SDV_169
             Framework.Tile.HoleWarp.Register();
-#endif
             Framework.Tile.LightSpot.Patch(harmony);
         }
 
+#if DEBUG
         internal static void Log(string msg, LogLevel level = LogLevel.Debug)
+#else
+        internal static void Log(string msg, LogLevel level = LogLevel.Trace)
+#endif
         {
             mon!.Log(msg, level);
         }
 
+#if DEBUG
         internal static void LogOnce(string msg, LogLevel level = LogLevel.Debug)
+#else
+        internal static void LogOnce(string msg, LogLevel level = LogLevel.Trace)
+#endif
         {
             mon!.LogOnce(msg, level);
         }
