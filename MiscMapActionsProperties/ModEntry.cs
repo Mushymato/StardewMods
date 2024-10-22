@@ -7,6 +7,11 @@ namespace MiscMapActionsProperties
 {
     public class ModEntry : Mod
     {
+#if DEBUG
+        private const LogLevel DEFAULT_LOG_LEVEL = LogLevel.Debug;
+#else
+        private const LogLevel DEFAULT_LOG_LEVEL = LogLevel.Trace;
+#endif
         private static IMonitor? mon;
         internal static IManifest? manifest = null;
         internal static string ModId => manifest?.UniqueID ?? "ERROR";
@@ -28,20 +33,12 @@ namespace MiscMapActionsProperties
             Framework.Tile.LightSpot.Patch(harmony);
         }
 
-#if DEBUG
-        internal static void Log(string msg, LogLevel level = LogLevel.Debug)
-#else
-        internal static void Log(string msg, LogLevel level = LogLevel.Trace)
-#endif
+        internal static void Log(string msg, LogLevel level = DEFAULT_LOG_LEVEL)
         {
             mon!.Log(msg, level);
         }
 
-#if DEBUG
-        internal static void LogOnce(string msg, LogLevel level = LogLevel.Debug)
-#else
-        internal static void LogOnce(string msg, LogLevel level = LogLevel.Trace)
-#endif
+        internal static void LogOnce(string msg, LogLevel level = DEFAULT_LOG_LEVEL)
         {
             mon!.LogOnce(msg, level);
         }
