@@ -2,7 +2,6 @@ using System.Runtime.CompilerServices;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
-using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Extensions;
 
@@ -15,11 +14,11 @@ namespace MiscMapActionsProperties.Framework.Tile
     internal static class AnimalSpot
     {
         internal readonly static string TileProp_AnimalSpot = $"{ModEntry.ModId}_AnimalSpot";
-        private static readonly ConditionalWeakTable<GameLocation, List<Vector2>> animalSpotsCache = [];
+        private static readonly ConditionalWeakTable<xTile.Map, List<Vector2>> animalSpotsCache = [];
 
         internal static void Register(IModHelper helper)
         {
-            helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
+            helper.Events.GameLoop.SaveLoaded += ClearAnimalSpotsCache;
         }
 
         internal static void Patch(Harmony harmony)
@@ -37,15 +36,15 @@ namespace MiscMapActionsProperties.Framework.Tile
             }
         }
 
-        private static void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
+        private static void ClearAnimalSpotsCache(object? sender, EventArgs e)
         {
             animalSpotsCache.Clear();
         }
 
-        private static List<Vector2> GetAnimalSpots(GameLocation location)
+        private static List<Vector2> GetAnimalSpots(xTile.Map map)
         {
             List<Vector2> animalSpots = [];
-            var backLayer = location.map.RequireLayer("Back");
+            var backLayer = map.RequireLayer("Back");
             for (int x = 0; x < backLayer.LayerWidth; x++)
             {
                 for (int y = 0; y < backLayer.LayerHeight; y++)
@@ -79,7 +78,7 @@ namespace MiscMapActionsProperties.Framework.Tile
             try
             {
                 __instance.StopAllActions();
-                List<Vector2> animalSpots = animalSpotsCache.GetValue(location, GetAnimalSpots);
+                List<Vector2> animalSpots = animalSpotsCache.GetValue(location.map, GetAnimalSpots);
                 Character _base = __instance;
                 foreach (Vector2 pos in animalSpots)
                 {

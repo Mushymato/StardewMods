@@ -24,7 +24,9 @@ namespace MiscMapActionsProperties
             Framework.Tile.ShowConstruct.Register();
             Framework.Tile.AnimalSpot.Patch(harmony);
             Framework.Tile.AnimalSpot.Register(helper);
+#if SDV_169
             Framework.Tile.HoleWarp.Register();
+#endif
         }
 
         internal static void Log(string msg, LogLevel level = LogLevel.Debug)

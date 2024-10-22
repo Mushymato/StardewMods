@@ -1,35 +1,35 @@
 {
   "Format": "2.0.0",
   "Changes": [
-    {
-      "Action": "EditMap",
-      "Target": "Maps/Coop",
-      "MapProperties": {
-        "mushymato.MMAP_BuildingEntry": "2 3"
-      },
-      "MapTiles": [
-        {
-          "Position": {
-            "X": 2,
-            "Y": 4
-          },
-          "Layer": "Back",
-          "SetProperties": {
-            "mushymato.MMAP_AnimalSpot": "T"
-          }
-        },
-        {
-          "Position": {
-            "X": 6,
-            "Y": 4
-          },
-          "Layer": "Back",
-          "SetProperties": {
-            "mushymato.MMAP_AnimalSpot": "T"
-          }
-        }
-      ]
-    },
+    // {
+    //   "Action": "EditMap",
+    //   "Target": "Maps/Coop",
+    //   "MapProperties": {
+    //     "mushymato.MMAP_BuildingEntry": "2 3"
+    //   },
+    //   "MapTiles": [
+    //     {
+    //       "Position": {
+    //         "X": 2,
+    //         "Y": 4
+    //       },
+    //       "Layer": "Back",
+    //       "SetProperties": {
+    //         "mushymato.MMAP_AnimalSpot": "T"
+    //       }
+    //     },
+    //     {
+    //       "Position": {
+    //         "X": 6,
+    //         "Y": 4
+    //       },
+    //       "Layer": "Back",
+    //       "SetProperties": {
+    //         "mushymato.MMAP_AnimalSpot": "T"
+    //       }
+    //     }
+    //   ]
+    // },
     {
       "Action": "EditMap",
       "Target": "Maps/Barn3",
