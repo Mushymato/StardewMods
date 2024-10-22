@@ -1,5 +1,6 @@
 using HarmonyLib;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
@@ -35,19 +36,30 @@ namespace MiscMapActionsProperties.Framework.Tile
             string[] args = ArgUtility.SplitBySpace(lightProps ?? "");
             if (!ArgUtility.TryGetOptionalFloat(args, 0, out float radius, out string error, defaultValue: 2f, name: "float radius") ||
                 !ArgUtility.TryGetOptional(args, 1, out string colorStr, out error, defaultValue: "White", name: "string color") ||
-                !ArgUtility.TryGetOptionalInt(args, 2, out int textureIndex, out error, defaultValue: 1, name: "int textureIndex"))
+                !ArgUtility.TryGetOptional(args, 2, out string textureStr, out error, defaultValue: "1", name: "string texture"))
             {
                 ModEntry.Log(error, LogLevel.Error);
                 return null;
             }
+            Texture2D? customTexture = null;
+            if (!int.TryParse(textureStr, out int textureIndex))
+            {
+                textureIndex = 1;
+                customTexture = Game1.content.Load<Texture2D>(textureStr);
+            }
             Color color = Utility.StringToColor(colorStr) ?? Color.White;
             color = new Color(color.PackedValue ^ 0x00FFFFFF);
-            return new LightSource(
+            LightSource newLight = new(
                 $"{mapName}_MapLight_{pos.X},{pos.Y}",
                 textureIndex, pos * Game1.tileSize + new Vector2(Game1.tileSize / 2, Game1.tileSize / 2), radius, color,
                 LightSource.LightContext.MapLight,
                 onlyLocation: mapName
             );
+            if (customTexture != null)
+            {
+                newLight.lightTexture = customTexture;
+            }
+            return newLight;
         }
 
         private static IEnumerable<LightSource> GetMapTileLights(GameLocation location)
@@ -94,6 +106,7 @@ namespace MiscMapActionsProperties.Framework.Tile
                             LightSource light = baseLight.Clone();
                             light.Id = $"{light.Id}+{btp.TileArea.X + i},{btp.TileArea.Y + j}";
                             light.position.Value = pos * Game1.tileSize + new Vector2(Game1.tileSize / 2, Game1.tileSize / 2);
+                            light.lightTexture = baseLight.lightTexture;
                             yield return light;
                         }
                     }

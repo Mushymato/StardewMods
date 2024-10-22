@@ -139,7 +139,7 @@
         "{{ModId}}_Light": {
           "Id": "{{ModId}}_Light",
           "Name": "mushymato.MMAP_Light",
-          "Value": "4 Red",
+          "Value": "4 Green Characters/Junimo",
           "Layer": "Front",
           "TileArea": {
             "X": 1,
