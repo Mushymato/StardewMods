@@ -12,6 +12,7 @@ namespace MiscMapActionsProperties.Framework.Tile
     /// <summary>
     /// Add new tile property mushymato.MMAP_Light [radius] [color] [type]
     /// Place a light source on a tile
+    /// [type] is either a light id or a texture (must be loaded)
     /// </summary>
     internal static class LightSpot
     {
