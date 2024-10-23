@@ -21,6 +21,9 @@ Move the quality star on the cask up by just under 1 tile distance, so that it's
 #### [Scythe Tool Enchantments](https://www.nexusmods.com/stardewvalley/mods/26217)
 Add new custom enchantments for the iridium scythe tool added in 1.6
 
+#### [Misc Map Action Properties](https://www.nexusmods.com/stardewvalley/mods/28423)
+Map actions/properties made for other mods. See [README](MiscMapActionsProperties/README.md) for details
+
 
 ## Unreleased
 
@@ -30,11 +33,6 @@ Random game tweaks for my playthrough.
 - Buy 24 items instead of 25 with shift+ctrl
 - Item sort tweeks (from [atravita-mods](https://github.com/atravita-mods/StardewMods/blob/1db0a9587f1f5963a2f7e09ebd40824f351326c4/ExperimentalLagReduction/HarmonyPatches/MiniChanges/ItemSortRewrite.cs))
 - Make big chest a little bigger (70 -> 80)
-
-#### Misc Map Action Properties
-Map actions/properties made for other mods.
-- Allow building/map modders to specify where the player should spawn when entering a farm building
-- Allow NPC modders to create "introduction" type quests for an arbiturary group of NPC.
 
 #### Custom Introductions
 A framework for having a custom "say hi to everyone" quest.
