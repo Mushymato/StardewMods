@@ -161,7 +161,6 @@ namespace SiDRectFix
                     bool isCalendar = Game1.activeClickableMenu is Billboard;
                     // desired sprite height
                     int targetHeight = 0;
-                    mon.LogOnce($"SpriteBatch_Draw {hdTxInfo.Target} - destinationRectangle: {destinationRectangle} sourceRectangle {sourceRectangle} origin {origin}", LogLevel.Info);
                     if (isSocial && TryParseCustomField(data, "mushymato.SiDRectFix/SocialHeight", out int? socialHeight))
                     {
                         targetHeight = (int)socialHeight;
@@ -183,7 +182,6 @@ namespace SiDRectFix
                         if (isCalendar)
                             destinationRectangle.Y += 24;
                         adjusted = true;
-                        mon.LogOnce($"Modified {hdTxInfo.Target} - destinationRectangle: {destinationRectangle} sourceRectangle {sourceRectangle} origin {origin}", LogLevel.Info);
                     }
                 }
 
