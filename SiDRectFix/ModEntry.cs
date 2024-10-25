@@ -6,6 +6,8 @@ using System.Reflection.Emit;
 using Microsoft.Xna.Framework;
 using StardewValley.GameData.Characters;
 using StardewValley;
+using StardewValley.Menus;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SiDRectFix
 {
@@ -111,42 +113,78 @@ namespace SiDRectFix
             }
         }
 
+        private static bool TryParseCustomField(CharacterData data, string key, [NotNullWhen(true)] out float? ret)
+        {
+            ret = default;
+            if (data.CustomFields?.TryGetValue(key, out string? valueStr) ?? false)
+            {
+                if (float.TryParse(valueStr, out float retVal))
+                {
+                    ret = retVal;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool TryParseCustomField(CharacterData data, string key, [NotNullWhen(true)] out int? ret)
+        {
+            ret = default;
+            if (data.CustomFields?.TryGetValue(key, out string? valueStr) ?? false)
+            {
+                if (int.TryParse(valueStr, out int retVal))
+                {
+                    ret = retVal;
+                    return true;
+                }
+            }
+            return false;
+        }
+
         // callvirt System.Void Microsoft.Xna.Framework.Graphics.SpriteBatch::Draw(Microsoft.Xna.Framework.Graphics.Texture2D texture, Microsoft.Xna.Framework.Rectangle destinationRectangle, System.Nullable`1<Microsoft.Xna.Framework.Rectangle> sourceRectangle, Microsoft.Xna.Framework.Color color, System.Single rotation, Microsoft.Xna.Framework.Vector2 origin, Microsoft.Xna.Framework.Graphics.SpriteEffects effects, System.Single layerDepth)
         private static void SpriteBatch_Draw(SpriteBatch b, Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, SpriteEffects effects, float layerDepth, SpritesInDetail.HDTextureInfo hdTxInfo)
         {
             if (SiDnpcs.TryGetValue(hdTxInfo.Target, out CharacterData? data) && sourceRectangle is Rectangle sourceRect)
             {
                 bool adjusted = false;
-                bool isSocial = origin.X == 32 && origin.Y == 55;
-                bool isCalendar = origin.X == 16 && origin.Y == 34;
-                int targetHeight = 0;
-                mon.LogOnce($"SpriteBatch_Draw {hdTxInfo.Target} - destinationRectangle: {destinationRectangle} sourceRectangle {sourceRectangle} origin {origin}", LogLevel.Info);
-                if (isSocial &&
-                    (data.CustomFields?.TryGetValue("mushymato.SiDRectFix/SocialHeight", out string? socialHeightStr) ?? false) &&
-                    int.TryParse(socialHeightStr, out int socialHeight))
+                // apply scale to profile menu
+                if (Game1.activeClickableMenu is ProfileMenu && TryParseCustomField(data, "mushymato.SiDRectFix/ProfileScale", out float? profileScale))
                 {
-                    targetHeight = socialHeight;
-                }
-                else if (isCalendar &&
-                    (data.CustomFields?.TryGetValue("mushymato.SiDRectFix/CalendarHeight", out string? calendarHeightStr) ?? false) &&
-                    int.TryParse(calendarHeightStr, out int calendarHeight))
-                {
-                    targetHeight = calendarHeight;
-                }
-
-                if (targetHeight > 0)
-                {
-                    // adjust to target height
-                    origin.Y -= (sourceRect.Height - targetHeight) / 2;
-                    sourceRect.Height = targetHeight;
-                    destinationRectangle.X += (destinationRectangle.Width - (int)(origin.X + sourceRect.Width)) / 2;
-                    destinationRectangle.Width = (int)(origin.X + sourceRect.Width);
-                    destinationRectangle.Y += (destinationRectangle.Height - (int)(origin.Y + sourceRect.Height)) / 2;
-                    destinationRectangle.Height = (int)(origin.Y + sourceRect.Height);
-                    if (isCalendar)
-                        destinationRectangle.Y += 24;
+                    origin = Vector2.Zero;
+                    destinationRectangle.Width = (int)(destinationRectangle.Width * profileScale / hdTxInfo.WidthScale);
+                    destinationRectangle.Height = (int)(destinationRectangle.Height * profileScale / hdTxInfo.HeightScale);
                     adjusted = true;
-                    mon.LogOnce($"Modified {hdTxInfo.Target} - destinationRectangle: {destinationRectangle} sourceRectangle {sourceRectangle} origin {origin}", LogLevel.Info);
+                }
+                else
+                {
+                    bool isSocial = Game1.activeClickableMenu is GameMenu gameMenu && gameMenu.GetCurrentPage() is SocialPage;
+                    bool isCalendar = Game1.activeClickableMenu is Billboard;
+                    // desired sprite height
+                    int targetHeight = 0;
+                    mon.LogOnce($"SpriteBatch_Draw {hdTxInfo.Target} - destinationRectangle: {destinationRectangle} sourceRectangle {sourceRectangle} origin {origin}", LogLevel.Info);
+                    if (isSocial && TryParseCustomField(data, "mushymato.SiDRectFix/SocialHeight", out int? socialHeight))
+                    {
+                        targetHeight = (int)socialHeight;
+                    }
+                    else if (isCalendar && TryParseCustomField(data, "mushymato.SiDRectFix/CalendarHeight", out int? calendarHeight))
+                    {
+                        targetHeight = (int)calendarHeight;
+                    }
+
+                    if (targetHeight > 0)
+                    {
+                        // adjust to target height
+                        origin.Y -= (sourceRect.Height - targetHeight) / 2;
+                        sourceRect.Height = targetHeight;
+                        destinationRectangle.X += (destinationRectangle.Width - (int)(origin.X + sourceRect.Width)) / 2;
+                        destinationRectangle.Width = (int)(origin.X + sourceRect.Width);
+                        destinationRectangle.Y += (destinationRectangle.Height - (int)(origin.Y + sourceRect.Height)) / 2;
+                        destinationRectangle.Height = (int)(origin.Y + sourceRect.Height);
+                        if (isCalendar)
+                            destinationRectangle.Y += 24;
+                        adjusted = true;
+                        mon.LogOnce($"Modified {hdTxInfo.Target} - destinationRectangle: {destinationRectangle} sourceRectangle {sourceRectangle} origin {origin}", LogLevel.Info);
+                    }
                 }
 
                 if (adjusted)
