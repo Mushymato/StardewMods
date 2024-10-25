@@ -1,13 +1,13 @@
 {
-    "Name": "SiDMugShotFix",
+    "Name": "SiDRectFix",
     "Author": "mushymato",
-    "Version": "1.0.0",
+    "Version": "0.1.0",
     "MinimumApiVersion": "4.0.0",
     "MinimumGameVersion": "1.6.0",
     "Description": "Fix SiD mugshot problem.",
-    "UniqueID": "mushymato.SiDMugShotFix",
+    "UniqueID": "mushymato.SiDRectFix",
     "UpdateKeys": [],
-    "EntryDll": "SiDMugShotFix.dll",
+    "EntryDll": "SiDRectFix.dll",
     "Dependencies": [
         {
             "UniqueID": "BleakCodex.SpritesInDetail",

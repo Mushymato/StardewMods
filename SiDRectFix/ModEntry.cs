@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 using StardewValley.GameData.Characters;
 using StardewValley;
 
-namespace SiDMugShotFix
+namespace SiDRectFix
 {
     public class ModEntry : Mod
     {
@@ -70,7 +70,7 @@ namespace SiDMugShotFix
             }
             catch (Exception err)
             {
-                mon.Log($"Failed to patch SiDMugShotFix:\n{err}", LogLevel.Error);
+                mon.Log($"Failed to patch SiDRectFix:\n{err}", LogLevel.Error);
             }
         }
 
@@ -97,10 +97,10 @@ namespace SiDMugShotFix
                     new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(replacedTextureType, "HDTextureInfo"))
                 ]);
 
-                foreach (var inst in matcher.Instructions())
-                {
-                    Console.WriteLine(inst);
-                }
+                // foreach (var inst in matcher.Instructions())
+                // {
+                //     Console.WriteLine(inst);
+                // }
 
                 return matcher.Instructions();
             }
@@ -114,22 +114,46 @@ namespace SiDMugShotFix
         // callvirt System.Void Microsoft.Xna.Framework.Graphics.SpriteBatch::Draw(Microsoft.Xna.Framework.Graphics.Texture2D texture, Microsoft.Xna.Framework.Rectangle destinationRectangle, System.Nullable`1<Microsoft.Xna.Framework.Rectangle> sourceRectangle, Microsoft.Xna.Framework.Color color, System.Single rotation, Microsoft.Xna.Framework.Vector2 origin, Microsoft.Xna.Framework.Graphics.SpriteEffects effects, System.Single layerDepth)
         private static void SpriteBatch_Draw(SpriteBatch b, Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, SpriteEffects effects, float layerDepth, SpritesInDetail.HDTextureInfo hdTxInfo)
         {
-            if (SiDnpcs.TryGetValue(hdTxInfo.Target, out CharacterData? data) &&
-                (data.CustomFields?.TryGetValue("mushymato.SiDMugShotFix/MugShotAdjust", out string? mugShotAdjustStr) ?? false) &&
-                int.TryParse(mugShotAdjustStr, out int mugShotAdjust) &&
-                origin.X == 32 && origin.Y == 55 && sourceRectangle is Rectangle sourceRect)
+            if (SiDnpcs.TryGetValue(hdTxInfo.Target, out CharacterData? data) && sourceRectangle is Rectangle sourceRect)
             {
-                mon.LogOnce($"SpriteBatch_Draw {hdTxInfo.Target} - destinationRectangle: {destinationRectangle} sourceRectangle {sourceRect} origin {origin}", LogLevel.Info);
-                // destinationRectangle.Y += 64;
-                // destinationRectangle.Height -= 64;
-                // destinationRectangle.Y -= mugShotAdjust;
-                sourceRect.Height -= mugShotAdjust / 4;
-                origin.Y -= mugShotAdjust / 2;
-                destinationRectangle.Width = (int)(origin.X + sourceRect.Width);
-                destinationRectangle.Height -= mugShotAdjust;
-                mon.LogOnce($"Modified - destinationRectangle: {destinationRectangle} sourceRectangle {sourceRect} origin {origin}", LogLevel.Info);
-                b.Draw(texture, destinationRectangle, sourceRect, color, rotation, origin, effects, layerDepth);
-                return;
+                bool adjusted = false;
+                bool isSocial = origin.X == 32 && origin.Y == 55;
+                bool isCalendar = origin.X == 16 && origin.Y == 34;
+                int targetHeight = 0;
+                mon.LogOnce($"SpriteBatch_Draw {hdTxInfo.Target} - destinationRectangle: {destinationRectangle} sourceRectangle {sourceRectangle} origin {origin}", LogLevel.Info);
+                if (isSocial &&
+                    (data.CustomFields?.TryGetValue("mushymato.SiDRectFix/SocialHeight", out string? socialHeightStr) ?? false) &&
+                    int.TryParse(socialHeightStr, out int socialHeight))
+                {
+                    targetHeight = socialHeight;
+                }
+                else if (isCalendar &&
+                    (data.CustomFields?.TryGetValue("mushymato.SiDRectFix/CalendarHeight", out string? calendarHeightStr) ?? false) &&
+                    int.TryParse(calendarHeightStr, out int calendarHeight))
+                {
+                    targetHeight = calendarHeight;
+                }
+
+                if (targetHeight > 0)
+                {
+                    // adjust to target height
+                    origin.Y -= (sourceRect.Height - targetHeight) / 2;
+                    sourceRect.Height = targetHeight;
+                    destinationRectangle.X += (destinationRectangle.Width - (int)(origin.X + sourceRect.Width)) / 2;
+                    destinationRectangle.Width = (int)(origin.X + sourceRect.Width);
+                    destinationRectangle.Y += (destinationRectangle.Height - (int)(origin.Y + sourceRect.Height)) / 2;
+                    destinationRectangle.Height = (int)(origin.Y + sourceRect.Height);
+                    if (isCalendar)
+                        destinationRectangle.Y += 24;
+                    adjusted = true;
+                    mon.LogOnce($"Modified {hdTxInfo.Target} - destinationRectangle: {destinationRectangle} sourceRectangle {sourceRectangle} origin {origin}", LogLevel.Info);
+                }
+
+                if (adjusted)
+                {
+                    b.Draw(texture, destinationRectangle, sourceRect, color, rotation, origin, effects, layerDepth);
+                    return;
+                }
             }
             b.Draw(texture, destinationRectangle, sourceRectangle, color, rotation, origin, effects, layerDepth);
         }
