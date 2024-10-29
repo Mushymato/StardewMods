@@ -583,7 +583,7 @@ namespace FullInventoryToolbar
         /// Implemented separately rather than as patch to default shift behavior.
         /// </summary>
         /// <param name="right"></param>
-        public void MultiShiftToolbar(bool right = true)
+        public static void MultiShiftToolbar(bool right = true)
         {
             Inventory playerItems = Game1.player.Items;
             int maxItems = GetToolbarMax();

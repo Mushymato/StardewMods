@@ -1,14 +1,21 @@
 {
-    "Name": "Full Inventory Toolbar",
-    "Author": "mushymato",
-    "Version": "1.1.0",
-    "MinimumApiVersion": "4.0.0",
-    "MinimumGameVersion": "1.6.0",
-    "Description": "Display entire inventory on screen as interactable toolbar.",
-    "UniqueID": "mushymato.FullInventoryToolbar",
-    "UpdateKeys": [
-        "Nexus:25711"
-    ],
-    "EntryDll": "FullInventoryToolbar.dll",
-    "Dependencies": []
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
+  "UniqueID": "mushymato.FullInventoryToolbar",
+  "Name": "Full Inventory Toolbar",
+  "Author": "mushymato",
+  "Version": "1.2.0",
+  "Description": "Display entire inventory on screen as interactable toolbar.",
+  "MinimumApiVersion": "4.1.0-beta.5+38a2d2d90049a9ad00e11d5e7ef638380ecb380c",
+  "MinimumGameVersion": "1.6.9",
+  "EntryDll": "FullInventoryToolbar.dll",
+  "UpdateKeys": [
+    "Nexus:25711"
+  ]
 }
