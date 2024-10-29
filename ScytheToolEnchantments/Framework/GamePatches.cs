@@ -67,6 +67,15 @@ namespace ScytheToolEnchantments.Framework
                     prefix: new HarmonyMethod(typeof(GamePatches), nameof(Crop_harvest_Prefix)),
                     postfix: new HarmonyMethod(typeof(GamePatches), nameof(Crop_harvest_Postfix))
                 );
+                harmony.Patch(
+                    original: AccessTools.Method(typeof(GiantCrop), nameof(GiantCrop.performToolAction)),
+                    transpiler: new HarmonyMethod(typeof(GamePatches), nameof(GiantCrop_performToolAction_Transpiler))
+                );
+                harmony.Patch(
+                    original: AccessTools.Method(typeof(MeleeWeapon), nameof(MeleeWeapon.getAreaOfEffect))
+                // TODO: for scythe with CrescentEnchantment, ignore bounds, get the 7x7 area centered on farmer instead
+                // might be fun to draw a big moon? meh
+                );
             }
             catch (Exception err)
             {
@@ -77,6 +86,15 @@ namespace ScytheToolEnchantments.Framework
         private static bool IsScytheAndNotIridium(MeleeWeapon weapon)
         {
             return weapon.isScythe() && weapon.QualifiedItemId != ScytheEnchantment.IridiumScytheQID;
+        }
+
+        private static bool CanHarvestGiantCrop(Tool tool)
+        {
+            return (
+                tool is MeleeWeapon weapon &&
+                weapon.isScythe() &&
+                weapon.hasEnchantmentOfType<CrescentEnchantment>()
+            );
         }
 
         private static IEnumerable<CodeInstruction> MeleeWeapon_drawTooltip_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -158,6 +176,7 @@ namespace ScytheToolEnchantments.Framework
                 __result.Add(new GathererEnchantment());
                 __result.Add(new HorticulturistEnchantment());
                 __result.Add(new ReaperEnchantment());
+                __result.Add(new CrescentEnchantment());
                 enchantmentsInit = true;
             }
             catch (Exception err)
@@ -241,6 +260,33 @@ namespace ScytheToolEnchantments.Framework
             catch (Exception err)
             {
                 ModEntry.Log($"Error in Crop_harvest_Postfix:\n{err}", LogLevel.Error);
+            }
+        }
+
+        private static IEnumerable<CodeInstruction> GiantCrop_performToolAction_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            try
+            {
+                CodeMatcher matcher = new(instructions, generator);
+
+                matcher.MatchEndForward(new CodeMatch[]{
+                    new(OpCodes.Ldarg_1),
+                    new(OpCodes.Isinst, typeof(Axe)),
+                    new(OpCodes.Brtrue_S)
+                });
+                Label lbl = (Label)matcher.Operand;
+                matcher.Advance(1).Insert(new CodeMatch[] {
+                    new(OpCodes.Ldarg_1),
+                    new(OpCodes.Call, AccessTools.Method(typeof(GamePatches), nameof(CanHarvestGiantCrop))),
+                    new(OpCodes.Brtrue_S, lbl)
+                });
+
+                return matcher.Instructions();
+            }
+            catch (Exception err)
+            {
+                ModEntry.Log($"Error in GiantCrop_performToolAction_Transpiler:\n{err}", LogLevel.Error);
+                return instructions;
             }
         }
     }

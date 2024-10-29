@@ -1,19 +1,27 @@
 {
-    "Name": "Scythe Tool Enchantments",
-    "Author": "mushymato",
-    "Version": "1.1.0",
-    "MinimumApiVersion": "4.1.0-beta.1",
-    "MinimumGameVersion": "1.6.9",
-    "Description": "Add 4 new enchantment effects for the iridium scythe.",
-    "UniqueID": "mushymato.ScytheToolEnchantments",
-    "UpdateKeys": [
-        "Nexus:26217"
-    ],
-    "EntryDll": "ScytheToolEnchantments.dll",
-    "Dependencies": [
-        {
-            "UniqueID": "spacechase0.SpaceCore",
-            "MinimumVersion": "1.25.3-beta"
-        }
-    ]
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
+  "UniqueID": "mushymato.ScytheToolEnchantments",
+  "Name": "Scythe Tool Enchantments",
+  "Author": "mushymato",
+  "Version": "1.1.0-Debug",
+  "Description": "Add 4 new enchantment effects for the iridium scythe.",
+  "MinimumApiVersion": "4.1.0-beta.5+38a2d2d90049a9ad00e11d5e7ef638380ecb380c",
+  "MinimumGameVersion": "1.6.9",
+  "EntryDll": "ScytheToolEnchantments.dll",
+  "Dependencies": [
+    {
+      "UniqueID": "spacechase0.SpaceCore",
+      "MinimumVersion": "1.26"
+    }
+  ],
+  "UpdateKeys": [
+    "Nexus:26217"
+  ]
 }

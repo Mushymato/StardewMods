@@ -7,15 +7,21 @@
    | 
    */
   "$schema": "https://smapi.io/schemas/manifest.json",
-  "UniqueID": "mushymato.FullInventoryToolbar",
-  "Name": "Full Inventory Toolbar",
+  "UniqueID": "mushymato.MODNAME",
+  "Name": "MODNAME",
   "Author": "mushymato",
-  "Version": "1.2.0-Debug",
-  "Description": "Display entire inventory on screen as interactable toolbar.",
+  "Version": "0.1.0-Debug",
+  "Description": "DESCRIPTION",
   "MinimumApiVersion": "4.1.0-beta.5+38a2d2d90049a9ad00e11d5e7ef638380ecb380c",
   "MinimumGameVersion": "1.6.9",
-  "EntryDll": "FullInventoryToolbar.dll",
+  "EntryDll": "MODNAME.dll",
+  "Dependencies": [
+    {
+      "UniqueID": "spacechase0.GenericModConfigMenu",
+      "MinimumVersion": "1.26"
+    }
+  ],
   "UpdateKeys": [
-    "Nexus:25711"
+    "Nexus:???"
   ]
 }

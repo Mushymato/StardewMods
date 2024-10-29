@@ -8,6 +8,7 @@ namespace ScytheToolEnchantments.Framework
         public bool EnableHorticulturist = true;
         public bool EnablePalaeontologist = true;
         public bool EnableReaper = true;
+        public bool EnableCrescent = true;
 
         private void Reset()
         {
@@ -31,6 +32,13 @@ namespace ScytheToolEnchantments.Framework
                 save: () => { helper.WriteConfig(this); },
                 titleScreenOnly: false
             );
+            // GMCM.AddBoolOption(
+            //     mod: mod,
+            //     getValue: () => { return ScytheHarvestGiantCrop; },
+            //     setValue: (value) => { ScytheHarvestGiantCrop = value; },
+            //     name: I18n.Config_EnchantedScytheCanHarvestGiantCrop_Name,
+            //     tooltip: I18n.Config_EnchantedScytheCanHarvestGiantCrop_Description
+            // );
             GMCM.AddSectionTitle(
                 mod: mod,
                 text: I18n.Config_AvailableScytheEnchantments_Name,
@@ -63,6 +71,13 @@ namespace ScytheToolEnchantments.Framework
                 setValue: (value) => { EnableReaper = value; },
                 name: I18n.Enchantment_Reaper_Name,
                 tooltip: I18n.Enchantment_Reaper_Description
+            );
+            GMCM.AddBoolOption(
+                mod,
+                getValue: () => { return EnableCrescent; },
+                setValue: (value) => { EnableCrescent = value; },
+                name: I18n.Enchantment_Crescent_Name,
+                tooltip: I18n.Enchantment_Crescent_Description
             );
         }
     }
