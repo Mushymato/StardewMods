@@ -23,7 +23,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.26" />
+        <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Required="false" />
     </ItemGroup>
 
     <ItemGroup>
