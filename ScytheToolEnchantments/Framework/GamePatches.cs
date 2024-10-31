@@ -72,9 +72,8 @@ namespace ScytheToolEnchantments.Framework
                     transpiler: new HarmonyMethod(typeof(GamePatches), nameof(GiantCrop_performToolAction_Transpiler))
                 );
                 harmony.Patch(
-                    original: AccessTools.Method(typeof(MeleeWeapon), nameof(MeleeWeapon.getAreaOfEffect))
-                // TODO: for scythe with CrescentEnchantment, ignore bounds, get the 7x7 area centered on farmer instead
-                // might be fun to draw a big moon? meh
+                    original: AccessTools.Method(typeof(MeleeWeapon), nameof(MeleeWeapon.DoDamage)),
+                    prefix: new HarmonyMethod(typeof(GamePatches), nameof(MeleeWeapon_DoDamage_Prefix))
                 );
             }
             catch (Exception err)
@@ -88,12 +87,12 @@ namespace ScytheToolEnchantments.Framework
             return weapon.isScythe() && weapon.QualifiedItemId != ScytheEnchantment.IridiumScytheQID;
         }
 
-        private static bool CanHarvestGiantCrop(Tool tool)
+        private static bool HasCrescentEnchantment(Tool tool)
         {
             return (
-                tool is MeleeWeapon weapon &&
-                weapon.isScythe() &&
-                weapon.hasEnchantmentOfType<CrescentEnchantment>()
+                tool is MeleeWeapon weapon
+                && weapon.isScythe()
+            // && weapon.hasEnchantmentOfType<CrescentEnchantment>()
             );
         }
 
@@ -277,9 +276,19 @@ namespace ScytheToolEnchantments.Framework
                 Label lbl = (Label)matcher.Operand;
                 matcher.Advance(1).Insert(new CodeMatch[] {
                     new(OpCodes.Ldarg_1),
-                    new(OpCodes.Call, AccessTools.Method(typeof(GamePatches), nameof(CanHarvestGiantCrop))),
+                    new(OpCodes.Call, AccessTools.Method(typeof(GamePatches), nameof(HasCrescentEnchantment))),
                     new(OpCodes.Brtrue_S, lbl)
                 });
+
+                matcher.MatchStartForward(new CodeMatch[]{
+                    new(OpCodes.Ldstr, "axchop")
+                });
+                matcher.Operand = "clubswipe";
+
+                // matcher.MatchStartForward(new CodeMatch[]{
+                //     new(OpCodes.Ldstr, "stumpCrack")
+                // });
+                // matcher.Operand = "leafrustle";
 
                 return matcher.Instructions();
             }
@@ -289,5 +298,28 @@ namespace ScytheToolEnchantments.Framework
                 return instructions;
             }
         }
+
+        private static void MeleeWeapon_DoDamage_Prefix(MeleeWeapon __instance, GameLocation location, int x, int y, int facingDirection, int power, Farmer who)
+        {
+            try
+            {
+                if (!HasCrescentEnchantment(__instance))
+                    return;
+                foreach (Vector2 item in CrescentEnchantment.GetCrescentAOE(who.TilePoint, facingDirection, who.FarmerSprite.currentAnimationIndex))
+                {
+                    if (location.terrainFeatures.TryGetValue(item, out var value) && value.performToolAction(__instance, 0, item))
+                        location.terrainFeatures.Remove(item);
+                    if (location.objects.TryGetValue(item, out var value2) && value2.performToolAction(__instance))
+                        location.objects.Remove(item);
+                    if (location.performToolAction(__instance, (int)item.X, (int)item.Y))
+                        break;
+                }
+            }
+            catch (Exception err)
+            {
+                ModEntry.Log($"Error in Crop_harvest_Postfix:\n{err}", LogLevel.Error);
+            }
+        }
+
     }
 }
