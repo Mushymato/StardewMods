@@ -6,9 +6,9 @@ using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
 using StardewObject = StardewValley.Object;
 using HarmonyLib;
-using MiscTweaks.Patches;
+using MatoTweaks.Patches;
 
-namespace MiscTweaks
+namespace MatoTweaks
 {
     public class ModEntry : Mod
     {

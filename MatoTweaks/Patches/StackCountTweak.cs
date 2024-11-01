@@ -3,7 +3,7 @@ using HarmonyLib;
 using StardewModdingAPI;
 using StardewValley.Menus;
 
-namespace MiscTweaks.Patches
+namespace MatoTweaks.Patches
 {
     internal static class StackCountTweak
     {
@@ -30,7 +30,6 @@ namespace MiscTweaks.Patches
             }
         }
 
-
         private static IEnumerable<CodeInstruction> ShopMenu_replaceStackCounts_transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             try
@@ -52,7 +51,5 @@ namespace MiscTweaks.Patches
                 return instructions;
             }
         }
-
-
     }
 }

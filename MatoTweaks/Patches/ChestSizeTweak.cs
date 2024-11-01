@@ -3,7 +3,7 @@ using StardewModdingAPI;
 using StardewValley.Objects;
 using static StardewValley.Objects.Chest;
 
-namespace MiscTweaks.Patches
+namespace MatoTweaks.Patches
 {
     internal static class ChestSizeTweak
     {
