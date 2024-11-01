@@ -13,7 +13,7 @@
     <Description>Add new sprinkler add-on items similar to pressure nozzle and enricher.</Description>
     <UniqueId>mushymato.SprinklerAttachments</UniqueId>
     <UpdateKeys>Nexus:25326</UpdateKeys>
-    <Version>1.1.1</Version>
+    <Version>1.2.0</Version>
     <MinimumApiVersion_Behavior>Update</MinimumApiVersion_Behavior>
     <MinimumGameVersion_Behavior>Update</MinimumGameVersion_Behavior>
     <Dependencies_VersionBehavior>Update</Dependencies_VersionBehavior>
