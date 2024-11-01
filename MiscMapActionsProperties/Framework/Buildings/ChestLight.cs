@@ -57,8 +57,8 @@ namespace MiscMapActionsProperties.Framework.Buildings
 
         private static void ClearBuildingChestLightWatcher()
         {
-            foreach (var kv in watchers)
-                kv.Value.Dispose();
+            // foreach (var kv in watchers)
+            //     kv.Value.Dispose();
             watchers.Clear();
         }
 
@@ -109,10 +109,8 @@ namespace MiscMapActionsProperties.Framework.Buildings
 
         private void DisposeValues()
         {
-            Console.WriteLine($"{lightName}-DisposeValues: {wasDisposed}");
             if (wasDisposed)
                 return;
-            Console.WriteLine("DISPOSE");
             chest.Items.OnSlotChanged -= OnSlotChanged;
             location = null!;
             building = null!;
