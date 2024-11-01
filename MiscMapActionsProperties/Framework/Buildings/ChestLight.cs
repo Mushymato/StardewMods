@@ -19,7 +19,7 @@ namespace MiscMapActionsProperties.Framework.Buildings
     /// </summary>
     internal static class ChestLight
     {
-        internal readonly static string Metadata_ChestLight_Prefix = $"{ModEntry.ModId}/ChestLight_";
+        internal readonly static string Metadata_ChestLight_Prefix = $"{ModEntry.ModId}/ChestLight.";
 
         private static readonly ConditionalWeakTable<Chest, BuildingChestLightWatcher> watchers = [];
 
