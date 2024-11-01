@@ -35,3 +35,17 @@ Random game tweaks for my playthrough.
 
 #### Custom Introductions
 A framework for having a custom "say hi to everyone" quest.
+
+#### SiDRectFix
+
+Some spaget to fix issue with Sprites in Detail draw rects in certain context, made for [Mothman](https://www.nexusmods.com/stardewvalley/mods/28702), no intention of supporting this for any other SiD npc.
+
+
+## Translation Credits
+
+`SprinklerAttachments/i18n/pt.json`
+- [sxdic](https://next.nexusmods.com/profile/sxdic)
+
+`ScytheToolEnchantments/i18n/pt.json`
+- [Kiyara99](https://next.nexusmods.com/profile/Kiyara99)
+

@@ -10,8 +10,6 @@
     "enchantment.Reaper.description": "Increase damage and crit chance, monsters killed drop extra loot.",
     "enchantment.Crescent.description": "Increase scythe harvest range, allow harvesting giant crops.",
     // config
-    // "config.EnchantedScytheCanHarvestGiantCrop.name": "Enchanted Scythe can Harvest Giant Crop",
-    // "config.EnchantedScytheCanHarvestGiantCrop.description": "Allow enchanted iridium scythe to harvest giant crops, applies to any enchantment effect.",
     "config.AvailableScytheEnchantments.name": "Available Scythe Enchantments",
     "config.AvailableScytheEnchantments.description": "Set which enchantments will be available through forging with a prismatic shard, no effect on existing enchantments."
 }
