@@ -57,8 +57,9 @@ namespace MiscMapActionsProperties.Framework.Buildings
 
         private static void ClearBuildingChestLightWatcher()
         {
-            // foreach (var kv in watchers)
-            //     kv.Value.Dispose();
+            // is it neccessary to do this?
+            foreach (var kv in watchers)
+                kv.Value.Dispose();
             watchers.Clear();
         }
 
