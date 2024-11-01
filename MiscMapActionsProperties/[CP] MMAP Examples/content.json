@@ -158,8 +158,8 @@
       ],
       "Entries": {
         "Metadata": {
-          "mushymato.MMAP_ChestLight_Input": "1 Green",
-          "mushymato.MMAP_ChestLight_Output": "1 Red"
+          "mushymato.MMAP/ChestLight_Input": "1 Green 1 96 -96",
+          "mushymato.MMAP/ChestLight_Output": "1 Red 1 224 0"
         }
       }
     }

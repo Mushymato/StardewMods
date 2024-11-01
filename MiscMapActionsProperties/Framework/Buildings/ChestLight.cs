@@ -13,13 +13,13 @@ using System.Runtime.CompilerServices;
 namespace MiscMapActionsProperties.Framework.Buildings
 {
     /// <summary>
-    /// Add new BuildingData.Metadata mushymato.MMAP_ChestLight_<ChestId> [radius] [color] [type|texture] [offsetX] [offsetY]
-    /// Place a light source on a tile.
-    /// [type] is either a light id or a texture (must be loaded).
+    /// Add new BuildingData.Metadata mushymato.MMAP/ChestLight_<ChestId> [radius] [color] [type|texture] [offsetX] [offsetY]
+    /// Place a light source on a tile, with optional offset
+    /// [type|texture] is either a light id (1-10 except for 3) or a texture (must be loaded).
     /// </summary>
     internal static class ChestLight
     {
-        internal readonly static string Metadata_ChestLight_Prefix = $"{ModEntry.ModId}_ChestLight_";
+        internal readonly static string Metadata_ChestLight_Prefix = $"{ModEntry.ModId}/ChestLight_";
 
         private static readonly ConditionalWeakTable<Chest, BuildingChestLightWatcher> watchers = [];
 
@@ -28,6 +28,7 @@ namespace MiscMapActionsProperties.Framework.Buildings
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             helper.Events.Player.Warped += OnWarped;
             helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
+            helper.Events.Content.AssetsInvalidated += OnAssetsInvalidated;
         }
 
         private static void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -44,6 +45,14 @@ namespace MiscMapActionsProperties.Framework.Buildings
         private static void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
         {
             ClearBuildingChestLightWatcher();
+        }
+
+        private static void OnAssetsInvalidated(object? sender, AssetsInvalidatedEventArgs e)
+        {
+            if (e.NamesWithoutLocale.Any(an => an.IsEquivalentTo("Data/Buildings")))
+            {
+                ClearBuildingChestLightWatcher();
+            }
         }
 
         private static void ClearBuildingChestLightWatcher()

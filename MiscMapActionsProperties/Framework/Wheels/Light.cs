@@ -29,7 +29,12 @@ namespace MiscMapActionsProperties.Framework.Wheels
                 return null;
             }
             Texture2D? customTexture = null;
-            if (!int.TryParse(textureStr, out int textureIndex))
+            if (int.TryParse(textureStr, out int textureIndex))
+            {
+                if (textureIndex < 1 || textureIndex > 10 || textureIndex == 3)
+                    textureIndex = 1;
+            }
+            else
             {
                 textureIndex = 1;
                 customTexture = Game1.content.Load<Texture2D>(textureStr);
