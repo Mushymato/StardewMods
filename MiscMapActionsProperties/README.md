@@ -53,7 +53,7 @@ See `[CP] MMAP Examples` for samples.
 
 ## Data/Buildings Metadata
 
-#### mushymato.MMAP/ChestLight_{ChestName} [radius] [color] [type|texture] [offsetX] [offsetY]
+#### mushymato.MMAP/ChestLight.{ChestName} [radius] [color] [type|texture] [offsetX] [offsetY]
 
 - Buildings Metadata, used over CustomFields because Metadata can be set per building skin if desired.
 - Add a light source at the building's tileX/tileY position, only lights up if corresponding building chest has content.
