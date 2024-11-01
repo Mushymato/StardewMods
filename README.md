@@ -27,9 +27,8 @@ Map actions/properties made for other mods. See [README](MiscMapActionsPropertie
 
 ## Unreleased
 
-#### Misc Tweaks
+#### Mato Tweaks
 Random game tweaks for my playthrough.
-- Make artisan goods keep quality of inputs
 - Buy 24 items instead of 25 with shift+ctrl
 - Item sort tweeks (from [atravita-mods](https://github.com/atravita-mods/StardewMods/blob/1db0a9587f1f5963a2f7e09ebd40824f351326c4/ExperimentalLagReduction/HarmonyPatches/MiniChanges/ItemSortRewrite.cs))
 - Make big chest a little bigger (70 -> 80)

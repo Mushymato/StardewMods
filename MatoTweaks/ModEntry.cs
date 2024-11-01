@@ -19,7 +19,7 @@ namespace MiscTweaks
         public override void Entry(IModHelper helper)
         {
             mon = Monitor;
-            helper.Events.Content.AssetRequested += OnAssetRequested;
+            // helper.Events.Content.AssetRequested += OnAssetRequested;
             Harmony patcher = new(ModManifest.UniqueID);
             AtravitaItemSortTweak.Patch(patcher);
             StackCountTweak.Patch(patcher);

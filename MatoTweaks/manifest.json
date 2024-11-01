@@ -1,11 +1,11 @@
 {
-    "Name": "Misc Tweaks",
+    "Name": "MatoTweaks",
     "Author": "mushymato",
     "Version": "1.0.0",
     "MinimumApiVersion": "4.0.0",
     "MinimumGameVersion": "1.6.0",
     "Description": "Personal tweaks.",
-    "UniqueID": "mushymato.MiscTweaks",
+    "UniqueID": "mushymato.MatoTweaks",
     "UpdateKeys": [],
-    "EntryDll": "MiscTweaks.dll"
+    "EntryDll": "MatoTweaks.dll"
 }

@@ -1,6 +1,6 @@
 using HarmonyLib;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using MiscMapActionsProperties.Framework.Wheels;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
@@ -10,13 +10,14 @@ using StardewValley.GameData.Buildings;
 namespace MiscMapActionsProperties.Framework.Tile
 {
     /// <summary>
-    /// Add new tile property mushymato.MMAP_Light [radius] [color] [type]
+    /// Add new tile property mushymato.MMAP_Light [radius] [color] [type|texture]
     /// Place a light source on a tile
     /// [type] is either a light id or a texture (must be loaded)
     /// </summary>
     internal static class LightSpot
     {
         internal readonly static string TileProp_Light = $"{ModEntry.ModId}_Light";
+        internal readonly static string TileProp_LightCond = $"{ModEntry.ModId}_LightCond";
         internal static void Patch(Harmony harmony)
         {
             try
@@ -30,37 +31,6 @@ namespace MiscMapActionsProperties.Framework.Tile
             {
                 ModEntry.Log($"Failed to patch LightSpot:\n{err}", LogLevel.Error);
             }
-        }
-
-        private static LightSource? MakeMapLightFromProps(string mapName, Vector2 pos, string lightProps)
-        {
-            string[] args = ArgUtility.SplitBySpace(lightProps ?? "");
-            if (!ArgUtility.TryGetOptionalFloat(args, 0, out float radius, out string error, defaultValue: 2f, name: "float radius") ||
-                !ArgUtility.TryGetOptional(args, 1, out string colorStr, out error, defaultValue: "White", name: "string color") ||
-                !ArgUtility.TryGetOptional(args, 2, out string textureStr, out error, defaultValue: "1", name: "string texture"))
-            {
-                ModEntry.Log(error, LogLevel.Error);
-                return null;
-            }
-            Texture2D? customTexture = null;
-            if (!int.TryParse(textureStr, out int textureIndex))
-            {
-                textureIndex = 1;
-                customTexture = Game1.content.Load<Texture2D>(textureStr);
-            }
-            Color color = Utility.StringToColor(colorStr) ?? Color.White;
-            color = new Color(color.PackedValue ^ 0x00FFFFFF);
-            LightSource newLight = new(
-                $"{mapName}_MapLight_{pos.X},{pos.Y}",
-                textureIndex, pos * Game1.tileSize + new Vector2(Game1.tileSize / 2, Game1.tileSize / 2), radius, color,
-                LightSource.LightContext.MapLight,
-                onlyLocation: mapName
-            );
-            if (customTexture != null)
-            {
-                newLight.lightTexture = customTexture;
-            }
-            return newLight;
         }
 
         private static IEnumerable<LightSource> GetMapTileLights(GameLocation location)
@@ -77,10 +47,13 @@ namespace MiscMapActionsProperties.Framework.Tile
                     MapTile tile = backLayer.Tiles[x, y];
                     if (tile == null)
                         continue;
-                    if (tile.Properties.TryGetValue(TileProp_Light, out string lightProps) &&
-                        MakeMapLightFromProps(location.NameOrUniqueName, pos, lightProps) is LightSource light)
+                    if (tile.Properties.TryGetValue(TileProp_Light, out string lightProps))
                     {
-                        yield return light;
+                        if (tile.Properties.TryGetValue(TileProp_LightCond, out string lightCond)
+                            && !GameStateQuery.CheckConditions(lightCond, location: location))
+                            continue;
+                        if (Light.MakeMapLightFromProps(lightProps, pos, location.NameOrUniqueName) is LightSource light)
+                            yield return light;
                     }
                 }
             }
@@ -89,20 +62,34 @@ namespace MiscMapActionsProperties.Framework.Tile
             foreach (Building building in location.buildings)
             {
                 BuildingData data = building.GetData();
+
+                HashSet<Tuple<int, int>> bannedTiles = [];
+                foreach (BuildingTileProperty btp in data.TileProperties)
+                {
+                    if (btp.Name != TileProp_LightCond || btp.Layer != "Front")
+                        continue;
+                    if (!GameStateQuery.CheckConditions(btp.Value, location: location))
+                        for (int i = 0; i < btp.TileArea.Width; i++)
+                            for (int j = 0; j < btp.TileArea.Height; j++)
+                                bannedTiles.Add(new(i, j));
+                }
+
                 foreach (BuildingTileProperty btp in data.TileProperties)
                 {
                     if (btp.Name != TileProp_Light || btp.Layer != "Front")
                         continue;
                     string lightProps = btp.Value;
-                    if (MakeMapLightFromProps(
-                        location.NameOrUniqueName,
+                    if (Light.MakeMapLightFromProps(
+                        lightProps,
                         new Vector2(building.tileX.Value, building.tileY.Value),
-                        lightProps) is not LightSource baseLight)
+                        location.NameOrUniqueName) is not LightSource baseLight)
                         continue;
                     for (int i = 0; i < btp.TileArea.Width; i++)
                     {
                         for (int j = 0; j < btp.TileArea.Height; j++)
                         {
+                            if (bannedTiles.Contains(new(i, j)))
+                                continue;
                             Vector2 pos = new(building.tileX.Value + btp.TileArea.X + i, building.tileY.Value + btp.TileArea.Y + j);
                             LightSource light = baseLight.Clone();
                             light.Id = $"{light.Id}+{btp.TileArea.X + i},{btp.TileArea.Y + j}";
