@@ -23,8 +23,18 @@ namespace MiscMapActionsProperties.Framework.Terrain
 
         internal static void Register(IModHelper helper)
         {
+            helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             helper.Events.Player.Warped += OnWarped;
             helper.Events.Content.AssetsInvalidated += OnAssetsInvalidated;
+        }
+
+        private static void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
+        {
+            if (HasHoeDirtOverride(Game1.currentLocation))
+            {
+                ModifyHoeDirtTextureForLocation(Game1.currentLocation);
+                Game1.currentLocation.terrainFeatures.OnValueAdded += ModifyHoeDirtTexture;
+            }
         }
 
         private static void OnWarped(object? sender, WarpedEventArgs e)

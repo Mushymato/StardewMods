@@ -10,14 +10,16 @@ using StardewValley.GameData.Buildings;
 namespace MiscMapActionsProperties.Framework.Tile
 {
     /// <summary>
-    /// Add new tile property mushymato.MMAP_Light [radius] [color] [type|texture]
-    /// Place a light source on a tile
-    /// [type] is either a light id or a texture (must be loaded)
+    /// Add new tile property mushymato.MMAP_Light [radius] [color] [type|texture] [offsetX] [offsetY]
+    /// Place a light source on a tile.
+    /// [type] is either a light id or a texture (must be loaded).
+    /// A GSQ can be used to control the light, by setting mushymato.MMAP_LightCond "GSQ" on the same tile.
     /// </summary>
     internal static class LightSpot
     {
         internal readonly static string TileProp_Light = $"{ModEntry.ModId}_Light";
         internal readonly static string TileProp_LightCond = $"{ModEntry.ModId}_LightCond";
+
         internal static void Patch(Harmony harmony)
         {
             try
@@ -52,7 +54,7 @@ namespace MiscMapActionsProperties.Framework.Tile
                         if (tile.Properties.TryGetValue(TileProp_LightCond, out string lightCond)
                             && !GameStateQuery.CheckConditions(lightCond, location: location))
                             continue;
-                        if (Light.MakeMapLightFromProps(lightProps, pos, location.NameOrUniqueName) is LightSource light)
+                        if (Light.MakeMapLightFromProps(lightProps, pos * Game1.tileSize + new Vector2(Game1.tileSize / 2, Game1.tileSize / 2), location.NameOrUniqueName) is LightSource light)
                             yield return light;
                     }
                 }
