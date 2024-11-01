@@ -38,29 +38,27 @@ namespace MiscMapActionsProperties.Framework.Buildings
 
         private static void OnWarped(object? sender, WarpedEventArgs e)
         {
-            ClearBuildingChestLightWatcher();
+            foreach (var kv in watchers)
+                kv.Value.Unsubscribe();
             AddBuildingChestLightWatcher(e.NewLocation);
         }
 
         private static void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
         {
-            ClearBuildingChestLightWatcher();
+            foreach (var kv in watchers)
+                kv.Value.Dispose();
+            watchers.Clear();
         }
 
         private static void OnAssetsInvalidated(object? sender, AssetsInvalidatedEventArgs e)
         {
             if (e.NamesWithoutLocale.Any(an => an.IsEquivalentTo("Data/Buildings")))
             {
-                ClearBuildingChestLightWatcher();
+                foreach (var kv in watchers)
+                    kv.Value.Dispose();
+                watchers.Clear();
+                GC.Collect();
             }
-        }
-
-        private static void ClearBuildingChestLightWatcher()
-        {
-            // is it neccessary to do this?
-            foreach (var kv in watchers)
-                kv.Value.Dispose();
-            watchers.Clear();
         }
 
         private static void AddBuildingChestLightWatcher(GameLocation location)
@@ -76,7 +74,8 @@ namespace MiscMapActionsProperties.Framework.Buildings
                     string lightName = $"{Metadata_ChestLight_Prefix}{buildingChest.Name}";
                     if (!data.Metadata.TryGetValue(lightName, out string? lightProps))
                         continue;
-                    watchers.Add(buildingChest, new BuildingChestLightWatcher(location, building, buildingChest, lightName, lightProps));
+                    var watch = watchers.GetValue(buildingChest, (chest) => new BuildingChestLightWatcher(building, chest, lightName, lightProps));
+                    watch.Subscribe();
                 }
             }
         }
@@ -86,25 +85,13 @@ namespace MiscMapActionsProperties.Framework.Buildings
     /// Shenanigans for watching building chest changes.
     /// Use with WeakReference or ConditionalWeakTable;
     /// </summary>
-    internal sealed class BuildingChestLightWatcher : IDisposable
+    internal sealed class BuildingChestLightWatcher(Building building, Chest chest, string lightName, string lightProps) : IDisposable
     {
-        private GameLocation location = null!;
-        private Building building = null!;
-        private Chest chest = null!;
-        private readonly string lightName;
-        private readonly string lightProps;
-        private bool wasDisposed = false;
-
-        public BuildingChestLightWatcher(GameLocation location, Building building, Chest chest, string lightName, string lightProps)
-        {
-            this.location = location;
-            this.building = building;
-            this.chest = chest;
-            this.lightName = lightName;
-            this.lightProps = lightProps;
-            this.chest.Items.OnSlotChanged += OnSlotChanged;
-            UpdateBuildingLights();
-        }
+        private Building building = building;
+        private Chest chest = chest;
+        private readonly string lightName = lightName;
+        private readonly string lightProps = lightProps;
+        internal bool wasDisposed = false;
 
         ~BuildingChestLightWatcher() => DisposeValues();
 
@@ -113,7 +100,6 @@ namespace MiscMapActionsProperties.Framework.Buildings
             if (wasDisposed)
                 return;
             chest.Items.OnSlotChanged -= OnSlotChanged;
-            location = null!;
             building = null!;
             chest = null!;
             wasDisposed = true;
@@ -125,10 +111,20 @@ namespace MiscMapActionsProperties.Framework.Buildings
             GC.SuppressFinalize(this);
         }
 
+        public void Subscribe()
+        {
+            UpdateBuildingLights();
+            chest.Items.OnSlotChanged += OnSlotChanged;
+        }
+
+        public void Unsubscribe()
+        {
+            chest.Items.OnSlotChanged -= OnSlotChanged;
+        }
+
         private void OnSlotChanged(Inventory inventory, int index, Item before, Item after)
         {
-            if (Game1.currentLocation == location)
-                UpdateBuildingLights();
+            UpdateBuildingLights();
         }
 
         internal void UpdateBuildingLights()
