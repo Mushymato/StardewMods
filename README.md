@@ -43,9 +43,9 @@ Some spaget to fix issue with Sprites in Detail draw rects in certain context, m
 
 ## Translation Credits
 
-`SprinklerAttachments/i18n/pt.json`
-- [sxdic](https://next.nexusmods.com/profile/sxdic)
+- `SprinklerAttachments/i18n/pt.json`
+  - [sxdic](https://next.nexusmods.com/profile/sxdic)
 
-`ScytheToolEnchantments/i18n/pt.json`
-- [Kiyara99](https://next.nexusmods.com/profile/Kiyara99)
+- `ScytheToolEnchantments/i18n/pt.json`
+  - [Kiyara99](https://next.nexusmods.com/profile/Kiyara99)
 
