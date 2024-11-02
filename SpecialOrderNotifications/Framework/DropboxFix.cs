@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Menus;
 using StardewValley.SpecialOrders;
+using StardewValley.SpecialOrders.Objectives;
 
 namespace SpecialOrderNotifications.Framework
 {
@@ -20,15 +21,15 @@ namespace SpecialOrderNotifications.Framework
                 "DropBox",
                 (location, args, farmer, tile) =>
                 {
-                    if (!ArgUtility.TryGet(args, 1, out var boxId, out string error, allowBlank: true, "string box_id"))
-                    {
-                        location.LogTileActionError(args, tile.X, tile.Y, error);
-                        return false;
-                    }
+                    // if (!ArgUtility.TryGet(args, 1, out var boxId, out string error, allowBlank: true, "string box_id"))
+                    // {
+                    //     location.LogTileActionError(args, tile.X, tile.Y, error);
+                    //     return false;
+                    // }
                     List<SpecialOrder> specialOrders = [];
                     foreach (SpecialOrder specialOrder in Game1.player.team.specialOrders)
                     {
-                        if (specialOrder.UsesDropBox(boxId))
+                        if (UsesDropBoxAnyId(specialOrder))
                         {
                             specialOrders.Add(specialOrder);
                         }
@@ -44,7 +45,7 @@ namespace SpecialOrderNotifications.Framework
                                 boxIdx = 0;
                         }
                         SpecialOrder order = specialOrders[boxIdx];
-                        int minCapacity = order.GetMinimumDropBoxCapacity(boxId);
+                        int minCapacity = GetMinimumDropBoxCapacityAnyId(order);
                         order.donateMutex.RequestLock(delegate
                         {
                             while (order.donatedItems.Count < minCapacity)
@@ -60,5 +61,24 @@ namespace SpecialOrderNotifications.Framework
                 }
             );
         }
+
+        public static bool UsesDropBoxAnyId(SpecialOrder order)
+        {
+            return order.questState.Value == 0 && order.objectives.Any((objective) => objective is DonateObjective);
+        }
+
+        public static int GetMinimumDropBoxCapacityAnyId(SpecialOrder order)
+        {
+            int num = 9;
+            foreach (OrderObjective objective in order.objectives)
+            {
+                if (objective is DonateObjective donateObjective)
+                {
+                    num = Math.Max(num, donateObjective.minimumCapacity.Value);
+                }
+            }
+            return num;
+        }
+
     }
 }
