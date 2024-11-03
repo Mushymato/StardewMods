@@ -19,12 +19,12 @@ namespace MODNAME
         public override void Entry(IModHelper helper)
         {
             mon = Monitor;
+            Config = Helper.ReadConfig<ModConfig>();
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
         }
 
         private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
         {
-            Config = Helper.ReadConfig<ModConfig>();
             Config.Register(Helper, ModManifest);
         }
 
