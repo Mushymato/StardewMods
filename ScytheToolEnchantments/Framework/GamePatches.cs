@@ -240,7 +240,7 @@ namespace ScytheToolEnchantments.Framework
             {
                 if ((__result || __state != __instance.dayOfCurrentPhase.Value) &&
                     isForcedScytheHarvest && junimoHarvester == null &&
-                    Game1.player.CurrentTool.hasEnchantmentOfType<HorticulturistEnchantment>())
+                    (Game1.player.CurrentTool?.hasEnchantmentOfType<HorticulturistEnchantment>() ?? false))
                 {
                     string harvestIndex = __instance.indexOfHarvest.Value;
                     // special case sunflower seeds

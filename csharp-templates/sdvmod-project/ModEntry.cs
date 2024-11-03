@@ -18,6 +18,7 @@ namespace MODNAME
 
         public override void Entry(IModHelper helper)
         {
+            I18n.Init(helper.Translation);
             mon = Monitor;
             Config = Helper.ReadConfig<ModConfig>();
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
