@@ -92,7 +92,7 @@ internal sealed class GamePatches
         return (
             tool is MeleeWeapon weapon
             && weapon.isScythe()
-        // && weapon.hasEnchantmentOfType<CrescentEnchantment>()
+            && weapon.hasEnchantmentOfType<CrescentEnchantment>()
         );
     }
 
