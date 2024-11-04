@@ -1,12 +1,12 @@
-namespace FullInventoryToolbar
+namespace FullInventoryToolbar;
+
+public interface IFullInventoryToolbarApi
 {
-    public interface IFullInventoryToolbarApi
-    {
-        /// <summary>
-        /// Return max number of items allowed for toolbar currently.
-        /// This can change at game runtime if player changes config.
-        /// </summary>
-        /// <returns>max number of items allowed for toolbar</returns>
-        public int GetToolbarMax();
-    }
+    /// <summary>
+    /// Return max number of items allowed for toolbar currently.
+    /// This can change at game runtime if player changes config.
+    /// </summary>
+    /// <returns>max number of items allowed for toolbar</returns>
+    public int GetToolbarMax();
 }
+
