@@ -31,5 +31,12 @@ public interface IScytheToolEnchantmentsApi
     /// <param name="tool">Tool instance</param>
     /// <returns>True if tool has given enchantment</returns>
     public bool HasReaperEnchantment(Tool tool);
+
+    /// <summary>
+    /// Checks if a Tool has CrescentEnchantment.
+    /// </summary>
+    /// <param name="tool">Tool instance</param>
+    /// <returns>True if tool has given enchantment</returns>
+    public bool HasCrescentEnchantment(Tool tool);
 }
 

@@ -12,7 +12,7 @@
   "Author": "mushymato",
   "Version": "1.1.0-Debug",
   "Description": "Add 5 new enchantment effects for the iridium scythe.",
-  "MinimumApiVersion": "4.1.0-beta.5+38a2d2d90049a9ad00e11d5e7ef638380ecb380c",
+  "MinimumApiVersion": "4.1",
   "MinimumGameVersion": "1.6.9",
   "EntryDll": "ScytheToolEnchantments.dll",
   "Dependencies": [

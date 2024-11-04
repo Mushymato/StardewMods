@@ -28,5 +28,11 @@ public class ScytheToolEnchantmentsApi : IScytheToolEnchantmentsApi
     {
         return tool != null && tool.hasEnchantmentOfType<ReaperEnchantment>();
     }
+
+    /// <inheritdoc/>
+    public bool HasCrescentEnchantment(Tool tool)
+    {
+        return tool != null && tool.hasEnchantmentOfType<CrescentEnchantment>();
+    }
 }
 

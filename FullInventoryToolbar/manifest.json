@@ -10,9 +10,9 @@
   "UniqueID": "mushymato.FullInventoryToolbar",
   "Name": "Full Inventory Toolbar",
   "Author": "mushymato",
-  "Version": "1.2.0-Debug",
+  "Version": "1.2.0",
   "Description": "Display entire inventory on screen as interactable toolbar.",
-  "MinimumApiVersion": "4.1.0-beta.5+38a2d2d90049a9ad00e11d5e7ef638380ecb380c",
+  "MinimumApiVersion": "4.1",
   "MinimumGameVersion": "1.6.9",
   "EntryDll": "FullInventoryToolbar.dll",
   "UpdateKeys": [
