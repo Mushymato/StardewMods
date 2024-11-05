@@ -10,7 +10,7 @@
   "UniqueID": "mushymato.SpecialOrderNotifications",
   "Name": "Special Order Notifications",
   "Author": "mushymato",
-  "Version": "1.1.0-Debug",
+  "Version": "1.1.0",
   "Description": "Add notifications for special orders, fix overlapping donate box.",
   "MinimumApiVersion": "4.1",
   "MinimumGameVersion": "1.6.9",

@@ -16,7 +16,7 @@
     <Description>Various map stuff for modders.</Description>
     <UniqueId>mushymato.MMAP</UniqueId>
     <UpdateKeys>Nexus:28423</UpdateKeys>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <MinimumApiVersion_Behavior>Update</MinimumApiVersion_Behavior>
     <MinimumGameVersion_Behavior>UpdateFull</MinimumGameVersion_Behavior>
     <Dependencies_VersionBehavior>UpdateFull</Dependencies_VersionBehavior>
@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.3.1" />
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.0" />
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.1" />
   </ItemGroup>
 
 </Project>

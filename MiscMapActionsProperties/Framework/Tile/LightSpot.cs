@@ -63,9 +63,10 @@ internal static class LightSpot
         // map building layer lights
         foreach (Building building in location.buildings)
         {
-            BuildingData data = building.GetData();
+            if (building.GetData() is not BuildingData data)
+                continue;
 
-            HashSet<Tuple<int, int>> bannedTiles = [];
+            HashSet<ValueTuple<int, int>> bannedTiles = [];
             foreach (BuildingTileProperty btp in data.TileProperties)
             {
                 if (btp.Name != TileProp_LightCond || btp.Layer != "Front")

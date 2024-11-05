@@ -1,4 +1,3 @@
-using MODNAME.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 
