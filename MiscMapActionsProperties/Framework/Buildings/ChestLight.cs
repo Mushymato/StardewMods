@@ -1,14 +1,14 @@
+using System.Runtime.CompilerServices;
+using Microsoft.Xna.Framework;
+using MiscMapActionsProperties.Framework.Wheels;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Buildings;
+using StardewValley.Extensions;
 using StardewValley.GameData.Buildings;
 using StardewValley.Inventories;
 using StardewValley.Objects;
-using MiscMapActionsProperties.Framework.Wheels;
-using StardewValley.Extensions;
-using Microsoft.Xna.Framework;
-using System.Runtime.CompilerServices;
 
 namespace MiscMapActionsProperties.Framework.Buildings;
 
@@ -19,7 +19,7 @@ namespace MiscMapActionsProperties.Framework.Buildings;
 /// </summary>
 internal static class ChestLight
 {
-    internal readonly static string Metadata_ChestLight_Prefix = $"{ModEntry.ModId}/ChestLight.";
+    internal static readonly string Metadata_ChestLight_Prefix = $"{ModEntry.ModId}/ChestLight.";
 
     private static readonly ConditionalWeakTable<Chest, BuildingChestLightWatcher> watchers = [];
 
@@ -74,7 +74,10 @@ internal static class ChestLight
                 string lightName = $"{Metadata_ChestLight_Prefix}{buildingChest.Name}";
                 if (!data.Metadata.TryGetValue(lightName, out string? lightProps))
                     continue;
-                var watch = watchers.GetValue(buildingChest, (chest) => new BuildingChestLightWatcher(building, chest, lightName, lightProps));
+                var watch = watchers.GetValue(
+                    buildingChest,
+                    (chest) => new BuildingChestLightWatcher(building, chest, lightName, lightProps)
+                );
                 watch.Subscribe();
             }
         }
@@ -85,7 +88,12 @@ internal static class ChestLight
 /// Shenanigans for watching building chest changes.
 /// Use with WeakReference or ConditionalWeakTable;
 /// </summary>
-internal sealed class BuildingChestLightWatcher(Building building, Chest chest, string lightName, string lightProps) : IDisposable
+internal sealed class BuildingChestLightWatcher(
+    Building building,
+    Chest chest,
+    string lightName,
+    string lightProps
+) : IDisposable
 {
     private Building building = building;
     private Chest chest = chest;
@@ -131,8 +139,15 @@ internal sealed class BuildingChestLightWatcher(Building building, Chest chest, 
     {
         if (chest.Items.HasAny())
         {
-            if (!Game1.currentLightSources.ContainsKey(lightName) &&
-                Light.MakeLightFromProps(lightProps, lightName, new Vector2(building.tileX.Value, building.tileY.Value) * Game1.tileSize) is LightSource light)
+            if (
+                !Game1.currentLightSources.ContainsKey(lightName)
+                && Light.MakeLightFromProps(
+                    lightProps,
+                    lightName,
+                    new Vector2(building.tileX.Value, building.tileY.Value) * Game1.tileSize
+                )
+                    is LightSource light
+            )
             {
                 Game1.currentLightSources.Add(light);
             }

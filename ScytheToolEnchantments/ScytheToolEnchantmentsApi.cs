@@ -35,4 +35,3 @@ public class ScytheToolEnchantmentsApi : IScytheToolEnchantmentsApi
         return tool != null && tool.hasEnchantmentOfType<CrescentEnchantment>();
     }
 }
-

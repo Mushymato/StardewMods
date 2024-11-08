@@ -9,7 +9,7 @@ public class ModEntry : Mod
 #if DEBUG
     private const LogLevel DEFAULT_LOG_LEVEL = LogLevel.Debug;
 #else
-        private const LogLevel DEFAULT_LOG_LEVEL = LogLevel.Trace;
+    private const LogLevel DEFAULT_LOG_LEVEL = LogLevel.Trace;
 #endif
     private static IMonitor? mon;
     internal static IManifest? manifest = null;
@@ -47,4 +47,3 @@ public class ModEntry : Mod
         mon!.LogOnce(msg, level);
     }
 }
-

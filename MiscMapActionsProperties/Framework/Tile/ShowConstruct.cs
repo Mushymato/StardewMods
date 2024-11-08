@@ -17,7 +17,9 @@ namespace MiscMapActionsProperties.Framework.Tile;
 internal static class ShowConstruct
 {
     internal static readonly string TileAction_ShowConstruct = $"{ModEntry.ModId}_ShowConstruct";
-    internal static readonly string TileAction_ShowConstructForCurrent = $"{ModEntry.ModId}_ShowConstructForCurrent";
+    internal static readonly string TileAction_ShowConstructForCurrent =
+        $"{ModEntry.ModId}_ShowConstructForCurrent";
+
     internal static void Register()
     {
         GameLocation.RegisterTileAction(
@@ -26,7 +28,10 @@ internal static class ShowConstruct
             {
                 if (args.Length < 2)
                 {
-                    ModEntry.LogOnce($"Not enough arguments, Usage: {TileAction_ShowConstruct} <builder> [restrict]", LogLevel.Warn);
+                    ModEntry.LogOnce(
+                        $"Not enough arguments, Usage: {TileAction_ShowConstruct} <builder> [restrict]",
+                        LogLevel.Warn
+                    );
                     return false;
                 }
                 try
@@ -37,7 +42,10 @@ internal static class ShowConstruct
                 }
                 catch (DivideByZeroException)
                 {
-                    ModEntry.LogOnce($"Failed to open construct menu, invalid builder {args[1]}", LogLevel.Error);
+                    ModEntry.LogOnce(
+                        $"Failed to open construct menu, invalid builder {args[1]}",
+                        LogLevel.Error
+                    );
                     return false;
                 }
             }
@@ -49,12 +57,18 @@ internal static class ShowConstruct
             {
                 if (args.Length < 2)
                 {
-                    ModEntry.LogOnce($"Not enough arguments, Usage: {TileAction_ShowConstructForCurrent} <builder> [restrict]", LogLevel.Warn);
+                    ModEntry.LogOnce(
+                        $"Not enough arguments, Usage: {TileAction_ShowConstructForCurrent} <builder> [restrict]",
+                        LogLevel.Warn
+                    );
                     return false;
                 }
                 try
                 {
-                    if (location.IsBuildableLocation() && (args.Length == 2 || !Game1.IsThereABuildingUnderConstruction(args[1])))
+                    if (
+                        location.IsBuildableLocation()
+                        && (args.Length == 2 || !Game1.IsThereABuildingUnderConstruction(args[1]))
+                    )
                     {
                         Game1.activeClickableMenu = new CarpenterMenu(args[1], location);
                         return true;
@@ -70,4 +84,3 @@ internal static class ShowConstruct
         );
     }
 }
-

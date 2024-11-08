@@ -7,6 +7,7 @@ public class ModConfig
 {
     public bool EnableOverlappingDropBoxFix = true;
 }
+
 public class ModEntry : Mod
 {
     private static IMonitor? mon;
@@ -27,4 +28,3 @@ public class ModEntry : Mod
         mon!.Log(msg, level);
     }
 }
-

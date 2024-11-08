@@ -16,12 +16,24 @@ internal static class StackCountTweak
         try
         {
             patcher.Patch(
-                original: AccessTools.DeclaredMethod(typeof(ShopMenu), nameof(ShopMenu.receiveLeftClick)),
-                transpiler: new HarmonyMethod(typeof(StackCountTweak), nameof(ShopMenu_replaceStackCounts_transpiler))
+                original: AccessTools.DeclaredMethod(
+                    typeof(ShopMenu),
+                    nameof(ShopMenu.receiveLeftClick)
+                ),
+                transpiler: new HarmonyMethod(
+                    typeof(StackCountTweak),
+                    nameof(ShopMenu_replaceStackCounts_transpiler)
+                )
             );
             patcher.Patch(
-                original: AccessTools.DeclaredMethod(typeof(ShopMenu), nameof(ShopMenu.receiveRightClick)),
-                transpiler: new HarmonyMethod(typeof(StackCountTweak), nameof(ShopMenu_replaceStackCounts_transpiler))
+                original: AccessTools.DeclaredMethod(
+                    typeof(ShopMenu),
+                    nameof(ShopMenu.receiveRightClick)
+                ),
+                transpiler: new HarmonyMethod(
+                    typeof(StackCountTweak),
+                    nameof(ShopMenu_replaceStackCounts_transpiler)
+                )
             );
         }
         catch (Exception err)
@@ -30,17 +42,23 @@ internal static class StackCountTweak
         }
     }
 
-    private static IEnumerable<CodeInstruction> ShopMenu_replaceStackCounts_transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    private static IEnumerable<CodeInstruction> ShopMenu_replaceStackCounts_transpiler(
+        IEnumerable<CodeInstruction> instructions,
+        ILGenerator generator
+    )
     {
         try
         {
             CodeMatcher matcher = new(instructions, generator);
 
-            matcher.MatchStartForward(new CodeMatch[]{
+            matcher.MatchStartForward(
+                new CodeMatch[]
+                {
                     new(OpCodes.Ldc_I4_S, (sbyte)25),
                     new(OpCodes.Br_S),
-                    new(OpCodes.Ldc_I4, 999)
-                });
+                    new(OpCodes.Ldc_I4, 999),
+                }
+            );
             matcher.Operand = 24;
 
             return matcher.Instructions();

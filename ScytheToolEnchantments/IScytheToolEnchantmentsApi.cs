@@ -39,4 +39,3 @@ public interface IScytheToolEnchantmentsApi
     /// <returns>True if tool has given enchantment</returns>
     public bool HasCrescentEnchantment(Tool tool);
 }
-

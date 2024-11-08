@@ -13,7 +13,7 @@
   "Version": "1.1.0",
   "Description": "Add notifications for special orders, fix overlapping donate box.",
   "MinimumApiVersion": "4.1",
-  "MinimumGameVersion": "1.6.9",
+  "MinimumGameVersion": "1.6.13",
   "EntryDll": "SpecialOrderNotifications.dll",
   "UpdateKeys": [
     "Nexus:25999"

@@ -7,14 +7,15 @@ using StardewValley.SpecialOrders.Objectives;
 
 namespace SpecialOrderNotifications.Framework;
 
-internal record PreviouslyOpenedDonateTile(
-    Point Tile,
-    int BoxIdx
-);
+internal record PreviouslyOpenedDonateTile(Point Tile, int BoxIdx);
 
 internal static class DropboxFix
 {
-    private static readonly ConditionalWeakTable<GameLocation, PreviouslyOpenedDonateTile?> previousOpen = [];
+    private static readonly ConditionalWeakTable<
+        GameLocation,
+        PreviouslyOpenedDonateTile?
+    > previousOpen = [];
+
     internal static void Register()
     {
         GameLocation.RegisterTileAction(
@@ -46,15 +47,27 @@ internal static class DropboxFix
                     }
                     SpecialOrder order = specialOrders[boxIdx];
                     int minCapacity = GetMinimumDropBoxCapacityAnyId(order);
-                    order.donateMutex.RequestLock(delegate
-                    {
-                        while (order.donatedItems.Count < minCapacity)
+                    order.donateMutex.RequestLock(
+                        delegate
                         {
-                            order.donatedItems.Add(null);
+                            while (order.donatedItems.Count < minCapacity)
+                            {
+                                order.donatedItems.Add(null);
+                            }
+                            Game1.activeClickableMenu = new QuestContainerMenu(
+                                order.donatedItems,
+                                3,
+                                order.HighlightAcceptableItems,
+                                order.GetAcceptCount,
+                                order.UpdateDonationCounts,
+                                order.ConfirmCompleteDonations
+                            );
                         }
-                        Game1.activeClickableMenu = new QuestContainerMenu(order.donatedItems, 3, order.HighlightAcceptableItems, order.GetAcceptCount, order.UpdateDonationCounts, order.ConfirmCompleteDonations);
-                    });
-                    previousOpen.AddOrUpdate(location, new PreviouslyOpenedDonateTile(tile, boxIdx));
+                    );
+                    previousOpen.AddOrUpdate(
+                        location,
+                        new PreviouslyOpenedDonateTile(tile, boxIdx)
+                    );
                     return true;
                 }
                 return false;
@@ -64,7 +77,8 @@ internal static class DropboxFix
 
     public static bool UsesDropBoxAnyId(SpecialOrder order)
     {
-        return order.questState.Value == 0 && order.objectives.Any((objective) => objective is DonateObjective);
+        return order.questState.Value == 0
+            && order.objectives.Any((objective) => objective is DonateObjective);
     }
 
     public static int GetMinimumDropBoxCapacityAnyId(SpecialOrder order)
@@ -79,6 +93,4 @@ internal static class DropboxFix
         }
         return num;
     }
-
 }
-

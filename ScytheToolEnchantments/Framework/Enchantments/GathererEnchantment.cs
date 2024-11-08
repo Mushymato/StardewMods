@@ -22,6 +22,10 @@ public class GathererEnchantment : ScytheEnchantment
     {
         base._OnCutWeed(tile_location, location, who);
         if (Random.Shared.NextBool())
-            Game1.createItemDebris(ItemRegistry.Create("(O)771"), new Vector2(tile_location.X * 64f + 32f, tile_location.Y * 64f + 32f), -1);
+            Game1.createItemDebris(
+                ItemRegistry.Create("(O)771"),
+                new Vector2(tile_location.X * 64f + 32f, tile_location.Y * 64f + 32f),
+                -1
+            );
     }
 }

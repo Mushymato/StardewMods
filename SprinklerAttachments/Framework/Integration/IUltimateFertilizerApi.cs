@@ -6,6 +6,7 @@ namespace SprinklerAttachments.Framework.Integration;
 public interface IUltimateFertilizerApi
 {
     public const string ModId = "fox_white25.ultimate_fertilizer";
+
     /// <summary>Apply fertilizer to a HoeDirt instance without side-effects.</summary>
     /// <param name="dirt">The HoeDirt instance.</param>
     /// <param name="itemId">The fertilizer you want to apply.</param>

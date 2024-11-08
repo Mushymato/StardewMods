@@ -13,7 +13,7 @@ namespace MiscMapActionsProperties.Framework.Tile;
 /// </summary>
 internal static class AnimalSpot
 {
-    internal readonly static string TileProp_AnimalSpot = $"{ModEntry.ModId}_AnimalSpot";
+    internal static readonly string TileProp_AnimalSpot = $"{ModEntry.ModId}_AnimalSpot";
     private static readonly ConditionalWeakTable<xTile.Map, List<Vector2>> animalSpotsCache = [];
 
     internal static void Register(IModHelper helper)
@@ -26,8 +26,14 @@ internal static class AnimalSpot
         try
         {
             harmony.Patch(
-                original: AccessTools.Method(typeof(FarmAnimal), nameof(FarmAnimal.setRandomPosition)),
-                prefix: new HarmonyMethod(typeof(AnimalSpot), nameof(FarmAnimal_setRandomPosition_Prefix))
+                original: AccessTools.Method(
+                    typeof(FarmAnimal),
+                    nameof(FarmAnimal.setRandomPosition)
+                ),
+                prefix: new HarmonyMethod(
+                    typeof(AnimalSpot),
+                    nameof(FarmAnimal_setRandomPosition_Prefix)
+                )
             );
         }
         catch (Exception err)
@@ -73,7 +79,10 @@ internal static class AnimalSpot
         return false;
     }
 
-    private static bool FarmAnimal_setRandomPosition_Prefix(FarmAnimal __instance, GameLocation location)
+    private static bool FarmAnimal_setRandomPosition_Prefix(
+        FarmAnimal __instance,
+        GameLocation location
+    )
     {
         try
         {
@@ -83,9 +92,18 @@ internal static class AnimalSpot
             foreach (Vector2 pos in animalSpots)
             {
                 _base.Position = pos * 64;
-                if (location.Objects.ContainsKey(pos) ||
-                    HasOtherAnimals(__instance, location, pos) ||
-                    location.isCollidingPosition(_base.GetBoundingBox(), Game1.viewport, isFarmer: false, 0, glider: false, __instance))
+                if (
+                    location.Objects.ContainsKey(pos)
+                    || HasOtherAnimals(__instance, location, pos)
+                    || location.isCollidingPosition(
+                        _base.GetBoundingBox(),
+                        Game1.viewport,
+                        isFarmer: false,
+                        0,
+                        glider: false,
+                        __instance
+                    )
+                )
                     continue;
                 __instance.SleepIfNecessary();
                 return false;

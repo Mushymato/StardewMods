@@ -11,6 +11,7 @@ public static class QuestPingHelper
 {
     private static Texture2D? JunimoKart;
     private static Texture2D? MineTiles;
+
     // private static readonly Lazy<FieldInfo> questPingTextureField =
     //     new(() => Game1.dayTimeMoneyBox.GetType().GetField("questPingTexture", BindingFlags.NonPublic | BindingFlags.Instance)!);
     // private static readonly Lazy<FieldInfo> questPingSourceRectField =
@@ -19,10 +20,18 @@ public static class QuestPingHelper
     //     new(() => Game1.dayTimeMoneyBox.GetType().GetField("questPingString", BindingFlags.NonPublic | BindingFlags.Instance)!);
     // private static readonly Lazy<FieldInfo> questNotificationTimerField =
     //     new(() => Game1.dayTimeMoneyBox.GetType().GetField("questNotificationTimer", BindingFlags.NonPublic | BindingFlags.Instance)!);
-    private static readonly FieldInfo questPingTextureField = Game1.dayTimeMoneyBox.GetType().GetField("questPingTexture", BindingFlags.NonPublic | BindingFlags.Instance)!;
-    private static readonly FieldInfo questPingSourceRectField = Game1.dayTimeMoneyBox.GetType().GetField("questPingSourceRect", BindingFlags.NonPublic | BindingFlags.Instance)!;
-    private static readonly FieldInfo questPingStringField = Game1.dayTimeMoneyBox.GetType().GetField("questPingString", BindingFlags.NonPublic | BindingFlags.Instance)!;
-    private static readonly FieldInfo questNotificationTimerField = Game1.dayTimeMoneyBox.GetType().GetField("questNotificationTimer", BindingFlags.NonPublic | BindingFlags.Instance)!;
+    private static readonly FieldInfo questPingTextureField = Game1
+        .dayTimeMoneyBox.GetType()
+        .GetField("questPingTexture", BindingFlags.NonPublic | BindingFlags.Instance)!;
+    private static readonly FieldInfo questPingSourceRectField = Game1
+        .dayTimeMoneyBox.GetType()
+        .GetField("questPingSourceRect", BindingFlags.NonPublic | BindingFlags.Instance)!;
+    private static readonly FieldInfo questPingStringField = Game1
+        .dayTimeMoneyBox.GetType()
+        .GetField("questPingString", BindingFlags.NonPublic | BindingFlags.Instance)!;
+    private static readonly FieldInfo questNotificationTimerField = Game1
+        .dayTimeMoneyBox.GetType()
+        .GetField("questNotificationTimer", BindingFlags.NonPublic | BindingFlags.Instance)!;
 
     /// <summary>
     /// Set questPing(Texture|SourceRect|String) and questNotificationTimer fields on Game1.dayTimeMoneyBox via reflection
@@ -31,7 +40,12 @@ public static class QuestPingHelper
     /// <param name="questPingSourceRect"></param>
     /// <param name="questPingString"></param>
     /// <param name="questNotificationTimer"></param>
-    public static void SetQuestPing(Texture2D questPingTexture, Rectangle questPingSourceRect, string? questPingString, int questNotificationTimer = 3000)
+    public static void SetQuestPing(
+        Texture2D questPingTexture,
+        Rectangle questPingSourceRect,
+        string? questPingString,
+        int questNotificationTimer = 3000
+    )
     {
         // questPingTextureField.Value.SetValue(Game1.dayTimeMoneyBox, questPingTexture);
         // questPingSourceRectField.Value.SetValue(Game1.dayTimeMoneyBox, questPingSourceRect);
@@ -42,7 +56,6 @@ public static class QuestPingHelper
         questPingSourceRectField.SetValue(Game1.dayTimeMoneyBox, questPingSourceRect);
         questPingStringField.SetValue(Game1.dayTimeMoneyBox, questPingString);
         questNotificationTimerField.SetValue(Game1.dayTimeMoneyBox, questNotificationTimer);
-
     }
 
     /// <summary>
@@ -53,9 +66,20 @@ public static class QuestPingHelper
     /// <param name="current"></param>
     /// <param name="max"></param>
     /// <param name="questNotificationTimer"></param>
-    public static void SetQuestPing(Texture2D questPingTexture, Rectangle questPingSourceRect, int current, int max, int questNotificationTimer = 3000)
+    public static void SetQuestPing(
+        Texture2D questPingTexture,
+        Rectangle questPingSourceRect,
+        int current,
+        int max,
+        int questNotificationTimer = 3000
+    )
     {
-        SetQuestPing(questPingTexture, questPingSourceRect, current != max ? $"{current}/{max}" : null, questNotificationTimer: questNotificationTimer);
+        SetQuestPing(
+            questPingTexture,
+            questPingSourceRect,
+            current != max ? $"{current}/{max}" : null,
+            questNotificationTimer: questNotificationTimer
+        );
     }
 
     /// <summary>
@@ -66,39 +90,128 @@ public static class QuestPingHelper
     /// <param name="questPingTexture"></param>
     /// <param name="questPingSourceRect"></param>
     /// <param name="questPingString"></param>
-    public static void DrawQuestPingBox(SpriteBatch b, Vector2 position, Texture2D questPingTexture, Rectangle questPingSourceRect, string? questPingString)
+    public static void DrawQuestPingBox(
+        SpriteBatch b,
+        Vector2 position,
+        Texture2D questPingTexture,
+        Rectangle questPingSourceRect,
+        string? questPingString
+    )
     {
         Vector2 basePosition = position + new Vector2(27f, 76f) * 4f;
-        Vector2 stringSize = questPingString == null ? Vector2.Zero : Game1.smallFont.MeasureString(questPingString);
+        Vector2 stringSize =
+            questPingString == null ? Vector2.Zero : Game1.smallFont.MeasureString(questPingString);
         if (stringSize.X < 60)
         {
-            b.Draw(Game1.mouseCursors_1_6, basePosition, new Rectangle(257, 228, 39, 18), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.9f);
-            b.Draw(questPingTexture, basePosition + new Vector2(1f, 1f) * 4f, questPingSourceRect, Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.91f);
+            b.Draw(
+                Game1.mouseCursors_1_6,
+                basePosition,
+                new Rectangle(257, 228, 39, 18),
+                Color.White,
+                0f,
+                Vector2.Zero,
+                4f,
+                SpriteEffects.None,
+                0.9f
+            );
+            b.Draw(
+                questPingTexture,
+                basePosition + new Vector2(1f, 1f) * 4f,
+                questPingSourceRect,
+                Color.White,
+                0f,
+                Vector2.Zero,
+                4f,
+                SpriteEffects.None,
+                0.91f
+            );
             if (questPingString == null)
-                b.Draw(Game1.mouseCursors_1_6, basePosition + new Vector2(22f, 5f) * 4f, new Rectangle(297, 229, 9, 8), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.91f);
+                b.Draw(
+                    Game1.mouseCursors_1_6,
+                    basePosition + new Vector2(22f, 5f) * 4f,
+                    new Rectangle(297, 229, 9, 8),
+                    Color.White,
+                    0f,
+                    Vector2.Zero,
+                    4f,
+                    SpriteEffects.None,
+                    0.91f
+                );
             else
-                Utility.drawTextWithShadow(b, questPingString, Game1.smallFont, basePosition + new Vector2(27f, 9.5f) * 4f - stringSize * 0.5f, Game1.textColor);
+                Utility.drawTextWithShadow(
+                    b,
+                    questPingString,
+                    Game1.smallFont,
+                    basePosition + new Vector2(27f, 9.5f) * 4f - stringSize * 0.5f,
+                    Game1.textColor
+                );
         }
         else
         {
             int extraM = Math.Max(0, (int)Math.Floor(stringSize.X / 4 - 15));
             basePosition.X -= extraM * 4;
             // left (square) and first segment
-            b.Draw(Game1.mouseCursors_1_6, basePosition, new(257, 228, 31, 18), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.9f);
-            b.Draw(questPingTexture, basePosition + new Vector2(1f, 1f) * 4f, questPingSourceRect, Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.91f);
+            b.Draw(
+                Game1.mouseCursors_1_6,
+                basePosition,
+                new(257, 228, 31, 18),
+                Color.White,
+                0f,
+                Vector2.Zero,
+                4f,
+                SpriteEffects.None,
+                0.9f
+            );
+            b.Draw(
+                questPingTexture,
+                basePosition + new Vector2(1f, 1f) * 4f,
+                questPingSourceRect,
+                Color.White,
+                0f,
+                Vector2.Zero,
+                4f,
+                SpriteEffects.None,
+                0.91f
+            );
             // extra middle segment
             Vector2 offset = new(31f, 0f);
-            b.Draw(Game1.mouseCursors_1_6, basePosition + offset * 4f, new(287, 228, 1, 18), Color.White, 0f, Vector2.Zero, new Vector2(4f * extraM, 4f), SpriteEffects.None, 0.9f);
+            b.Draw(
+                Game1.mouseCursors_1_6,
+                basePosition + offset * 4f,
+                new(287, 228, 1, 18),
+                Color.White,
+                0f,
+                Vector2.Zero,
+                new Vector2(4f * extraM, 4f),
+                SpriteEffects.None,
+                0.9f
+            );
             offset.X += extraM;
             // tail
-            b.Draw(Game1.mouseCursors_1_6, basePosition + offset * 4f, new(288, 228, 8, 18), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.9f);
+            b.Draw(
+                Game1.mouseCursors_1_6,
+                basePosition + offset * 4f,
+                new(288, 228, 8, 18),
+                Color.White,
+                0f,
+                Vector2.Zero,
+                4f,
+                SpriteEffects.None,
+                0.9f
+            );
             basePosition.X += extraM / 2;
             // text
             offset = new Vector2(offset.X, 9.5f) * 4;
             offset.X += 11; // magic number weh
             offset.X -= stringSize.X;
             offset.Y -= stringSize.Y / 2;
-            Utility.drawTextWithShadow(b, questPingString, Game1.smallFont, basePosition + offset, Game1.textColor);
+            Utility.drawTextWithShadow(
+                b,
+                questPingString,
+                Game1.smallFont,
+                basePosition + offset,
+                Game1.textColor
+            );
         }
     }
 
@@ -165,11 +278,7 @@ public static class QuestPingHelper
     /// <param name="max"></param>
     public static void PingGift(int current, int max)
     {
-        SetQuestPing(
-            Game1.mouseCursors2,
-            new Rectangle(166, 174, 14, 12),
-            current, max
-        );
+        SetQuestPing(Game1.mouseCursors2, new Rectangle(166, 174, 14, 12), current, max);
     }
 
     /// <summary>
@@ -194,4 +303,3 @@ public static class QuestPingHelper
         SetQuestPing(MineTiles, new Rectangle(208, 160, 16, 16), current, max);
     }
 }
-

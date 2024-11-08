@@ -13,12 +13,12 @@
   "Version": "1.1.0",
   "Description": "Add 5 new enchantment effects for the iridium scythe.",
   "MinimumApiVersion": "4.1",
-  "MinimumGameVersion": "1.6.10",
+  "MinimumGameVersion": "1.6.13",
   "EntryDll": "ScytheToolEnchantments.dll",
   "Dependencies": [
     {
       "UniqueID": "spacechase0.SpaceCore",
-      "MinimumVersion": "1.26"
+      "MinimumVersion": "1.26.1"
     }
   ],
   "UpdateKeys": [

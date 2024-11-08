@@ -1,6 +1,5 @@
 // https://github.com/atravita-mods/StardewMods/blob/1db0a9587f1f5963a2f7e09ebd40824f351326c4/ExperimentalLagReduction/HarmonyPatches/MiniChanges/ItemSortRewrite.cs
 using HarmonyLib;
-
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Extensions;
@@ -17,7 +16,9 @@ internal static class AtravitaItemSortTweak
     {
         patcher.Patch(
             original: AccessTools.Method(typeof(Item), nameof(Item.CompareTo)),
-            prefix: new HarmonyMethod(AccessTools.Method(typeof(AtravitaItemSortTweak), nameof(Item_CompareTo_Prefix)))
+            prefix: new HarmonyMethod(
+                AccessTools.Method(typeof(AtravitaItemSortTweak), nameof(Item_CompareTo_Prefix))
+            )
         );
     }
 
@@ -75,7 +76,12 @@ internal static class AtravitaItemSortTweak
         // }
 
         // sort by preserve ID for preserves.
-        if (__instance is SObject myObj && myObj.HasTypeObject() && otherItem is SObject otherObj && otherObj.HasTypeObject())
+        if (
+            __instance is SObject myObj
+            && myObj.HasTypeObject()
+            && otherItem is SObject otherObj
+            && otherObj.HasTypeObject()
+        )
         {
             string? myPreserveId = myObj.preservedParentSheetIndex.Value;
             string? otherPreserveId = otherObj.preservedParentSheetIndex.Value;
@@ -92,7 +98,9 @@ internal static class AtravitaItemSortTweak
             string? myPreserveName = myPreserveId?.GetInternalObjectName();
             string? otherPreserveName = otherPreserveId?.GetInternalObjectName();
 
-            __result = myPreserveName?.CompareTo(otherPreserveName) ?? (myPreserveName == otherPreserveName ? 0 : -1);
+            __result =
+                myPreserveName?.CompareTo(otherPreserveName)
+                ?? (myPreserveName == otherPreserveName ? 0 : -1);
             if (__result != 0)
             {
                 return false;
@@ -112,10 +120,24 @@ internal static class AtravitaItemSortTweak
             if (otherItem is ColoredObject otherColor)
             {
                 Color myColorV = myColor.color.Value;
-                ColorPicker.RGBtoHSV(myColorV.R, myColorV.G, myColorV.B, out float myHue, out float mySat, out float myValue);
+                ColorPicker.RGBtoHSV(
+                    myColorV.R,
+                    myColorV.G,
+                    myColorV.B,
+                    out float myHue,
+                    out float mySat,
+                    out float myValue
+                );
 
                 Color otherColorV = otherColor.color.Value;
-                ColorPicker.RGBtoHSV(otherColorV.R, otherColorV.G, otherColorV.B, out float otherHue, out float otherSat, out float otherValue);
+                ColorPicker.RGBtoHSV(
+                    otherColorV.R,
+                    otherColorV.G,
+                    otherColorV.B,
+                    out float otherHue,
+                    out float otherSat,
+                    out float otherValue
+                );
 
                 __result = myHue.CompareTo(otherHue);
                 if (__result != 0)
@@ -152,9 +174,10 @@ internal static class AtravitaItemSortTweak
         return __result == 0;
     }
 
-    private static string GetInternalName(this Item item)
-        => ItemRegistry.GetData(item.QualifiedItemId)?.InternalName ?? (string.IsNullOrEmpty(item.Name) ? item.DisplayName : item.Name);
+    private static string GetInternalName(this Item item) =>
+        ItemRegistry.GetData(item.QualifiedItemId)?.InternalName
+        ?? (string.IsNullOrEmpty(item.Name) ? item.DisplayName : item.Name);
 
-    private static string? GetInternalObjectName(this string id)
-        => ItemRegistry.GetTypeDefinition(ItemRegistry.type_object)?.GetData(id)?.InternalName;
+    private static string? GetInternalObjectName(this string id) =>
+        ItemRegistry.GetTypeDefinition(ItemRegistry.type_object)?.GetData(id)?.InternalName;
 }

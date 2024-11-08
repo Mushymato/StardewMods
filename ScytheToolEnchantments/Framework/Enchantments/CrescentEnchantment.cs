@@ -24,7 +24,11 @@ public class CrescentEnchantment : ScytheEnchantment
     /// <param name="facingDirection"></param>
     /// <param name="currentAnimationIndex"></param>
     /// <returns></returns>
-    public static IEnumerable<Vector2> GetCrescentAOE(Point tile, int facingDirection, int currentAnimationIndex)
+    public static IEnumerable<Vector2> GetCrescentAOE(
+        Point tile,
+        int facingDirection,
+        int currentAnimationIndex
+    )
     {
         int arcOffset = currentAnimationIndex switch
         {
@@ -34,7 +38,7 @@ public class CrescentEnchantment : ScytheEnchantment
             3 => 2,
             4 => 1,
             5 => 0,
-            _ => currentAnimationIndex
+            _ => currentAnimationIndex,
         };
         int swingOffset = currentAnimationIndex + ((currentAnimationIndex > 2) ? 1 : 0);
         switch (facingDirection)
@@ -108,7 +112,5 @@ public class CrescentEnchantment : ScytheEnchantment
                         yield return new Vector2(tile.X + i, tile.Y);
                 break;
         }
-
     }
 }
-

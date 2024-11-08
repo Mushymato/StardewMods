@@ -1,9 +1,9 @@
-using Microsoft.Xna.Framework;
 using System.Xml.Serialization;
+using Microsoft.Xna.Framework;
 using StardewValley;
-using StardewValley.Tools;
-using StardewValley.Monsters;
 using StardewValley.GameData.Weapons;
+using StardewValley.Monsters;
+using StardewValley.Tools;
 
 namespace ScytheToolEnchantments.Framework.Enchantments;
 
@@ -56,10 +56,18 @@ public class ReaperEnchantment : ScytheEnchantment
         }
     }
 
-    public override void OnMonsterSlay(Monster monster, GameLocation location, Farmer who, bool slainByBomb)
+    public override void OnMonsterSlay(
+        Monster monster,
+        GameLocation location,
+        Farmer who,
+        bool slainByBomb
+    )
     {
         base.OnMonsterSlay(monster, location, who, slainByBomb);
-        if (!slainByBomb && DataLoader.Monsters(Game1.content).TryGetValue(monster.Name, out var result))
+        if (
+            !slainByBomb
+            && DataLoader.Monsters(Game1.content).TryGetValue(monster.Name, out var result)
+        )
         {
             Vector2 monsterPosition = Utility.PointToVector2(monster.StandingPixel);
             Vector2 playerPosition = Utility.PointToVector2(who.StandingPixel);
@@ -77,16 +85,32 @@ public class ReaperEnchantment : ScytheEnchantment
             for (int k = 0; k < objects.Count; k++)
             {
                 string objectToAdd = objects[k];
-                if (objectToAdd != null && objectToAdd.StartsWith('-') && int.TryParse(objectToAdd, out var parsedIndex))
+                if (
+                    objectToAdd != null
+                    && objectToAdd.StartsWith('-')
+                    && int.TryParse(objectToAdd, out var parsedIndex)
+                )
                 {
-                    location.debris.Add(monster.ModifyMonsterLoot(new Debris(Math.Abs(parsedIndex), Random.Shared.Next(1, 4), monsterPosition, playerPosition)));
+                    location.debris.Add(
+                        monster.ModifyMonsterLoot(
+                            new Debris(
+                                Math.Abs(parsedIndex),
+                                Random.Shared.Next(1, 4),
+                                monsterPosition,
+                                playerPosition
+                            )
+                        )
+                    );
                 }
                 else
                 {
-                    location.debris.Add(monster.ModifyMonsterLoot(new Debris(objectToAdd, monsterPosition, playerPosition)));
+                    location.debris.Add(
+                        monster.ModifyMonsterLoot(
+                            new Debris(objectToAdd, monsterPosition, playerPosition)
+                        )
+                    );
                 }
             }
         }
     }
 }
-

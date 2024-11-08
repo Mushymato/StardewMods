@@ -16,4 +16,3 @@ public class HorticulturistEnchantment : ScytheEnchantment
         return base.CanApplyTo(item) && ModEntry.Config!.EnableHorticulturist;
     }
 }
-

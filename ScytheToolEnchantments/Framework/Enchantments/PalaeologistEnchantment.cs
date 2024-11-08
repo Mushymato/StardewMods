@@ -23,12 +23,18 @@ public class PalaeontologistEnchantment : ScytheEnchantment
     public static bool TryGetRandomBoneItem([NotNullWhen(true)] out Item? boneItem)
     {
         boneItem = null;
-        if (ItemQueryResolver.TryResolve(
-            "ALL_ITEMS",
-            new ItemQueryContext(Game1.currentLocation, Game1.player, Game1.random),
-            ItemQuerySearchMode.RandomOfTypeItem,
-            "ITEM_CONTEXT_TAG Target bone_item !id_o_881"
-        ).FirstOrDefault()?.Item is not Item item)
+        if (
+            ItemQueryResolver
+                .TryResolve(
+                    "ALL_ITEMS",
+                    new ItemQueryContext(Game1.currentLocation, Game1.player, Game1.random),
+                    ItemQuerySearchMode.RandomOfTypeItem,
+                    "ITEM_CONTEXT_TAG Target bone_item !id_o_881"
+                )
+                .FirstOrDefault()
+                ?.Item
+            is not Item item
+        )
             return false;
         boneItem = item;
         return true;
@@ -44,14 +50,22 @@ public class PalaeontologistEnchantment : ScytheEnchantment
     {
         if (Random.Shared.NextBool())
         {
-            Game1.createItemDebris(ItemRegistry.Create("(O)881"), new Vector2(tile_location.X * 64f + 32f, tile_location.Y * 64f + 32f), -1);
+            Game1.createItemDebris(
+                ItemRegistry.Create("(O)881"),
+                new Vector2(tile_location.X * 64f + 32f, tile_location.Y * 64f + 32f),
+                -1
+            );
         }
         if (Random.Shared.NextDouble() < 0.05)
         {
             // Game1.createItemDebris(location.tryGetRandomArtifactFromThisLocation(who, Game1.random), new Vector2(tile_location.X * 64f + 32f, tile_location.Y * 64f + 32f), -1);
             if (TryGetRandomBoneItem(out Item? boneItem))
             {
-                Game1.createItemDebris(boneItem, new Vector2(tile_location.X * 64f + 32f, tile_location.Y * 64f + 32f), -1);
+                Game1.createItemDebris(
+                    boneItem,
+                    new Vector2(tile_location.X * 64f + 32f, tile_location.Y * 64f + 32f),
+                    -1
+                );
             }
         }
     }
@@ -62,4 +76,3 @@ public class PalaeontologistEnchantment : ScytheEnchantment
         DropItems(tile_location);
     }
 }
-

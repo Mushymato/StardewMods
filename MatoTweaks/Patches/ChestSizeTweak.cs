@@ -12,8 +12,14 @@ internal static class ChestSizeTweak
         try
         {
             patcher.Patch(
-                original: AccessTools.DeclaredMethod(typeof(Chest), nameof(Chest.GetActualCapacity)),
-                postfix: new HarmonyMethod(typeof(ChestSizeTweak), nameof(Chest_GetActualCapacity_Postfix))
+                original: AccessTools.DeclaredMethod(
+                    typeof(Chest),
+                    nameof(Chest.GetActualCapacity)
+                ),
+                postfix: new HarmonyMethod(
+                    typeof(ChestSizeTweak),
+                    nameof(Chest_GetActualCapacity_Postfix)
+                )
             );
         }
         catch (Exception err)

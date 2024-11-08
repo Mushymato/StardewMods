@@ -1,21 +1,23 @@
-﻿using StardewModdingAPI;
+﻿using HarmonyLib;
+using MatoTweaks.Patches;
+using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.GameData;
 using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
 using StardewObject = StardewValley.Object;
-using HarmonyLib;
-using MatoTweaks.Patches;
 
 namespace MatoTweaks;
 
 public class ModEntry : Mod
 {
     private static IMonitor? mon = null;
-    private static readonly string[] ExcludedMachines = {
-            "(BC)20", // recycling machine
-        };
+    private static readonly string[] ExcludedMachines =
+    {
+        "(BC)20", // recycling machine
+    };
+
     public override void Entry(IModHelper helper)
     {
         mon = Monitor;
@@ -44,14 +46,23 @@ public class ModEntry : Mod
         IDictionary<string, MachineData> data = asset.AsDictionary<string, MachineData>().Data;
         foreach ((string qItemId, MachineData machine) in data)
         {
-            if (machine.IsIncubator || machine.OutputRules == null || !machine.AllowFairyDust || ExcludedMachines.Contains(qItemId))
+            if (
+                machine.IsIncubator
+                || machine.OutputRules == null
+                || !machine.AllowFairyDust
+                || ExcludedMachines.Contains(qItemId)
+            )
                 continue;
 
             foreach (MachineOutputRule rule in machine.OutputRules)
             {
                 if (rule.OutputItem == null)
                     continue;
-                if (rule.Triggers.Any((trig) => trig.Trigger != MachineOutputTrigger.ItemPlacedInMachine))
+                if (
+                    rule.Triggers.Any(
+                        (trig) => trig.Trigger != MachineOutputTrigger.ItemPlacedInMachine
+                    )
+                )
                     continue;
                 rule.OutputItem.ForEach(item =>
                 {
@@ -66,19 +77,28 @@ public class ModEntry : Mod
                         if (splitArgs.Length < 3)
                             return;
                         isArtisan = true;
-                        if (Utility.TryParseEnum<StardewObject.PreserveType>(splitArgs[1], out var type))
-                            isArtisan = type != StardewObject.PreserveType.Bait && type != StardewObject.PreserveType.Roe;
+                        if (
+                            Utility.TryParseEnum<StardewObject.PreserveType>(
+                                splitArgs[1],
+                                out var type
+                            )
+                        )
+                            isArtisan =
+                                type != StardewObject.PreserveType.Bait
+                                && type != StardewObject.PreserveType.Roe;
                     }
-                    if (isArtisan) // keep quality artisan recipes, 
+                    if (isArtisan) // keep quality artisan recipes,
                     {
                         if (item.Quality == 2)
                         { // special case large milk/egg, copy quality, but produce 2
                             item.StackModifiers ??= [];
-                            item.StackModifiers.Add(new()
-                            {
-                                Modification = QuantityModifier.ModificationType.Add,
-                                Amount = 1
-                            });
+                            item.StackModifiers.Add(
+                                new()
+                                {
+                                    Modification = QuantityModifier.ModificationType.Add,
+                                    Amount = 1,
+                                }
+                            );
                             item.Quality = -1;
                         }
                         item.CopyQuality = true;
@@ -86,23 +106,25 @@ public class ModEntry : Mod
                     else // increase output depending on input quality
                     {
                         item.StackModifiers ??= [];
-                        item.StackModifiers.Add(new()
-                        {
-                            Condition = "ITEM_QUALITY Input 2 2",
-                            Modification = QuantityModifier.ModificationType.Add,
-                            Amount = 1
-                        });
-                        item.StackModifiers.Add(new()
-                        {
-                            Condition = "ITEM_QUALITY Input 4 4",
-                            Modification = QuantityModifier.ModificationType.Add,
-                            Amount = 2
-                        });
+                        item.StackModifiers.Add(
+                            new()
+                            {
+                                Condition = "ITEM_QUALITY Input 2 2",
+                                Modification = QuantityModifier.ModificationType.Add,
+                                Amount = 1,
+                            }
+                        );
+                        item.StackModifiers.Add(
+                            new()
+                            {
+                                Condition = "ITEM_QUALITY Input 4 4",
+                                Modification = QuantityModifier.ModificationType.Add,
+                                Amount = 2,
+                            }
+                        );
                     }
                 });
             }
         }
     }
-
 }
-

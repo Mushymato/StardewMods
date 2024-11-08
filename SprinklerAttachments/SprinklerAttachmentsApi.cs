@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
-using StardewValley;
-using StardewValley.Objects;
-using StardewValley.GameData.Objects;
-using StardewObject = StardewValley.Object;
 using SprinklerAttachments.Framework;
+using StardewValley;
+using StardewValley.GameData.Objects;
+using StardewValley.Objects;
+using StardewObject = StardewValley.Object;
 
 namespace SprinklerAttachments;
 
@@ -14,16 +14,26 @@ public class SprinklerAttachmentsApi : ISprinklerAttachmentsApi
     {
         SprinklerAttachment.ApplySowing(sprinkler);
     }
+
     /// <inheritdoc/>
-    public bool TryGetSprinklerAttachment(StardewObject sprinkler, [NotNullWhen(true)] out StardewObject? attachment)
+    public bool TryGetSprinklerAttachment(
+        StardewObject sprinkler,
+        [NotNullWhen(true)] out StardewObject? attachment
+    )
     {
         return SprinklerAttachment.TryGetSprinklerAttachment(sprinkler, out attachment);
     }
+
     /// <inheritdoc/>
-    public bool TryGetIntakeChest(StardewObject sprinkler, [NotNullWhen(true)] out StardewObject? attachment, [NotNullWhen(true)] out Chest? chest)
+    public bool TryGetIntakeChest(
+        StardewObject sprinkler,
+        [NotNullWhen(true)] out StardewObject? attachment,
+        [NotNullWhen(true)] out Chest? chest
+    )
     {
         return SprinklerAttachment.TryGetIntakeChest(sprinkler, out attachment, out chest);
     }
+
     /// <inheritdoc/>
     public bool IsSowing(StardewObject attachment)
     {
@@ -31,6 +41,7 @@ public class SprinklerAttachmentsApi : ISprinklerAttachmentsApi
             return ModFieldHelper.IsSowing(data);
         return false;
     }
+
     /// <inheritdoc/>
     public bool IsPressurize(StardewObject attachment)
     {
@@ -39,4 +50,3 @@ public class SprinklerAttachmentsApi : ISprinklerAttachmentsApi
         return false;
     }
 }
-

@@ -13,7 +13,7 @@
   "Version": "1.1.1",
   "Description": "Various map stuff for modders.",
   "MinimumApiVersion": "4.1",
-  "MinimumGameVersion": "1.6.10",
+  "MinimumGameVersion": "1.6.13",
   "EntryDll": "MiscMapActionsProperties.dll",
   "UpdateKeys": [
     "Nexus:28423"

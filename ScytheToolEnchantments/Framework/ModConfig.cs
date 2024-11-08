@@ -20,7 +20,9 @@ internal sealed class ModConfig
 
     public void Register(IModHelper helper, IManifest mod)
     {
-        var GMCM = helper.ModRegistry.GetApi<Integration.IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+        var GMCM = helper.ModRegistry.GetApi<Integration.IGenericModConfigMenuApi>(
+            "spacechase0.GenericModConfigMenu"
+        );
         if (GMCM == null)
         {
             helper.WriteConfig(this);
@@ -28,8 +30,15 @@ internal sealed class ModConfig
         }
         GMCM.Register(
             mod: mod,
-            reset: () => { Reset(); helper.WriteConfig(this); },
-            save: () => { helper.WriteConfig(this); },
+            reset: () =>
+            {
+                Reset();
+                helper.WriteConfig(this);
+            },
+            save: () =>
+            {
+                helper.WriteConfig(this);
+            },
             titleScreenOnly: false
         );
         // GMCM.AddBoolOption(
@@ -46,36 +55,66 @@ internal sealed class ModConfig
         );
         GMCM.AddBoolOption(
             mod,
-            getValue: () => { return EnableGatherer; },
-            setValue: (value) => { EnableGatherer = value; },
+            getValue: () =>
+            {
+                return EnableGatherer;
+            },
+            setValue: (value) =>
+            {
+                EnableGatherer = value;
+            },
             name: I18n.Enchantment_Gatherer_Name,
             tooltip: I18n.Enchantment_Gatherer_Description
         );
         GMCM.AddBoolOption(
             mod,
-            getValue: () => { return EnableHorticulturist; },
-            setValue: (value) => { EnableHorticulturist = value; },
+            getValue: () =>
+            {
+                return EnableHorticulturist;
+            },
+            setValue: (value) =>
+            {
+                EnableHorticulturist = value;
+            },
             name: I18n.Enchantment_Horticulturist_Name,
             tooltip: I18n.Enchantment_Horticulturist_Description
         );
         GMCM.AddBoolOption(
             mod,
-            getValue: () => { return EnablePalaeontologist; },
-            setValue: (value) => { EnablePalaeontologist = value; },
+            getValue: () =>
+            {
+                return EnablePalaeontologist;
+            },
+            setValue: (value) =>
+            {
+                EnablePalaeontologist = value;
+            },
             name: I18n.Enchantment_Palaeontologist_Name,
             tooltip: I18n.Enchantment_Palaeontologist_Description
         );
         GMCM.AddBoolOption(
             mod,
-            getValue: () => { return EnableReaper; },
-            setValue: (value) => { EnableReaper = value; },
+            getValue: () =>
+            {
+                return EnableReaper;
+            },
+            setValue: (value) =>
+            {
+                EnableReaper = value;
+            },
             name: I18n.Enchantment_Reaper_Name,
             tooltip: I18n.Enchantment_Reaper_Description
         );
         GMCM.AddBoolOption(
             mod,
-            getValue: () => { return EnableCrescent; },
-            setValue: (value) => { EnableCrescent = value; },
+            getValue: () =>
+            {
+                return EnableCrescent;
+            },
+            setValue: (value) =>
+            {
+                EnableCrescent = value;
+            },
             name: I18n.Enchantment_Crescent_Name,
             tooltip: I18n.Enchantment_Crescent_Description
         );

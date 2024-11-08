@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
+using SprinklerAttachments.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using SprinklerAttachments.Framework;
 
 namespace SprinklerAttachments;
 
@@ -9,6 +9,7 @@ namespace SprinklerAttachments;
 internal sealed class ModEntry : Mod
 {
     private static IMonitor? mon;
+
     /// <summary>The mod entry point, called after the mod is first loaded.</summary>
     /// <param name="helper">Provides simplified APIs for writing mods.</param>
     public override void Entry(IModHelper helper)
@@ -81,4 +82,3 @@ internal sealed class ModEntry : Mod
         SprinklerAttachment.OpenIntakeChest(e.Cursor);
     }
 }
-

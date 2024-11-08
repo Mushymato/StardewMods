@@ -1,18 +1,17 @@
 using System.Reflection.Emit;
-using Microsoft.Xna.Framework;
 using HarmonyLib;
+using Microsoft.Xna.Framework;
+using ScytheToolEnchantments.Framework.Enchantments;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Characters;
+using StardewValley.Enchantments;
 using StardewValley.Extensions;
+using StardewValley.ItemTypeDefinitions;
+using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
-using StardewValley.Enchantments;
-using StardewValley.Characters;
-using ScytheToolEnchantments.Framework.Enchantments;
-using StardewValley.ItemTypeDefinitions;
 using StardewObject = StardewValley.Object;
-using StardewValley.Objects;
-
 
 namespace ScytheToolEnchantments.Framework;
 
@@ -20,6 +19,7 @@ internal sealed class GamePatches
 {
     /// <summary>Make sure only 1 append to BaseEnchantment._enchantments is done</summary>
     private static bool enchantmentsInit = false;
+
     public static void Patch(IManifest ModManifest)
     {
         Harmony harmony = new(ModManifest.UniqueID);
@@ -28,34 +28,64 @@ internal sealed class GamePatches
             // allow scythe forge
             harmony.Patch(
                 original: AccessTools.Method(typeof(MeleeWeapon), nameof(MeleeWeapon.Forge)),
-                transpiler: new HarmonyMethod(typeof(GamePatches), nameof(MeleeWeapon_Forge_Transpiler))
+                transpiler: new HarmonyMethod(
+                    typeof(GamePatches),
+                    nameof(MeleeWeapon_Forge_Transpiler)
+                )
             );
             // tooltip draw
             harmony.Patch(
                 original: AccessTools.Method(typeof(MeleeWeapon), nameof(MeleeWeapon.drawTooltip)),
-                transpiler: new HarmonyMethod(typeof(GamePatches), nameof(MeleeWeapon_drawTooltip_Transpiler))
+                transpiler: new HarmonyMethod(
+                    typeof(GamePatches),
+                    nameof(MeleeWeapon_drawTooltip_Transpiler)
+                )
             );
             harmony.Patch(
-                original: AccessTools.Method(typeof(MeleeWeapon), nameof(MeleeWeapon.getExtraSpaceNeededForTooltipSpecialIcons)),
-                transpiler: new HarmonyMethod(typeof(GamePatches), nameof(MeleeWeapon_getExtraSpaceNeededForTooltipSpecialIcons_Transpiler))
+                original: AccessTools.Method(
+                    typeof(MeleeWeapon),
+                    nameof(MeleeWeapon.getExtraSpaceNeededForTooltipSpecialIcons)
+                ),
+                transpiler: new HarmonyMethod(
+                    typeof(GamePatches),
+                    nameof(MeleeWeapon_getExtraSpaceNeededForTooltipSpecialIcons_Transpiler)
+                )
             );
             // these two could be 1 GetAvailableEnchantments transpiler, but weh IL ctor
             harmony.Patch(
-                original: AccessTools.Method(typeof(BaseEnchantment), nameof(BaseEnchantment.GetAvailableEnchantments)),
-                postfix: new HarmonyMethod(typeof(GamePatches), nameof(BaseEnchantment_GetAvailableEnchantments_Postfix))
+                original: AccessTools.Method(
+                    typeof(BaseEnchantment),
+                    nameof(BaseEnchantment.GetAvailableEnchantments)
+                ),
+                postfix: new HarmonyMethod(
+                    typeof(GamePatches),
+                    nameof(BaseEnchantment_GetAvailableEnchantments_Postfix)
+                )
             );
             harmony.Patch(
-                original: AccessTools.Method(typeof(BaseEnchantment), nameof(BaseEnchantment.ResetEnchantments)),
-                postfix: new HarmonyMethod(typeof(GamePatches), nameof(BaseEnchantment_ResetEnchantments_Postfix))
+                original: AccessTools.Method(
+                    typeof(BaseEnchantment),
+                    nameof(BaseEnchantment.ResetEnchantments)
+                ),
+                postfix: new HarmonyMethod(
+                    typeof(GamePatches),
+                    nameof(BaseEnchantment_ResetEnchantments_Postfix)
+                )
             );
             // enchant effects
             harmony.Patch(
                 original: AccessTools.Method(typeof(Tree), nameof(Tree.performToolAction)),
-                prefix: new HarmonyMethod(typeof(GamePatches), nameof(Tree_performToolAction_Prefix))
+                prefix: new HarmonyMethod(
+                    typeof(GamePatches),
+                    nameof(Tree_performToolAction_Prefix)
+                )
             );
             harmony.Patch(
                 original: AccessTools.Method(typeof(Grass), nameof(Grass.TryDropItemsOnCut)),
-                postfix: new HarmonyMethod(typeof(GamePatches), nameof(Grass_TryDropItemsOnCut_Postfix))
+                postfix: new HarmonyMethod(
+                    typeof(GamePatches),
+                    nameof(Grass_TryDropItemsOnCut_Postfix)
+                )
             );
             harmony.Patch(
                 original: AccessTools.Method(typeof(Crop), nameof(Crop.harvest)),
@@ -68,8 +98,14 @@ internal sealed class GamePatches
                 postfix: new HarmonyMethod(typeof(GamePatches), nameof(Crop_harvest_Postfix))
             );
             harmony.Patch(
-                original: AccessTools.Method(typeof(GiantCrop), nameof(GiantCrop.performToolAction)),
-                transpiler: new HarmonyMethod(typeof(GamePatches), nameof(GiantCrop_performToolAction_Transpiler))
+                original: AccessTools.Method(
+                    typeof(GiantCrop),
+                    nameof(GiantCrop.performToolAction)
+                ),
+                transpiler: new HarmonyMethod(
+                    typeof(GamePatches),
+                    nameof(GiantCrop_performToolAction_Transpiler)
+                )
             );
             harmony.Patch(
                 original: AccessTools.Method(typeof(MeleeWeapon), nameof(MeleeWeapon.DoDamage)),
@@ -96,19 +132,33 @@ internal sealed class GamePatches
         );
     }
 
-    private static IEnumerable<CodeInstruction> MeleeWeapon_drawTooltip_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    private static IEnumerable<CodeInstruction> MeleeWeapon_drawTooltip_Transpiler(
+        IEnumerable<CodeInstruction> instructions,
+        ILGenerator generator
+    )
     {
         try
         {
             CodeMatcher matcher = new(instructions, generator);
-            matcher.MatchStartForward(new CodeMatch[]{
-                    new(OpCodes.Ldarg_0),
-                    new(OpCodes.Callvirt, AccessTools.Method(typeof(Tool), nameof(Tool.isScythe))),
-                    new(OpCodes.Brtrue)
-                })
-            .Advance(1)
-            .SetInstruction(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(GamePatches), nameof(IsScytheAndNotIridium))))
-            ;
+            matcher
+                .MatchStartForward(
+                    new CodeMatch[]
+                    {
+                        new(OpCodes.Ldarg_0),
+                        new(
+                            OpCodes.Callvirt,
+                            AccessTools.Method(typeof(Tool), nameof(Tool.isScythe))
+                        ),
+                        new(OpCodes.Brtrue),
+                    }
+                )
+                .Advance(1)
+                .SetInstruction(
+                    new CodeInstruction(
+                        OpCodes.Call,
+                        AccessTools.Method(typeof(GamePatches), nameof(IsScytheAndNotIridium))
+                    )
+                );
 
             return matcher.Instructions();
         }
@@ -119,42 +169,73 @@ internal sealed class GamePatches
         }
     }
 
-    private static IEnumerable<CodeInstruction> MeleeWeapon_getExtraSpaceNeededForTooltipSpecialIcons_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    private static IEnumerable<CodeInstruction> MeleeWeapon_getExtraSpaceNeededForTooltipSpecialIcons_Transpiler(
+        IEnumerable<CodeInstruction> instructions,
+        ILGenerator generator
+    )
     {
         try
         {
             CodeMatcher matcher = new(instructions, generator);
-            matcher.MatchStartForward(new CodeMatch[]{
-                    new(OpCodes.Ldarg_0),
-                    new(OpCodes.Callvirt, AccessTools.Method(typeof(Tool), nameof(Tool.isScythe))),
-                    new(OpCodes.Brtrue_S)
-                })
-            .Advance(1)
-            .SetInstruction(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(GamePatches), nameof(IsScytheAndNotIridium))))
-            ;
+            matcher
+                .MatchStartForward(
+                    new CodeMatch[]
+                    {
+                        new(OpCodes.Ldarg_0),
+                        new(
+                            OpCodes.Callvirt,
+                            AccessTools.Method(typeof(Tool), nameof(Tool.isScythe))
+                        ),
+                        new(OpCodes.Brtrue_S),
+                    }
+                )
+                .Advance(1)
+                .SetInstruction(
+                    new CodeInstruction(
+                        OpCodes.Call,
+                        AccessTools.Method(typeof(GamePatches), nameof(IsScytheAndNotIridium))
+                    )
+                );
 
             return matcher.Instructions();
         }
         catch (Exception err)
         {
-            ModEntry.Log($"Error in MeleeWeapon_getExtraSpaceNeededForTooltipSpecialIcons_Transpiler:\n{err}", LogLevel.Error);
+            ModEntry.Log(
+                $"Error in MeleeWeapon_getExtraSpaceNeededForTooltipSpecialIcons_Transpiler:\n{err}",
+                LogLevel.Error
+            );
             return instructions;
         }
     }
 
-    private static IEnumerable<CodeInstruction> MeleeWeapon_Forge_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    private static IEnumerable<CodeInstruction> MeleeWeapon_Forge_Transpiler(
+        IEnumerable<CodeInstruction> instructions,
+        ILGenerator generator
+    )
     {
         try
         {
             CodeMatcher matcher = new(instructions, generator);
-            matcher.MatchStartForward(new CodeMatch[]{
-                    new(OpCodes.Ldarg_0),
-                    new(OpCodes.Callvirt, AccessTools.Method(typeof(Tool), nameof(Tool.isScythe))),
-                    new(OpCodes.Brfalse_S)
-                })
-            .Advance(1)
-            .SetInstruction(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(GamePatches), nameof(IsScytheAndNotIridium))))
-            ;
+            matcher
+                .MatchStartForward(
+                    new CodeMatch[]
+                    {
+                        new(OpCodes.Ldarg_0),
+                        new(
+                            OpCodes.Callvirt,
+                            AccessTools.Method(typeof(Tool), nameof(Tool.isScythe))
+                        ),
+                        new(OpCodes.Brfalse_S),
+                    }
+                )
+                .Advance(1)
+                .SetInstruction(
+                    new CodeInstruction(
+                        OpCodes.Call,
+                        AccessTools.Method(typeof(GamePatches), nameof(IsScytheAndNotIridium))
+                    )
+                );
 
             return matcher.Instructions();
         }
@@ -165,7 +246,9 @@ internal sealed class GamePatches
         }
     }
 
-    private static void BaseEnchantment_GetAvailableEnchantments_Postfix(ref List<BaseEnchantment> __result)
+    private static void BaseEnchantment_GetAvailableEnchantments_Postfix(
+        ref List<BaseEnchantment> __result
+    )
     {
         try
         {
@@ -180,7 +263,10 @@ internal sealed class GamePatches
         }
         catch (Exception err)
         {
-            ModEntry.Log($"Error in BaseEnchantment_GetAvailableEnchantments_Postfix:\n{err}", LogLevel.Error);
+            ModEntry.Log(
+                $"Error in BaseEnchantment_GetAvailableEnchantments_Postfix:\n{err}",
+                LogLevel.Error
+            );
         }
     }
 
@@ -189,7 +275,11 @@ internal sealed class GamePatches
         enchantmentsInit = false;
     }
 
-    private static void Grass_TryDropItemsOnCut_Postfix(Grass __instance, Tool tool, bool addAnimation = true)
+    private static void Grass_TryDropItemsOnCut_Postfix(
+        Grass __instance,
+        Tool tool,
+        bool addAnimation = true
+    )
     {
         try
         {
@@ -198,7 +288,11 @@ internal sealed class GamePatches
             if (__instance.grassType.Value == 1 || __instance.grassType.Value == 7)
             {
                 if (tool.hasEnchantmentOfType<GathererEnchantment>() && Random.Shared.NextBool())
-                    Game1.createItemDebris(ItemRegistry.Create("(O)178"), new Vector2(__instance.Tile.X * 64f + 32f, __instance.Tile.Y * 64f + 32f), -1);
+                    Game1.createItemDebris(
+                        ItemRegistry.Create("(O)178"),
+                        new Vector2(__instance.Tile.X * 64f + 32f, __instance.Tile.Y * 64f + 32f),
+                        -1
+                    );
                 if (tool.hasEnchantmentOfType<PalaeontologistEnchantment>())
                     PalaeontologistEnchantment.DropItems(__instance.Tile);
             }
@@ -209,17 +303,30 @@ internal sealed class GamePatches
         }
     }
 
-    private static void Tree_performToolAction_Prefix(Tree __instance, Tool t, int explosion, Vector2 tileLocation)
+    private static void Tree_performToolAction_Prefix(
+        Tree __instance,
+        Tool t,
+        int explosion,
+        Vector2 tileLocation
+    )
     {
         try
         {
-            if (t != null &&
-                t.hasEnchantmentOfType<GathererEnchantment>() &&
-                __instance.growthStage.Value >= 5 &&
-                __instance.hasMoss.Value)
+            if (
+                t != null
+                && t.hasEnchantmentOfType<GathererEnchantment>()
+                && __instance.growthStage.Value >= 5
+                && __instance.hasMoss.Value
+            )
             {
                 Item moss = ItemRegistry.Create("(O)Moss", 1);
-                Game1.createItemDebris(moss, new Vector2(tileLocation.X, tileLocation.Y - 1f) * 64f, -1, __instance.Location, Game1.player.StandingPixel.Y - 32);
+                Game1.createItemDebris(
+                    moss,
+                    new Vector2(tileLocation.X, tileLocation.Y - 1f) * 64f,
+                    -1,
+                    __instance.Location,
+                    Game1.player.StandingPixel.Y - 32
+                );
             }
         }
         catch (Exception err)
@@ -234,13 +341,28 @@ internal sealed class GamePatches
         __state = __instance.dayOfCurrentPhase.Value;
     }
 
-    private static void Crop_harvest_Postfix(Crop __instance, bool __result, int __state, int xTile, int yTile, HoeDirt soil, JunimoHarvester junimoHarvester, bool isForcedScytheHarvest)
+    private static void Crop_harvest_Postfix(
+        Crop __instance,
+        bool __result,
+        int __state,
+        int xTile,
+        int yTile,
+        HoeDirt soil,
+        JunimoHarvester junimoHarvester,
+        bool isForcedScytheHarvest
+    )
     {
         try
         {
-            if ((__result || __state != __instance.dayOfCurrentPhase.Value) &&
-                isForcedScytheHarvest && junimoHarvester == null &&
-                (Game1.player.CurrentTool?.hasEnchantmentOfType<HorticulturistEnchantment>() ?? false))
+            if (
+                (__result || __state != __instance.dayOfCurrentPhase.Value)
+                && isForcedScytheHarvest
+                && junimoHarvester == null
+                && (
+                    Game1.player.CurrentTool?.hasEnchantmentOfType<HorticulturistEnchantment>()
+                    ?? false
+                )
+            )
             {
                 string harvestIndex = __instance.indexOfHarvest.Value;
                 // special case sunflower seeds
@@ -249,10 +371,14 @@ internal sealed class GamePatches
                 ParsedItemData obj = ItemRegistry.GetDataOrErrorItem(harvestIndex);
                 if (!obj.IsErrorItem && obj.Category == StardewObject.flowersCategory)
                 {
-                    Item harvestedItem = __instance.programColored.Value ?
-                        new ColoredObject(harvestIndex, 1, __instance.tintColor.Value) :
-                        ItemRegistry.Create(harvestIndex);
-                    Game1.createItemDebris(harvestedItem.getOne(), new Vector2(xTile * 64 + 32, yTile * 64 + 32), -1);
+                    Item harvestedItem = __instance.programColored.Value
+                        ? new ColoredObject(harvestIndex, 1, __instance.tintColor.Value)
+                        : ItemRegistry.Create(harvestIndex);
+                    Game1.createItemDebris(
+                        harvestedItem.getOne(),
+                        new Vector2(xTile * 64 + 32, yTile * 64 + 32),
+                        -1
+                    );
                 }
             }
         }
@@ -262,27 +388,39 @@ internal sealed class GamePatches
         }
     }
 
-    private static IEnumerable<CodeInstruction> GiantCrop_performToolAction_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    private static IEnumerable<CodeInstruction> GiantCrop_performToolAction_Transpiler(
+        IEnumerable<CodeInstruction> instructions,
+        ILGenerator generator
+    )
     {
         try
         {
             CodeMatcher matcher = new(instructions, generator);
 
-            matcher.MatchEndForward(new CodeMatch[]{
+            matcher.MatchEndForward(
+                new CodeMatch[]
+                {
                     new(OpCodes.Ldarg_1),
                     new(OpCodes.Isinst, typeof(Axe)),
-                    new(OpCodes.Brtrue_S)
-                });
+                    new(OpCodes.Brtrue_S),
+                }
+            );
             Label lbl = (Label)matcher.Operand;
-            matcher.Advance(1).Insert(new CodeMatch[] {
-                    new(OpCodes.Ldarg_1),
-                    new(OpCodes.Call, AccessTools.Method(typeof(GamePatches), nameof(HasCrescentEnchantment))),
-                    new(OpCodes.Brtrue_S, lbl)
-                });
+            matcher
+                .Advance(1)
+                .Insert(
+                    new CodeMatch[]
+                    {
+                        new(OpCodes.Ldarg_1),
+                        new(
+                            OpCodes.Call,
+                            AccessTools.Method(typeof(GamePatches), nameof(HasCrescentEnchantment))
+                        ),
+                        new(OpCodes.Brtrue_S, lbl),
+                    }
+                );
 
-            matcher.MatchStartForward(new CodeMatch[]{
-                    new(OpCodes.Ldstr, "axchop")
-                });
+            matcher.MatchStartForward(new CodeMatch[] { new(OpCodes.Ldstr, "axchop") });
             matcher.Operand = "clubswipe";
 
             // matcher.MatchStartForward(new CodeMatch[]{
@@ -294,22 +432,45 @@ internal sealed class GamePatches
         }
         catch (Exception err)
         {
-            ModEntry.Log($"Error in GiantCrop_performToolAction_Transpiler:\n{err}", LogLevel.Error);
+            ModEntry.Log(
+                $"Error in GiantCrop_performToolAction_Transpiler:\n{err}",
+                LogLevel.Error
+            );
             return instructions;
         }
     }
 
-    private static void MeleeWeapon_DoDamage_Prefix(MeleeWeapon __instance, GameLocation location, int x, int y, int facingDirection, int power, Farmer who)
+    private static void MeleeWeapon_DoDamage_Prefix(
+        MeleeWeapon __instance,
+        GameLocation location,
+        int x,
+        int y,
+        int facingDirection,
+        int power,
+        Farmer who
+    )
     {
         try
         {
             if (!HasCrescentEnchantment(__instance))
                 return;
-            foreach (Vector2 item in CrescentEnchantment.GetCrescentAOE(who.TilePoint, facingDirection, who.FarmerSprite.currentAnimationIndex))
+            foreach (
+                Vector2 item in CrescentEnchantment.GetCrescentAOE(
+                    who.TilePoint,
+                    facingDirection,
+                    who.FarmerSprite.currentAnimationIndex
+                )
+            )
             {
-                if (location.terrainFeatures.TryGetValue(item, out var value) && value.performToolAction(__instance, 0, item))
+                if (
+                    location.terrainFeatures.TryGetValue(item, out var value)
+                    && value.performToolAction(__instance, 0, item)
+                )
                     location.terrainFeatures.Remove(item);
-                if (location.objects.TryGetValue(item, out var value2) && value2.performToolAction(__instance))
+                if (
+                    location.objects.TryGetValue(item, out var value2)
+                    && value2.performToolAction(__instance)
+                )
                     location.objects.Remove(item);
                 if (location.performToolAction(__instance, (int)item.X, (int)item.Y))
                     break;
@@ -320,6 +481,4 @@ internal sealed class GamePatches
             ModEntry.Log($"Error in Crop_harvest_Postfix:\n{err}", LogLevel.Error);
         }
     }
-
 }
-

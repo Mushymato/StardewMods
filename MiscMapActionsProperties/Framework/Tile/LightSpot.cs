@@ -17,8 +17,8 @@ namespace MiscMapActionsProperties.Framework.Tile;
 /// </summary>
 internal static class LightSpot
 {
-    internal readonly static string TileProp_Light = $"{ModEntry.ModId}_Light";
-    internal readonly static string TileProp_LightCond = $"{ModEntry.ModId}_LightCond";
+    internal static readonly string TileProp_Light = $"{ModEntry.ModId}_Light";
+    internal static readonly string TileProp_LightCond = $"{ModEntry.ModId}_LightCond";
 
     internal static void Patch(Harmony harmony)
     {
@@ -26,7 +26,10 @@ internal static class LightSpot
         {
             harmony.Patch(
                 original: AccessTools.Method(typeof(GameLocation), "resetLocalState"),
-                postfix: new HarmonyMethod(typeof(LightSpot), nameof(GameLocation_resetLocalState_Postfix))
+                postfix: new HarmonyMethod(
+                    typeof(LightSpot),
+                    nameof(GameLocation_resetLocalState_Postfix)
+                )
             );
         }
         catch (Exception err)
@@ -51,10 +54,20 @@ internal static class LightSpot
                     continue;
                 if (tile.Properties.TryGetValue(TileProp_Light, out string lightProps))
                 {
-                    if (tile.Properties.TryGetValue(TileProp_LightCond, out string lightCond)
-                        && !GameStateQuery.CheckConditions(lightCond, location: location))
+                    if (
+                        tile.Properties.TryGetValue(TileProp_LightCond, out string lightCond)
+                        && !GameStateQuery.CheckConditions(lightCond, location: location)
+                    )
                         continue;
-                    if (Light.MakeMapLightFromProps(lightProps, pos * Game1.tileSize + new Vector2(Game1.tileSize / 2, Game1.tileSize / 2), location.NameOrUniqueName) is LightSource light)
+                    if (
+                        Light.MakeMapLightFromProps(
+                            lightProps,
+                            pos * Game1.tileSize
+                                + new Vector2(Game1.tileSize / 2, Game1.tileSize / 2),
+                            location.NameOrUniqueName
+                        )
+                        is LightSource light
+                    )
                         yield return light;
                 }
             }
@@ -73,8 +86,8 @@ internal static class LightSpot
                     continue;
                 if (!GameStateQuery.CheckConditions(btp.Value, location: location))
                     for (int i = 0; i < btp.TileArea.Width; i++)
-                        for (int j = 0; j < btp.TileArea.Height; j++)
-                            bannedTiles.Add(new(i, j));
+                    for (int j = 0; j < btp.TileArea.Height; j++)
+                        bannedTiles.Add(new(i, j));
             }
 
             foreach (BuildingTileProperty btp in data.TileProperties)
@@ -82,10 +95,14 @@ internal static class LightSpot
                 if (btp.Name != TileProp_Light || btp.Layer != "Front")
                     continue;
                 string lightProps = btp.Value;
-                if (Light.MakeMapLightFromProps(
-                    lightProps,
-                    new Vector2(building.tileX.Value, building.tileY.Value),
-                    location.NameOrUniqueName) is not LightSource baseLight)
+                if (
+                    Light.MakeMapLightFromProps(
+                        lightProps,
+                        new Vector2(building.tileX.Value, building.tileY.Value),
+                        location.NameOrUniqueName
+                    )
+                    is not LightSource baseLight
+                )
                     continue;
                 for (int i = 0; i < btp.TileArea.Width; i++)
                 {
@@ -93,10 +110,16 @@ internal static class LightSpot
                     {
                         if (bannedTiles.Contains(new(i, j)))
                             continue;
-                        Vector2 pos = new(building.tileX.Value + btp.TileArea.X + i, building.tileY.Value + btp.TileArea.Y + j);
+                        Vector2 pos =
+                            new(
+                                building.tileX.Value + btp.TileArea.X + i,
+                                building.tileY.Value + btp.TileArea.Y + j
+                            );
                         LightSource light = baseLight.Clone();
                         light.Id = $"{light.Id}+{btp.TileArea.X + i},{btp.TileArea.Y + j}";
-                        light.position.Value = pos * Game1.tileSize + new Vector2(Game1.tileSize / 2, Game1.tileSize / 2);
+                        light.position.Value =
+                            pos * Game1.tileSize
+                            + new Vector2(Game1.tileSize / 2, Game1.tileSize / 2);
                         light.lightTexture = baseLight.lightTexture;
                         yield return light;
                     }

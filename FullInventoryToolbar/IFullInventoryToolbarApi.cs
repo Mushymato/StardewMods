@@ -9,4 +9,3 @@ public interface IFullInventoryToolbarApi
     /// <returns>max number of items allowed for toolbar</returns>
     public int GetToolbarMax();
 }
-
