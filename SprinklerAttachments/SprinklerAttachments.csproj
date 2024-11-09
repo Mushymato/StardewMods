@@ -26,11 +26,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ContentPacks Include="[CP] Sprinkler Attachments" Version="1.1.1" />
+    <ContentPacks Include="[CP] Sprinkler Attachments" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.3.1" />
+    <PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.4.0" />
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.1" />
   </ItemGroup>
 

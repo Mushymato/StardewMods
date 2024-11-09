@@ -76,7 +76,7 @@ public class ModEntry : Mod
         }
     }
 
-    private static object SiD_DrawReplacedTexture_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    private static IEnumerable<CodeInstruction> SiD_DrawReplacedTexture_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         try
         {

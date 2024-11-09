@@ -1,3 +1,3 @@
-# MODNAME
+# CueSwap
 
 New mod.

@@ -1,21 +1,21 @@
 {
-    "Name": "[CP] Sprinkler Attachments",
-    "Author": "mushymato",
-    "Version": "1.1.1",
-    "MinimumApiVersion": "4.0.0",
-    "MinimumGameVersion": "1.6.0",
-    "Description": "Add items supported by mushymato.SprinklerAttachments.",
-    "UniqueID": "mushymato.SprinklerAttachments.CP",
-    "UpdateKeys": [
-        "Nexus:???"
-    ],
-    "ContentPackFor": {
-        "UniqueID": "Pathoschild.ContentPatcher"
-    },
-    "Dependencies": [
-        {
-            "UniqueID": "mushymato.SprinklerAttachments",
-            "MinimumVersion": "1.1.1"
-        }
-    ]
+  "UniqueID": "mushymato.SprinklerAttachments.CP",
+  "Name": "[CP] Sprinkler Attachments",
+  "Author": "mushymato",
+  "Version": "1.2.0",
+  "Description": "Add items supported by mushymato.SprinklerAttachments.",
+  "MinimumApiVersion": "4.0.0",
+  "MinimumGameVersion": "1.6.0",
+  "ContentPackFor": {
+    "UniqueID": "Pathoschild.ContentPatcher"
+  },
+  "Dependencies": [
+    {
+      "UniqueID": "mushymato.SprinklerAttachments",
+      "MinimumVersion": "1.1.1"
+    }
+  ],
+  "UpdateKeys": [
+    "Nexus:???"
+  ]
 }
