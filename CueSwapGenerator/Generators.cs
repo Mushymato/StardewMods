@@ -6,19 +6,31 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace CueSwapGenerator;
 
-internal record GenMethodModel(string OpCode, string TargetCls, string TargetMethod, string OldCue, string NewCue)
+internal record GenMethodModel(string Op, string TargetCls, string TargetMethod, int ArgOffset, string OldCue, string NewCue)
 {
-    internal string OpCode = OpCode;
+    internal string Op = Op;
     internal string TargetCls = TargetCls;
     internal string TargetMethod = TargetMethod;
+    internal int ArgOffset = ArgOffset;
     internal string OldCue = OldCue;
     internal string NewCue = NewCue;
+
+    internal string Access
+    {
+        get => Op switch
+        {
+            "Call" => "AccessTools.DeclaredMethod",
+            "Callvirt" => "AccessTools.DeclaredMethod",
+            "Stfld" => "AccessTools.DeclaredField",
+            _ => throw new NotImplementedException(),
+        };
+    }
 
     internal string GeneratedMethodName
     {
         get
         {
-            string methodName = $"TP_{TargetCls}_{TargetMethod}_{OldCue}_{NewCue}";
+            string methodName = $"T_{TargetCls}_{TargetMethod}_{OldCue}_{NewCue}";
             return Regex.Replace(methodName, @"[./\\-]", "");
         }
     }
@@ -45,14 +57,7 @@ public class CueSwapTranspilerGenerator : IIncrementalGenerator
 
 #pragma warning disable CS9113 // Parameter is unread.
 [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-public class CueSwapTranspilerAttribute(
-    string opCode,
-    string targetCls,
-    string targetMethod,
-    string oldCue,
-    string newCue
-) : System.Attribute { }
-
+public class CueSwapTranspilerAttribute(string Op, string TargetCls, string TargetMethod, int ArgOffset, string OldCue, string NewCue) : System.Attribute { }
 #pragma warning restore CS9113 // Parameter is unread.
 ",
             Encoding.UTF8)
@@ -79,13 +84,13 @@ public class CueSwapTranspilerAttribute(
                             (string)attr.ConstructorArguments[0].Value!,
                             (string)attr.ConstructorArguments[1].Value!,
                             (string)attr.ConstructorArguments[2].Value!,
-                            (string)attr.ConstructorArguments[3].Value!,
-                            (string)attr.ConstructorArguments[4].Value!
+                            (int)attr.ConstructorArguments[3].Value!,
+                            (string)attr.ConstructorArguments[4].Value!,
+                            (string)attr.ConstructorArguments[5].Value!
                         ));
                     }
                 }
                 return new GenClassModel(
-                    // Note: this is a simplified example. You will also need to handle the case where the type is in a global namespace, nested, etc.
                     Namespace: context.TargetSymbol.ContainingNamespace.Name ?? "GenerateCueSwap",
                     ClassName: context.TargetSymbol.Name,
                     MethodModels: MethodModels,
@@ -102,6 +107,7 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Menus;
 
 namespace {{clsModel.Namespace}};
 
@@ -129,48 +135,34 @@ $$"""
         try
         {
             CodeMatcher matcher = new(instructions, generator);
-            CodeMatch[] methodMatch =
-            [
-                new(
-                    OpCodes.{{model.OpCode}},
-                    AccessTools.DeclaredMethod(
-                        typeof({{model.TargetCls}}),
-                        "{{model.TargetMethod}}"
-                    )
-                ),
-            ];
+            int count = 0;
             matcher
                 .Start()
-                .MatchStartForward(methodMatch)
+                .MatchStartForward([new(OpCodes.Ldstr, "{{model.OldCue}}"),
+""");
+                for (int i = 0; i < model.ArgOffset; i++)
+                    srcBuilder.Append(" new(),");
+                srcBuilder.Append(
+$$"""
+ new(OpCodes.{{model.Op}}, {{model.Access}}(typeof({{model.TargetCls}}), "{{model.TargetMethod}}"))])
                 .Repeat(
                     matchAction: (rmatch) =>
                     {
-                        int pos = rmatch.Pos;
-                        rmatch
-                            .MatchEndBackwards([new(OpCodes.Ldstr, "{{model.OldCue}}")])
-                            .Advance(1)
-                            .InsertAndAdvance(
-                                [
-                                    new(OpCodes.Ldstr, "{{model.NewCue}}"),
-                                    new(
-                                        OpCodes.Call,
-                                        AccessTools.DeclaredMethod(
-                                            typeof({{clsModel.ClassName}}),
-                                            nameof(CheckNewCueExists)
-                                        )
-                                    ),
-                                ]
-                            );
-                        rmatch.MatchStartForward(methodMatch);
-                        rmatch.Advance(1);
+                        count++;
+                        rmatch.Advance(1).InsertAndAdvance([
+                            new(OpCodes.Ldstr, "{{model.NewCue}}"),
+                            new(OpCodes.Call, AccessTools.DeclaredMethod(typeof({{clsModel.ClassName}}), nameof(CheckNewCueExists))),
+                        ]);
                     }
                 );
+            if (count == 0)
+                ModEntry.Log("Did not find transpile target ({{model.GeneratedMethodName}})", LogLevel.Warn);
             return matcher.Instructions();
         }
         catch (Exception err)
         {
             ModEntry.Log(
-                $"Error in Transpiler_doorCreak_doorCreakShippingBin:\n{err}",
+                $"Error in {{model.GeneratedMethodName}}:\n{err}",
                 LogLevel.Error
             );
             return instructions;
@@ -178,7 +170,7 @@ $$"""
     }
 
 """
-);
+    );
             }
             srcBuilder.Append("}\n");
 

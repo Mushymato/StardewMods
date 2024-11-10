@@ -29,6 +29,10 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <DefineConstants>SHIPPING_BIN;MINI_SHIPPING_BIN;ISLAND_SHIPPING_BIN</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\CueSwapGenerator\CueSwapGenerator.csproj"
       OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
