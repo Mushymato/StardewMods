@@ -146,7 +146,7 @@ internal static partial class Patches
                 nameof(T_DelayedAction_playSoundAfterDelay_Ship_ShipIslandBin)
             )
         );
-        // this seems to be old shipping bin 
+        // this seems to be old shipping bin, unsure why islandwest still use it
         TranspileWithLog(
             harmony,
             AccessTools.DeclaredMethod(typeof(Farm), nameof(Farm.showShipment)),
