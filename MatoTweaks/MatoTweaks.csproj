@@ -10,8 +10,21 @@
     <EnableHarmony>true</EnableHarmony>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <Name>MatoTweaks</Name>
+    <Authors>mushymato</Authors>
+    <Description>Stuff.</Description>
+    <UniqueId>mushymato.MatoTweaks</UniqueId>
+    <UpdateKeys>Nexus:???</UpdateKeys>
+    <Version>0.1.0</Version>
+    <MinimumApiVersion_Behavior>UpdateFull</MinimumApiVersion_Behavior>
+    <MinimumGameVersion_Behavior>UpdateFull</MinimumGameVersion_Behavior>
+    <Dependencies_VersionBehavior>UpdateFull</Dependencies_VersionBehavior>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
+    <PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.3.1" />
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.1" />
   </ItemGroup>
 
 </Project>

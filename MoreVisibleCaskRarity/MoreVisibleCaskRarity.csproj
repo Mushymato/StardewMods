@@ -8,8 +8,21 @@
     <EnableHarmony>true</EnableHarmony>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <Name>More Visible Cask Rarity</Name>
+    <Authors>mushymato</Authors>
+    <Description>Move the rarity indicator on casks to a more visible location.</Description>
+    <UniqueId>mushymato.MoreVisibleCaskRarity</UniqueId>
+    <UpdateKeys>Nexus:26052</UpdateKeys>
+    <Version>1.0.0</Version>
+    <MinimumApiVersion_Behavior>UpdateFull</MinimumApiVersion_Behavior>
+    <MinimumGameVersion_Behavior>UpdateFull</MinimumGameVersion_Behavior>
+    <Dependencies_VersionBehavior>UpdateFull</Dependencies_VersionBehavior>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
+    <PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.3.1" />
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.1" />
   </ItemGroup>
 
 </Project>

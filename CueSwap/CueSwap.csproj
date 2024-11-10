@@ -15,12 +15,12 @@
     <Authors>mushymato</Authors>
     <Description>
       Swap cue sounds in certain context, so that mods can modify the specific sound without
-      changing all.
+      changing all instance of the cue.
     </Description>
     <UniqueId>mushymato.CueSwap</UniqueId>
     <UpdateKeys>Nexus:???</UpdateKeys>
     <Version>0.1.0</Version>
-    <MinimumApiVersion_Behavior>Update</MinimumApiVersion_Behavior>
+    <MinimumApiVersion_Behavior>UpdateFull</MinimumApiVersion_Behavior>
     <MinimumGameVersion_Behavior>UpdateFull</MinimumGameVersion_Behavior>
     <Dependencies_VersionBehavior>UpdateFull</Dependencies_VersionBehavior>
   </PropertyGroup>
