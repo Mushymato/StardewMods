@@ -57,7 +57,7 @@ public class ModEntry : Mod
             .MatchEndForward(new CodeMatch[]{
                     new(OpCodes.Ldsfld, AccessTools.Field(typeof(Game1), nameof(Game1.viewport))),
                     new(OpCodes.Ldarg_2),
-                    new(OpCodes.Ldc_I4_S, (sbyte)64),
+                    new(OpCodes.Ldc_I4_S, (byte)64),
                     new(OpCodes.Mul),
                     new(OpCodes.Conv_R4)
             })
@@ -69,9 +69,9 @@ public class ModEntry : Mod
             })
             .MatchEndForward(new CodeMatch[]{
                     new(OpCodes.Ldarg_3),
-                    new(OpCodes.Ldc_I4_S, (sbyte)64),
+                    new(OpCodes.Ldc_I4_S, (byte)64),
                     new(OpCodes.Mul),
-                    new(OpCodes.Ldc_I4_S, (sbyte)64),
+                    new(OpCodes.Ldc_I4_S, (byte)64),
                     new(OpCodes.Sub),
                     new(OpCodes.Conv_R4)
             })

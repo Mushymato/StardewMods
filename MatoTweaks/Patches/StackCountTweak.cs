@@ -54,7 +54,7 @@ internal static class StackCountTweak
             matcher.MatchStartForward(
                 new CodeMatch[]
                 {
-                    new(OpCodes.Ldc_I4_S, (sbyte)25),
+                    new(OpCodes.Ldc_I4_S, (byte)25),
                     new(OpCodes.Br_S),
                     new(OpCodes.Ldc_I4, 999),
                 }

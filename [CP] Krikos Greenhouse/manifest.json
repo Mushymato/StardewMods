@@ -1,0 +1,14 @@
+{
+  "Name": "[CP] Krikos Greenhouse",
+  "Author": "mushymato",
+  "Version": "1.0.0",
+  "Description": "Circle...",
+  "UniqueID": "mushymato.KrikosGreenhouse",
+  "MinimumApiVersion": "4.1.0",
+  "UpdateKeys": [
+    "Nexus:???"
+  ],
+  "ContentPackFor": {
+    "UniqueID": "Pathoschild.ContentPatcher"
+  }
+}
