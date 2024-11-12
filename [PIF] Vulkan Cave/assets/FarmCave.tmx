@@ -10,6 +10,7 @@
   <property name="SeasonOverride" value="Fall"/>
   <property name="TreatAsOutdoors" value="T"/>
   <property name="WallIDs" value="Middle"/>
+  <property name="IsFarm" value="T"/>
  </properties>
  <tileset firstgid="1" name="cave" tilewidth="16" tileheight="16" tilecount="320" columns="16">
   <image source="Mines/mine_lava.png" width="256" height="320"/>
