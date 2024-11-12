@@ -24,7 +24,8 @@
       "Entries": {
         "(F){{ModId}}_DimensionLadder": {
           "ID": "(F){{ModId}}_DimensionLadder",
-          "ItemId": "(F){{ModId}}_DimensionLadder"
+          "ItemId": "(F){{ModId}}_DimensionLadder",
+          "Price": 20000,
         },
       }
     }
