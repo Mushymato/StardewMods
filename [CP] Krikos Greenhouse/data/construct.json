@@ -1,0 +1,36 @@
+{
+  "Changes": [
+    {
+      "Action": "EditMap",
+      "Target": "Maps/Greenhouse",
+      "MapProperties": {
+        "CanBuildHere": "T",
+        "LooserBuildRestrictions": "T",
+        "BuildConditions": "LOCATION_HAS_CUSTOM_FIELD Here {{ModID}}"
+      },
+      "MapTiles": [
+        {
+          "Position": {
+            "X": 18,
+            "Y": 33
+          },
+          "Layer": "Front",
+          "SetTilesheet": "untitled tile sheet",
+          "SetIndex": 1109
+        },
+        {
+          "Position": {
+            "X": 18,
+            "Y": 34
+          },
+          "Layer": "Buildings",
+          "SetProperties": {
+            "Action": "mushymato.MMAP_ShowConstructForCurrent Robin true"
+          },
+          "SetTilesheet": "untitled tile sheet",
+          "SetIndex": 1141
+        },
+      ]
+    },
+  ]
+}
