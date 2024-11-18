@@ -61,6 +61,9 @@ internal sealed class ModEntry : Mod
         Config = Helper.ReadConfig<ModConfig>();
         mon = Monitor;
 
+        Harmony patcher = new(ModManifest.UniqueID);
+        Patch(patcher);
+
         helper.Events.GameLoop.GameLaunched += OnGameLaunched;
         helper.Events.Input.ButtonsChanged += OnButtonsChanged;
     }
@@ -85,8 +88,6 @@ internal sealed class ModEntry : Mod
     {
         SetupConfig();
         ToolbarIconsLoaded = Helper.ModRegistry.IsLoaded("furyx639.ToolbarIcons");
-        Harmony patcher = new(ModManifest.UniqueID);
-        Patch(patcher);
     }
 
     private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
@@ -728,7 +729,7 @@ internal sealed class ModEntry : Mod
                     new CodeMatch[]
                     {
                         new(OpCodes.Add),
-                        new(OpCodes.Ldc_I4_S, (byte)12),
+                        new(OpCodes.Ldc_I4_S, (sbyte)12),
                         new(OpCodes.Rem),
                     }
                 );
@@ -748,7 +749,7 @@ internal sealed class ModEntry : Mod
                         OpCodes.Call,
                         AccessTools.PropertyGetter(typeof(Game1), nameof(Game1.player))
                     ),
-                    new(OpCodes.Ldc_I4_S, (byte)11),
+                    new(OpCodes.Ldc_I4_S, (sbyte)11),
                 }
             );
             matcher
@@ -764,11 +765,11 @@ internal sealed class ModEntry : Mod
                 new CodeMatch[]
                 {
                     new(OpCodes.Add),
-                    new(OpCodes.Ldc_I4_S, (byte)12),
+                    new(OpCodes.Ldc_I4_S, (sbyte)12),
                     new(OpCodes.Rem),
                 }
             );
-            // matcher.InstructionAt(1).operand = (byte)Farmer.maxInventorySpace;
+            // matcher.InstructionAt(1).operand = (sbyte)Farmer.maxInventorySpace;
             matcher
                 .Advance(1)
                 .SetInstruction(
@@ -785,7 +786,7 @@ internal sealed class ModEntry : Mod
                         OpCodes.Call,
                         AccessTools.PropertyGetter(typeof(Game1), nameof(Game1.player))
                     ),
-                    new(OpCodes.Ldc_I4_S, (byte)11),
+                    new(OpCodes.Ldc_I4_S, (sbyte)11),
                 }
             );
             matcher
@@ -801,7 +802,7 @@ internal sealed class ModEntry : Mod
                 new CodeMatch[]
                 {
                     new(OpCodes.Ldloc_3),
-                    new(OpCodes.Ldc_I4_S, (byte)12),
+                    new(OpCodes.Ldc_I4_S, (sbyte)12),
                     new(OpCodes.Blt_S),
                 }
             );

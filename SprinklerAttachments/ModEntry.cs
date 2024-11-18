@@ -15,6 +15,8 @@ internal sealed class ModEntry : Mod
     public override void Entry(IModHelper helper)
     {
         mon = Monitor;
+        Harmony patcher = new(ModManifest.UniqueID);
+        GamePatches.Apply(patcher);
         helper.Events.Input.ButtonsChanged += OnButtonsChanged;
         helper.Events.GameLoop.GameLaunched += OnGameLaunched;
         helper.Events.GameLoop.DayEnding += OnDayEnding;
@@ -45,8 +47,6 @@ internal sealed class ModEntry : Mod
     {
         SprinklerAttachment.SetUpModCompatibility(Helper);
         SprinklerAttachment.SetUpModConfigMenu(Helper, ModManifest);
-        Harmony patcher = new(ModManifest.UniqueID);
-        GamePatches.Apply(patcher);
     }
 
     /// <summary>
