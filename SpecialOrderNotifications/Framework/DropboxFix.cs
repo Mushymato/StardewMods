@@ -11,10 +11,7 @@ internal record PreviouslyOpenedDonateTile(Point Tile, int BoxIdx);
 
 internal static class DropboxFix
 {
-    private static readonly ConditionalWeakTable<
-        GameLocation,
-        PreviouslyOpenedDonateTile?
-    > previousOpen = [];
+    private static readonly ConditionalWeakTable<GameLocation, PreviouslyOpenedDonateTile?> previousOpen = [];
 
     internal static void Register()
     {
@@ -64,10 +61,7 @@ internal static class DropboxFix
                             );
                         }
                     );
-                    previousOpen.AddOrUpdate(
-                        location,
-                        new PreviouslyOpenedDonateTile(tile, boxIdx)
-                    );
+                    previousOpen.AddOrUpdate(location, new PreviouslyOpenedDonateTile(tile, boxIdx));
                     return true;
                 }
                 return false;
@@ -77,8 +71,7 @@ internal static class DropboxFix
 
     public static bool UsesDropBoxAnyId(SpecialOrder order)
     {
-        return order.questState.Value == 0
-            && order.objectives.Any((objective) => objective is DonateObjective);
+        return order.questState.Value == 0 && order.objectives.Any((objective) => objective is DonateObjective);
     }
 
     public static int GetMinimumDropBoxCapacityAnyId(SpecialOrder order)

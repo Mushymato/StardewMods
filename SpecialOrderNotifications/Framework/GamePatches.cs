@@ -16,120 +16,57 @@ public static class GamePatches
         {
             // can use same transpiler for these two as they have same code
             harmony.Patch(
-                original: AccessTools.Method(
-                    typeof(CollectObjective),
-                    nameof(CollectObjective.OnItemShipped)
-                ),
-                prefix: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(Objective_CheckComplete_Prefix)
-                ),
-                transpiler: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(Objective_OnIncrementCount_Transpiler)
-                )
+                original: AccessTools.Method(typeof(CollectObjective), nameof(CollectObjective.OnItemShipped)),
+                prefix: new HarmonyMethod(typeof(GamePatches), nameof(Objective_CheckComplete_Prefix)),
+                transpiler: new HarmonyMethod(typeof(GamePatches), nameof(Objective_OnIncrementCount_Transpiler))
             );
             harmony.Patch(
-                original: AccessTools.Method(
-                    typeof(FishObjective),
-                    nameof(FishObjective.OnFishCaught)
-                ),
-                prefix: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(Objective_CheckComplete_Prefix)
-                ),
-                transpiler: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(Objective_OnIncrementCount_Transpiler)
-                )
+                original: AccessTools.Method(typeof(FishObjective), nameof(FishObjective.OnFishCaught)),
+                prefix: new HarmonyMethod(typeof(GamePatches), nameof(Objective_CheckComplete_Prefix)),
+                transpiler: new HarmonyMethod(typeof(GamePatches), nameof(Objective_OnIncrementCount_Transpiler))
             );
 
             harmony.Patch(
-                original: AccessTools.Method(
-                    typeof(GiftObjective),
-                    nameof(GiftObjective.OnGiftGiven)
-                ),
-                prefix: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(Objective_CheckComplete_Prefix)
-                ),
-                transpiler: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(GiftObjective_OnGiftGiven_Transpiler)
-                )
+                original: AccessTools.Method(typeof(GiftObjective), nameof(GiftObjective.OnGiftGiven)),
+                prefix: new HarmonyMethod(typeof(GamePatches), nameof(Objective_CheckComplete_Prefix)),
+                transpiler: new HarmonyMethod(typeof(GamePatches), nameof(GiftObjective_OnGiftGiven_Transpiler))
             );
             harmony.Patch(
-                original: AccessTools.Method(
-                    typeof(SlayObjective),
-                    nameof(SlayObjective.OnMonsterSlain)
-                ),
-                prefix: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(Objective_CheckComplete_Prefix)
-                ),
-                transpiler: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(SlayObjective_OnMonsterSlain_Transpiler)
-                )
+                original: AccessTools.Method(typeof(SlayObjective), nameof(SlayObjective.OnMonsterSlain)),
+                prefix: new HarmonyMethod(typeof(GamePatches), nameof(Objective_CheckComplete_Prefix)),
+                transpiler: new HarmonyMethod(typeof(GamePatches), nameof(SlayObjective_OnMonsterSlain_Transpiler))
             );
 
             harmony.Patch(
-                original: AccessTools.Method(
-                    typeof(JKScoreObjective),
-                    nameof(JKScoreObjective.OnNewValue)
-                ),
-                prefix: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(Objective_CheckComplete_Prefix)
-                ),
-                postfix: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(JKScoreObjective_OnNewValue_Postfix)
-                )
+                original: AccessTools.Method(typeof(JKScoreObjective), nameof(JKScoreObjective.OnNewValue)),
+                prefix: new HarmonyMethod(typeof(GamePatches), nameof(Objective_CheckComplete_Prefix)),
+                postfix: new HarmonyMethod(typeof(GamePatches), nameof(JKScoreObjective_OnNewValue_Postfix))
             );
             harmony.Patch(
                 original: AccessTools.Method(
                     typeof(ReachMineFloorObjective),
                     nameof(ReachMineFloorObjective.OnNewValue)
                 ),
-                prefix: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(Objective_CheckComplete_Prefix)
-                ),
-                postfix: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(ReachMineFloorObjective_OnNewValue_Postfix)
-                )
+                prefix: new HarmonyMethod(typeof(GamePatches), nameof(Objective_CheckComplete_Prefix)),
+                postfix: new HarmonyMethod(typeof(GamePatches), nameof(ReachMineFloorObjective_OnNewValue_Postfix))
             );
         }
         catch (Exception err)
         {
-            ModEntry.Log(
-                $"Failed to patch SpecialOrderNotifications(OrderObjectives):\n{err}",
-                LogLevel.Error
-            );
+            ModEntry.Log($"Failed to patch SpecialOrderNotifications(OrderObjectives):\n{err}", LogLevel.Error);
         }
 
         try
         {
             // can use same transpiler for these two as they have same code
             harmony.Patch(
-                original: AccessTools.DeclaredMethod(
-                    typeof(DayTimeMoneyBox),
-                    nameof(DayTimeMoneyBox.draw)
-                ),
-                transpiler: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(DayTimeMoneyBox_draw_Transpiler)
-                )
+                original: AccessTools.DeclaredMethod(typeof(DayTimeMoneyBox), nameof(DayTimeMoneyBox.draw)),
+                transpiler: new HarmonyMethod(typeof(GamePatches), nameof(DayTimeMoneyBox_draw_Transpiler))
             );
         }
         catch (Exception err)
         {
-            ModEntry.Log(
-                $"Failed to patch SpecialOrderNotifications(DayTimeMoneyBox):\n{err}",
-                LogLevel.Error
-            );
+            ModEntry.Log($"Failed to patch SpecialOrderNotifications(DayTimeMoneyBox):\n{err}", LogLevel.Error);
         }
     }
 
@@ -150,16 +87,10 @@ public static class GamePatches
                         new(OpCodes.Brtrue_S),
                         new(OpCodes.Ldarg_0),
                         new(OpCodes.Ldarg_2),
+                        new(OpCodes.Callvirt, AccessTools.DeclaredPropertyGetter(typeof(Item), nameof(Item.Stack))),
                         new(
                             OpCodes.Callvirt,
-                            AccessTools.DeclaredPropertyGetter(typeof(Item), nameof(Item.Stack))
-                        ),
-                        new(
-                            OpCodes.Callvirt,
-                            AccessTools.Method(
-                                typeof(OrderObjective),
-                                nameof(OrderObjective.IncrementCount)
-                            )
+                            AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.IncrementCount))
                         ),
                         new(OpCodes.Leave_S),
                     }
@@ -171,25 +102,16 @@ public static class GamePatches
                         new(OpCodes.Ldarg_0),
                         new(
                             OpCodes.Callvirt,
-                            AccessTools.Method(
-                                typeof(OrderObjective),
-                                nameof(OrderObjective.GetCount)
-                            )
+                            AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetCount))
                         ),
                         new(OpCodes.Ldarg_0),
                         new(
                             OpCodes.Callvirt,
-                            AccessTools.Method(
-                                typeof(OrderObjective),
-                                nameof(OrderObjective.GetMaxCount)
-                            )
+                            AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetMaxCount))
                         ),
                         new(
                             OpCodes.Call,
-                            AccessTools.DeclaredMethod(
-                                typeof(QuestPingHelper),
-                                nameof(QuestPingHelper.PingItem)
-                            )
+                            AccessTools.DeclaredMethod(typeof(QuestPingHelper), nameof(QuestPingHelper.PingItem))
                         ),
                     }
                 );
@@ -222,10 +144,7 @@ public static class GamePatches
                         new(OpCodes.Ldc_I4_1),
                         new(
                             OpCodes.Callvirt,
-                            AccessTools.Method(
-                                typeof(OrderObjective),
-                                nameof(OrderObjective.IncrementCount)
-                            )
+                            AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.IncrementCount))
                         ),
                         new(OpCodes.Leave_S),
                     }
@@ -237,25 +156,16 @@ public static class GamePatches
                         new(OpCodes.Ldarg_0),
                         new(
                             OpCodes.Callvirt,
-                            AccessTools.Method(
-                                typeof(OrderObjective),
-                                nameof(OrderObjective.GetCount)
-                            )
+                            AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetCount))
                         ),
                         new(OpCodes.Ldarg_0),
                         new(
                             OpCodes.Callvirt,
-                            AccessTools.Method(
-                                typeof(OrderObjective),
-                                nameof(OrderObjective.GetMaxCount)
-                            )
+                            AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetMaxCount))
                         ),
                         new(
                             OpCodes.Call,
-                            AccessTools.DeclaredMethod(
-                                typeof(QuestPingHelper),
-                                nameof(QuestPingHelper.PingMonster)
-                            )
+                            AccessTools.DeclaredMethod(typeof(QuestPingHelper), nameof(QuestPingHelper.PingMonster))
                         ),
                     }
                 );
@@ -264,10 +174,7 @@ public static class GamePatches
         }
         catch (Exception err)
         {
-            ModEntry.Log(
-                $"Error in SlayObjective_OnMonsterSlain_Transpiler:\n{err}",
-                LogLevel.Error
-            );
+            ModEntry.Log($"Error in SlayObjective_OnMonsterSlain_Transpiler:\n{err}", LogLevel.Error);
             return instructions;
         }
     }
@@ -290,10 +197,7 @@ public static class GamePatches
                         new(OpCodes.Ldc_I4_1),
                         new(
                             OpCodes.Callvirt,
-                            AccessTools.Method(
-                                typeof(OrderObjective),
-                                nameof(OrderObjective.IncrementCount)
-                            )
+                            AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.IncrementCount))
                         ),
                         new(OpCodes.Ret),
                     }
@@ -304,25 +208,16 @@ public static class GamePatches
                         new(OpCodes.Ldarg_0),
                         new(
                             OpCodes.Callvirt,
-                            AccessTools.Method(
-                                typeof(OrderObjective),
-                                nameof(OrderObjective.GetCount)
-                            )
+                            AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetCount))
                         ),
                         new(OpCodes.Ldarg_0),
                         new(
                             OpCodes.Callvirt,
-                            AccessTools.Method(
-                                typeof(OrderObjective),
-                                nameof(OrderObjective.GetMaxCount)
-                            )
+                            AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.GetMaxCount))
                         ),
                         new(
                             OpCodes.Call,
-                            AccessTools.DeclaredMethod(
-                                typeof(QuestPingHelper),
-                                nameof(QuestPingHelper.PingGift)
-                            )
+                            AccessTools.DeclaredMethod(typeof(QuestPingHelper), nameof(QuestPingHelper.PingGift))
                         ),
                     }
                 );
@@ -349,11 +244,7 @@ public static class GamePatches
         }
     }
 
-    private static void JKScoreObjective_OnNewValue_Postfix(
-        JKScoreObjective __instance,
-        Farmer who,
-        int new_value
-    )
+    private static void JKScoreObjective_OnNewValue_Postfix(JKScoreObjective __instance, Farmer who, int new_value)
     {
         try
         {
@@ -379,10 +270,7 @@ public static class GamePatches
         }
         catch (Exception err)
         {
-            ModEntry.Log(
-                $"Error in ReachMineFloorObjective_OnNewValue_Postfix:\n{err}",
-                LogLevel.Error
-            );
+            ModEntry.Log($"Error in ReachMineFloorObjective_OnNewValue_Postfix:\n{err}", LogLevel.Error);
         }
     }
 
@@ -401,10 +289,7 @@ public static class GamePatches
                     new CodeMatch[]
                     {
                         new(OpCodes.Ldarg_0),
-                        new(
-                            OpCodes.Ldfld,
-                            AccessTools.Field(typeof(DayTimeMoneyBox), "questNotificationTimer")
-                        ),
+                        new(OpCodes.Ldfld, AccessTools.Field(typeof(DayTimeMoneyBox), "questNotificationTimer")),
                         new(OpCodes.Ldc_I4_0),
                         new(OpCodes.Ble),
                     }
@@ -420,26 +305,14 @@ public static class GamePatches
                         new(OpCodes.Ldarg_0),
                         new(
                             OpCodes.Ldfld,
-                            AccessTools.Field(
-                                typeof(DayTimeMoneyBox),
-                                nameof(DayTimeMoneyBox.position)
-                            )
+                            AccessTools.Field(typeof(DayTimeMoneyBox), nameof(DayTimeMoneyBox.position))
                         ),
                         new(OpCodes.Ldarg_0),
-                        new(
-                            OpCodes.Ldfld,
-                            AccessTools.Field(typeof(DayTimeMoneyBox), "questPingTexture")
-                        ),
+                        new(OpCodes.Ldfld, AccessTools.Field(typeof(DayTimeMoneyBox), "questPingTexture")),
                         new(OpCodes.Ldarg_0),
-                        new(
-                            OpCodes.Ldfld,
-                            AccessTools.Field(typeof(DayTimeMoneyBox), "questPingSourceRect")
-                        ),
+                        new(OpCodes.Ldfld, AccessTools.Field(typeof(DayTimeMoneyBox), "questPingSourceRect")),
                         new(OpCodes.Ldarg_0),
-                        new(
-                            OpCodes.Ldfld,
-                            AccessTools.Field(typeof(DayTimeMoneyBox), "questPingString")
-                        ),
+                        new(OpCodes.Ldfld, AccessTools.Field(typeof(DayTimeMoneyBox), "questPingString")),
                         new(
                             OpCodes.Call,
                             AccessTools.DeclaredMethod(
@@ -455,10 +328,7 @@ public static class GamePatches
         }
         catch (Exception err)
         {
-            ModEntry.Log(
-                $"Error in CollectObjective_OnItemShipped_Transpiler:\n{err}",
-                LogLevel.Error
-            );
+            ModEntry.Log($"Error in CollectObjective_OnItemShipped_Transpiler:\n{err}", LogLevel.Error);
             return instructions;
         }
     }

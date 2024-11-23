@@ -18,10 +18,7 @@ public interface ISprinklerAttachmentsApi
     /// <param name="sprinkler">Stardew.Object</param>
     /// <param name="attachment">Stardew.Object</param>
     /// <returns></returns>
-    bool TryGetSprinklerAttachment(
-        StardewObject sprinkler,
-        [NotNullWhen(true)] out StardewObject? attachment
-    );
+    bool TryGetSprinklerAttachment(StardewObject sprinkler, [NotNullWhen(true)] out StardewObject? attachment);
 
     /// <summary>
     /// Get the sprinkler attachment plus the chest holding seed/fertilizer, if one is present on the sprinkler

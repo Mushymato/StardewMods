@@ -3,9 +3,9 @@ using HarmonyLib;
 using StardewModdingAPI;
 using StardewValley.Menus;
 
-namespace MatoTweaks.Patches;
+namespace MatoTweaks.Tweak;
 
-internal static class StackCountTweak
+internal static class StackCount
 {
     public static void Patch(Harmony patcher)
     {
@@ -16,29 +16,17 @@ internal static class StackCountTweak
         try
         {
             patcher.Patch(
-                original: AccessTools.DeclaredMethod(
-                    typeof(ShopMenu),
-                    nameof(ShopMenu.receiveLeftClick)
-                ),
-                transpiler: new HarmonyMethod(
-                    typeof(StackCountTweak),
-                    nameof(ShopMenu_replaceStackCounts_transpiler)
-                )
+                original: AccessTools.DeclaredMethod(typeof(ShopMenu), nameof(ShopMenu.receiveLeftClick)),
+                transpiler: new HarmonyMethod(typeof(StackCount), nameof(ShopMenu_replaceStackCounts_transpiler))
             );
             patcher.Patch(
-                original: AccessTools.DeclaredMethod(
-                    typeof(ShopMenu),
-                    nameof(ShopMenu.receiveRightClick)
-                ),
-                transpiler: new HarmonyMethod(
-                    typeof(StackCountTweak),
-                    nameof(ShopMenu_replaceStackCounts_transpiler)
-                )
+                original: AccessTools.DeclaredMethod(typeof(ShopMenu), nameof(ShopMenu.receiveRightClick)),
+                transpiler: new HarmonyMethod(typeof(StackCount), nameof(ShopMenu_replaceStackCounts_transpiler))
             );
         }
         catch (Exception err)
         {
-            ModEntry.Log($"Failed to patch StackCountTweak:\n{err}", LogLevel.Error);
+            ModEntry.Log($"Failed to patch StackCount:\n{err}", LogLevel.Error);
         }
     }
 
@@ -51,14 +39,7 @@ internal static class StackCountTweak
         {
             CodeMatcher matcher = new(instructions, generator);
 
-            matcher.MatchStartForward(
-                new CodeMatch[]
-                {
-                    new(OpCodes.Ldc_I4_S, (sbyte)25),
-                    new(OpCodes.Br_S),
-                    new(OpCodes.Ldc_I4, 999),
-                }
-            );
+            matcher.MatchStartForward([new(OpCodes.Ldc_I4_S, (sbyte)25), new(OpCodes.Br_S), new(OpCodes.Ldc_I4, 999)]);
             matcher.Operand = 24;
 
             return matcher.Instructions();

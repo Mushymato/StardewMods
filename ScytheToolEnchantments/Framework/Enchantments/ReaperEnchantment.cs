@@ -56,18 +56,10 @@ public class ReaperEnchantment : ScytheEnchantment
         }
     }
 
-    public override void OnMonsterSlay(
-        Monster monster,
-        GameLocation location,
-        Farmer who,
-        bool slainByBomb
-    )
+    public override void OnMonsterSlay(Monster monster, GameLocation location, Farmer who, bool slainByBomb)
     {
         base.OnMonsterSlay(monster, location, who, slainByBomb);
-        if (
-            !slainByBomb
-            && DataLoader.Monsters(Game1.content).TryGetValue(monster.Name, out var result)
-        )
+        if (!slainByBomb && DataLoader.Monsters(Game1.content).TryGetValue(monster.Name, out var result))
         {
             Vector2 monsterPosition = Utility.PointToVector2(monster.StandingPixel);
             Vector2 playerPosition = Utility.PointToVector2(who.StandingPixel);
@@ -93,21 +85,14 @@ public class ReaperEnchantment : ScytheEnchantment
                 {
                     location.debris.Add(
                         monster.ModifyMonsterLoot(
-                            new Debris(
-                                Math.Abs(parsedIndex),
-                                Random.Shared.Next(1, 4),
-                                monsterPosition,
-                                playerPosition
-                            )
+                            new Debris(Math.Abs(parsedIndex), Random.Shared.Next(1, 4), monsterPosition, playerPosition)
                         )
                     );
                 }
                 else
                 {
                     location.debris.Add(
-                        monster.ModifyMonsterLoot(
-                            new Debris(objectToAdd, monsterPosition, playerPosition)
-                        )
+                        monster.ModifyMonsterLoot(new Debris(objectToAdd, monsterPosition, playerPosition))
                     );
                 }
             }

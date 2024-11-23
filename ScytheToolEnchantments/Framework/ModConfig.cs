@@ -20,9 +20,7 @@ internal sealed class ModConfig
 
     public void Register(IModHelper helper, IManifest mod)
     {
-        var GMCM = helper.ModRegistry.GetApi<Integration.IGenericModConfigMenuApi>(
-            "spacechase0.GenericModConfigMenu"
-        );
+        var GMCM = helper.ModRegistry.GetApi<Integration.IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
         if (GMCM == null)
         {
             helper.WriteConfig(this);

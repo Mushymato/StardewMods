@@ -27,7 +27,12 @@ public class PalaeontologistEnchantment : ScytheEnchantment
             ItemQueryResolver
                 .TryResolve(
                     "ALL_ITEMS",
-                    new ItemQueryContext(Game1.currentLocation, Game1.player, Game1.random),
+                    new ItemQueryContext(
+                        Game1.currentLocation,
+                        Game1.player,
+                        Game1.random,
+                        sourcePhrase: "PalaeontologistEnchantment"
+                    ),
                     ItemQuerySearchMode.RandomOfTypeItem,
                     "ITEM_CONTEXT_TAG Target bone_item !id_o_881"
                 )

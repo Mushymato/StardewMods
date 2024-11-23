@@ -101,9 +101,7 @@ internal sealed class ModEntry : Mod
     private void SetupConfig()
     {
         if (
-            Helper.ModRegistry.GetApi<Integration.IGenericModConfigMenuApi>(
-                "spacechase0.GenericModConfigMenu"
-            )
+            Helper.ModRegistry.GetApi<Integration.IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu")
             is Integration.IGenericModConfigMenuApi GMCM
         )
         {
@@ -151,9 +149,7 @@ internal sealed class ModEntry : Mod
                 },
                 formatValue: (value) =>
                 {
-                    return value == 0
-                        ? Helper.Translation.Get("config.ToolbarRowCount.auto")
-                        : value.ToString();
+                    return value == 0 ? Helper.Translation.Get("config.ToolbarRowCount.auto") : value.ToString();
                 },
                 name: () => Helper.Translation.Get("config.ToolbarRowCount.name"),
                 tooltip: () => Helper.Translation.Get("config.ToolbarRowCount.description"),
@@ -185,9 +181,7 @@ internal sealed class ModEntry : Mod
                 },
                 formatValue: (value) =>
                 {
-                    return value == 0
-                        ? Helper.Translation.Get("config.MultiShiftRowCount.full")
-                        : value.ToString();
+                    return value == 0 ? Helper.Translation.Get("config.MultiShiftRowCount.full") : value.ToString();
                 },
                 name: () => Helper.Translation.Get("config.MultiShiftRowCount.name"),
                 tooltip: () => Helper.Translation.Get("config.MultiShiftRowCount.description"),
@@ -236,20 +230,11 @@ internal sealed class ModEntry : Mod
             //     postfix: new HarmonyMethod(typeof(ModEntry), nameof(Toolbar_constructor_Postfix))
             // );
             harmony.Patch(
-                original: AccessTools.DeclaredMethod(
-                    typeof(Toolbar),
-                    nameof(Toolbar.gameWindowSizeChanged)
-                ),
-                postfix: new HarmonyMethod(
-                    typeof(ModEntry),
-                    nameof(Toolbar_gameWindowSizeChanged_Postfix)
-                )
+                original: AccessTools.DeclaredMethod(typeof(Toolbar), nameof(Toolbar.gameWindowSizeChanged)),
+                postfix: new HarmonyMethod(typeof(ModEntry), nameof(Toolbar_gameWindowSizeChanged_Postfix))
             );
             harmony.Patch(
-                original: AccessTools.DeclaredMethod(
-                    typeof(Toolbar),
-                    nameof(Toolbar.isWithinBounds)
-                ),
+                original: AccessTools.DeclaredMethod(typeof(Toolbar), nameof(Toolbar.isWithinBounds)),
                 prefix: new HarmonyMethod(typeof(ModEntry), nameof(Toolbar_isWithinBounds_Prefix))
             );
             harmony.Patch(
@@ -259,14 +244,8 @@ internal sealed class ModEntry : Mod
                 transpiler: new HarmonyMethod(typeof(ModEntry), nameof(Toolbar_draw_Transpiler))
             );
             harmony.Patch(
-                original: AccessTools.DeclaredMethod(
-                    typeof(Game1),
-                    nameof(Game1.pressSwitchToolButton)
-                ),
-                transpiler: new HarmonyMethod(
-                    typeof(ModEntry),
-                    nameof(Toolbar_pressSwitchToolButton_Transpiler)
-                )
+                original: AccessTools.DeclaredMethod(typeof(Game1), nameof(Game1.pressSwitchToolButton)),
+                transpiler: new HarmonyMethod(typeof(ModEntry), nameof(Toolbar_pressSwitchToolButton_Transpiler))
             );
         }
         catch (Exception err)
@@ -294,8 +273,7 @@ internal sealed class ModEntry : Mod
     {
         return Config!.Arrangement switch
         {
-            ToolbarArrangement.Horizontal => ((row % 2 == 1) ? (row / 2 + 1) : -(row / 2))
-                * ToolbarWidth,
+            ToolbarArrangement.Horizontal => ((row % 2 == 1) ? (row / 2 + 1) : -(row / 2)) * ToolbarWidth,
             _ => 0,
         };
     }
@@ -308,9 +286,7 @@ internal sealed class ModEntry : Mod
             // __instance.width *= 3;
             for (int i = __instance.buttons.Count; i < GetToolbarMax(); i++)
             {
-                __instance.buttons.Add(
-                    new ClickableComponent(new Rectangle(-65, -65, 64, 64), i.ToString() ?? "")
-                );
+                __instance.buttons.Add(new ClickableComponent(new Rectangle(-65, -65, 64, 64), i.ToString() ?? ""));
             }
         }
         catch (Exception err)
@@ -341,20 +317,11 @@ internal sealed class ModEntry : Mod
     private static void UpdateButtonBounds(Toolbar tb, int i)
     {
         tb.buttons[i].bounds.X =
-            Game1.uiViewport.Width / 2
-            - 384
-            + i % Farmer.hotbarSize * 64
-            + AlignX(i / Farmer.hotbarSize);
-        tb.buttons[i].bounds.Y =
-            tb.yPositionOnScreen - 96 + 8 + AlignY(tb.yPositionOnScreen, i / Farmer.hotbarSize);
+            Game1.uiViewport.Width / 2 - 384 + i % Farmer.hotbarSize * 64 + AlignX(i / Farmer.hotbarSize);
+        tb.buttons[i].bounds.Y = tb.yPositionOnScreen - 96 + 8 + AlignY(tb.yPositionOnScreen, i / Farmer.hotbarSize);
     }
 
-    private static bool Toolbar_isWithinBounds_Prefix(
-        Toolbar __instance,
-        ref bool __result,
-        int x,
-        int y
-    )
+    private static bool Toolbar_isWithinBounds_Prefix(Toolbar __instance, ref bool __result, int x, int y)
     {
         try
         {
@@ -366,9 +333,7 @@ internal sealed class ModEntry : Mod
             Rectangle lastBounds;
             if (Config!.Arrangement == ToolbarArrangement.Horizontal)
             {
-                firstBounds = __instance
-                    .buttons[Farmer.hotbarSize * ((rowCount - 1) / 2) * 2]
-                    .bounds;
+                firstBounds = __instance.buttons[Farmer.hotbarSize * ((rowCount - 1) / 2) * 2].bounds;
                 lastBounds = __instance.buttons[Farmer.hotbarSize * (rowCount / 2 + 1) - 1].bounds;
             }
             else
@@ -535,14 +500,8 @@ internal sealed class ModEntry : Mod
             UpdateButtonBounds(tb, i);
             Vector2 toDraw =
                 new(
-                    Game1.uiViewport.Width / 2
-                        - 384
-                        + i % Farmer.hotbarSize * 64
-                        + AlignX(i / Farmer.hotbarSize),
-                    tb.yPositionOnScreen
-                        - 96
-                        + 8
-                        + AlignY(tb.yPositionOnScreen, i / Farmer.hotbarSize)
+                    Game1.uiViewport.Width / 2 - 384 + i % Farmer.hotbarSize * 64 + AlignX(i / Farmer.hotbarSize),
+                    tb.yPositionOnScreen - 96 + 8 + AlignY(tb.yPositionOnScreen, i / Farmer.hotbarSize)
                 );
             DrawItemBox(
                 b,
@@ -570,14 +529,8 @@ internal sealed class ModEntry : Mod
                 tb.buttons[i].scale = Math.Max(1f, tb.buttons[i].scale - 0.025f);
                 Vector2 toDraw2 =
                     new(
-                        Game1.uiViewport.Width / 2
-                            - 384
-                            + i % Farmer.hotbarSize * 64
-                            + AlignX(i / Farmer.hotbarSize),
-                        tb.yPositionOnScreen
-                            - 96
-                            + 8
-                            + AlignY(tb.yPositionOnScreen, i / Farmer.hotbarSize)
+                        Game1.uiViewport.Width / 2 - 384 + i % Farmer.hotbarSize * 64 + AlignX(i / Farmer.hotbarSize),
+                        tb.yPositionOnScreen - 96 + 8 + AlignY(tb.yPositionOnScreen, i / Farmer.hotbarSize)
                     );
                 Game1
                     .player.Items[i]
@@ -631,10 +584,7 @@ internal sealed class ModEntry : Mod
                         new(OpCodes.Ldc_I4_0),
                     }
                 );
-            matcher.Instruction.operand = AccessTools.Method(
-                typeof(ModEntry),
-                nameof(DrawToolbarBox)
-            );
+            matcher.Instruction.operand = AccessTools.Method(typeof(ModEntry), nameof(DrawToolbarBox));
 
             // replace drawing of item boxes
             matcher = matcher
@@ -646,27 +596,15 @@ internal sealed class ModEntry : Mod
                             AccessTools.Method(
                                 typeof(SpriteBatch),
                                 nameof(SpriteBatch.Draw),
-                                new Type[]
-                                {
-                                    typeof(Texture2D),
-                                    typeof(Vector2),
-                                    typeof(Rectangle?),
-                                    typeof(Color),
-                                }
+                                new Type[] { typeof(Texture2D), typeof(Vector2), typeof(Rectangle?), typeof(Color) }
                             )
                         ),
                         new(OpCodes.Call),
-                        new(
-                            OpCodes.Ldfld,
-                            AccessTools.Field(typeof(Options), nameof(Options.gamepadControls))
-                        ),
+                        new(OpCodes.Ldfld, AccessTools.Field(typeof(Options), nameof(Options.gamepadControls))),
                     }
                 )
                 .SetInstruction(
-                    new CodeInstruction(
-                        OpCodes.Call,
-                        AccessTools.Method(typeof(ModEntry), nameof(DrawItemBox))
-                    )
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(DrawItemBox)))
                 );
 
             // block drawing of hoverItem, to let draw postfix handle it
@@ -674,10 +612,7 @@ internal sealed class ModEntry : Mod
                 new CodeMatch[]
                 {
                     new(OpCodes.Ldarg_0),
-                    new(
-                        OpCodes.Ldfld,
-                        AccessTools.Field(typeof(Toolbar), nameof(Toolbar.hoverItem))
-                    ),
+                    new(OpCodes.Ldfld, AccessTools.Field(typeof(Toolbar), nameof(Toolbar.hoverItem))),
                     new(OpCodes.Brfalse_S),
                 }
             );
@@ -726,93 +661,57 @@ internal sealed class ModEntry : Mod
             matcher = matcher
                 .Start()
                 .MatchStartForward(
-                    new CodeMatch[]
-                    {
-                        new(OpCodes.Add),
-                        new(OpCodes.Ldc_I4_S, (sbyte)12),
-                        new(OpCodes.Rem),
-                    }
+                    new CodeMatch[] { new(OpCodes.Add), new(OpCodes.Ldc_I4_S, (sbyte)12), new(OpCodes.Rem) }
                 );
             matcher
                 .Advance(1)
                 .SetInstruction(
-                    new CodeInstruction(
-                        OpCodes.Call,
-                        AccessTools.Method(typeof(ModEntry), nameof(GetToolbarMax))
-                    )
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetToolbarMax)))
                 );
 
             matcher = matcher.MatchEndForward(
                 new CodeMatch[]
                 {
-                    new(
-                        OpCodes.Call,
-                        AccessTools.PropertyGetter(typeof(Game1), nameof(Game1.player))
-                    ),
+                    new(OpCodes.Call, AccessTools.PropertyGetter(typeof(Game1), nameof(Game1.player))),
                     new(OpCodes.Ldc_I4_S, (sbyte)11),
                 }
             );
             matcher
                 .SetInstructionAndAdvance(
-                    new CodeInstruction(
-                        OpCodes.Call,
-                        AccessTools.Method(typeof(ModEntry), nameof(GetToolbarMax))
-                    )
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetToolbarMax)))
                 )
                 .Insert(new CodeInstruction[] { new(OpCodes.Ldc_I4, 1), new(OpCodes.Sub) });
 
             matcher = matcher.MatchStartForward(
-                new CodeMatch[]
-                {
-                    new(OpCodes.Add),
-                    new(OpCodes.Ldc_I4_S, (sbyte)12),
-                    new(OpCodes.Rem),
-                }
+                new CodeMatch[] { new(OpCodes.Add), new(OpCodes.Ldc_I4_S, (sbyte)12), new(OpCodes.Rem) }
             );
             // matcher.InstructionAt(1).operand = (sbyte)Farmer.maxInventorySpace;
             matcher
                 .Advance(1)
                 .SetInstruction(
-                    new CodeInstruction(
-                        OpCodes.Call,
-                        AccessTools.Method(typeof(ModEntry), nameof(GetToolbarMax))
-                    )
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetToolbarMax)))
                 );
 
             matcher = matcher.MatchEndForward(
                 new CodeMatch[]
                 {
-                    new(
-                        OpCodes.Call,
-                        AccessTools.PropertyGetter(typeof(Game1), nameof(Game1.player))
-                    ),
+                    new(OpCodes.Call, AccessTools.PropertyGetter(typeof(Game1), nameof(Game1.player))),
                     new(OpCodes.Ldc_I4_S, (sbyte)11),
                 }
             );
             matcher
                 .SetInstructionAndAdvance(
-                    new CodeInstruction(
-                        OpCodes.Call,
-                        AccessTools.Method(typeof(ModEntry), nameof(GetToolbarMax))
-                    )
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetToolbarMax)))
                 )
                 .Insert(new CodeInstruction[] { new(OpCodes.Ldc_I4, 1), new(OpCodes.Sub) });
 
             matcher = matcher.MatchStartForward(
-                new CodeMatch[]
-                {
-                    new(OpCodes.Ldloc_3),
-                    new(OpCodes.Ldc_I4_S, (sbyte)12),
-                    new(OpCodes.Blt_S),
-                }
+                new CodeMatch[] { new(OpCodes.Ldloc_3), new(OpCodes.Ldc_I4_S, (sbyte)12), new(OpCodes.Blt_S) }
             );
             matcher
                 .Advance(1)
                 .SetInstruction(
-                    new CodeInstruction(
-                        OpCodes.Call,
-                        AccessTools.Method(typeof(ModEntry), nameof(GetToolbarMax))
-                    )
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ModEntry), nameof(GetToolbarMax)))
                 );
 
             return matcher.Instructions();

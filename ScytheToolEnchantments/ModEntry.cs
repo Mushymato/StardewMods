@@ -38,9 +38,7 @@ public class ModEntry : Mod
 
     private void RegisterEnchantmentTypes()
     {
-        ISpaceCoreApi? spacecoreApi = Helper.ModRegistry.GetApi<ISpaceCoreApi>(
-            "spacechase0.SpaceCore"
-        );
+        ISpaceCoreApi? spacecoreApi = Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore");
         // foreach (TypeInfo typeInfo in typeof(ScytheEnchantment).Assembly.DefinedTypes)
         // {
         //     if (typeInfo.GetCustomAttribute<XmlTypeAttribute>() == null || !typeInfo.IsAssignableTo(typeof(ScytheEnchantment)))

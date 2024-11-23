@@ -8,17 +8,15 @@ using StardewValley.Objects;
 // using StardewValley.Objects.Trinkets;
 using SObject = StardewValley.Object;
 
-namespace MatoTweaks.Patches;
+namespace MatoTweaks.Tweak;
 
-internal static class AtravitaItemSortTweak
+internal static class AtravitaItemSort
 {
     public static void Patch(Harmony patcher)
     {
         patcher.Patch(
             original: AccessTools.Method(typeof(Item), nameof(Item.CompareTo)),
-            prefix: new HarmonyMethod(
-                AccessTools.Method(typeof(AtravitaItemSortTweak), nameof(Item_CompareTo_Prefix))
-            )
+            prefix: new HarmonyMethod(AccessTools.Method(typeof(AtravitaItemSort), nameof(Item_CompareTo_Prefix)))
         );
     }
 
@@ -98,9 +96,7 @@ internal static class AtravitaItemSortTweak
             string? myPreserveName = myPreserveId?.GetInternalObjectName();
             string? otherPreserveName = otherPreserveId?.GetInternalObjectName();
 
-            __result =
-                myPreserveName?.CompareTo(otherPreserveName)
-                ?? (myPreserveName == otherPreserveName ? 0 : -1);
+            __result = myPreserveName?.CompareTo(otherPreserveName) ?? (myPreserveName == otherPreserveName ? 0 : -1);
             if (__result != 0)
             {
                 return false;

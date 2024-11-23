@@ -3,28 +3,22 @@ using StardewModdingAPI;
 using StardewValley.Objects;
 using static StardewValley.Objects.Chest;
 
-namespace MatoTweaks.Patches;
+namespace MatoTweaks.Tweak;
 
-internal static class ChestSizeTweak
+internal static class ChestSize
 {
     public static void Patch(Harmony patcher)
     {
         try
         {
             patcher.Patch(
-                original: AccessTools.DeclaredMethod(
-                    typeof(Chest),
-                    nameof(Chest.GetActualCapacity)
-                ),
-                postfix: new HarmonyMethod(
-                    typeof(ChestSizeTweak),
-                    nameof(Chest_GetActualCapacity_Postfix)
-                )
+                original: AccessTools.DeclaredMethod(typeof(Chest), nameof(Chest.GetActualCapacity)),
+                postfix: new HarmonyMethod(typeof(ChestSize), nameof(Chest_GetActualCapacity_Postfix))
             );
         }
         catch (Exception err)
         {
-            ModEntry.Log($"Failed to patch ChestSizeTweak:\n{err}", LogLevel.Error);
+            ModEntry.Log($"Failed to patch ChestSize:\n{err}", LogLevel.Error);
         }
     }
 

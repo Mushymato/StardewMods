@@ -16,10 +16,7 @@ public class SprinklerAttachmentsApi : ISprinklerAttachmentsApi
     }
 
     /// <inheritdoc/>
-    public bool TryGetSprinklerAttachment(
-        StardewObject sprinkler,
-        [NotNullWhen(true)] out StardewObject? attachment
-    )
+    public bool TryGetSprinklerAttachment(StardewObject sprinkler, [NotNullWhen(true)] out StardewObject? attachment)
     {
         return SprinklerAttachment.TryGetSprinklerAttachment(sprinkler, out attachment);
     }

@@ -99,8 +99,7 @@ public static class QuestPingHelper
     )
     {
         Vector2 basePosition = position + new Vector2(27f, 76f) * 4f;
-        Vector2 stringSize =
-            questPingString == null ? Vector2.Zero : Game1.smallFont.MeasureString(questPingString);
+        Vector2 stringSize = questPingString == null ? Vector2.Zero : Game1.smallFont.MeasureString(questPingString);
         if (stringSize.X < 60)
         {
             b.Draw(
@@ -205,13 +204,7 @@ public static class QuestPingHelper
             offset.X += 11; // magic number weh
             offset.X -= stringSize.X;
             offset.Y -= stringSize.Y / 2;
-            Utility.drawTextWithShadow(
-                b,
-                questPingString,
-                Game1.smallFont,
-                basePosition + offset,
-                Game1.textColor
-            );
+            Utility.drawTextWithShadow(b, questPingString, Game1.smallFont, basePosition + offset, Game1.textColor);
         }
     }
 

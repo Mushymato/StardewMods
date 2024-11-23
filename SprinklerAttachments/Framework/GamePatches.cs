@@ -20,10 +20,7 @@ internal static class GamePatches
                     typeof(StardewObject),
                     nameof(StardewObject.performObjectDropInAction)
                 ),
-                postfix: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(Object_performObjectDropInAction_Postfix)
-                )
+                postfix: new HarmonyMethod(typeof(GamePatches), nameof(Object_performObjectDropInAction_Postfix))
             );
             // harmony.Patch(
             //     original: AccessTools.DeclaredMethod(typeof(StardewObject), nameof(StardewObject.checkForAction)),
@@ -34,20 +31,14 @@ internal static class GamePatches
                     typeof(StardewObject),
                     nameof(StardewObject.updateWhenCurrentLocation)
                 ),
-                postfix: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(Object_updateWhenCurrentLocation_Postfix)
-                )
+                postfix: new HarmonyMethod(typeof(GamePatches), nameof(Object_updateWhenCurrentLocation_Postfix))
             );
             harmony.Patch(
                 original: AccessTools.DeclaredMethod(
                     typeof(StardewObject),
                     nameof(StardewObject.GetModifiedRadiusForSprinkler)
                 ),
-                postfix: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(Object_GetModifiedRadiusForSprinkler_PostFix)
-                )
+                postfix: new HarmonyMethod(typeof(GamePatches), nameof(Object_GetModifiedRadiusForSprinkler_PostFix))
             );
             harmony.Patch(
                 original: AccessTools.DeclaredMethod(
@@ -58,14 +49,8 @@ internal static class GamePatches
                 transpiler: new HarmonyMethod(typeof(GamePatches), nameof(Object_draw_Transpiler))
             );
             harmony.Patch(
-                original: AccessTools.DeclaredMethod(
-                    typeof(Chest),
-                    nameof(Chest.GetActualCapacity)
-                ),
-                postfix: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(Chest_GetActualCapacity_Postfix)
-                )
+                original: AccessTools.DeclaredMethod(typeof(Chest), nameof(Chest.GetActualCapacity)),
+                postfix: new HarmonyMethod(typeof(GamePatches), nameof(Chest_GetActualCapacity_Postfix))
             );
         }
         catch (Exception err)
@@ -85,17 +70,12 @@ internal static class GamePatches
     {
         try
         {
-            if (
-                !__result && SprinklerAttachment.TryAttachToSprinkler(__instance, dropInItem, probe)
-            )
+            if (!__result && SprinklerAttachment.TryAttachToSprinkler(__instance, dropInItem, probe))
                 __result = true;
         }
         catch (Exception err)
         {
-            ModEntry.Log(
-                $"Error in Object_performObjectDropInAction_Postfix:\n{err}",
-                LogLevel.Error
-            );
+            ModEntry.Log($"Error in Object_performObjectDropInAction_Postfix:\n{err}", LogLevel.Error);
         }
     }
 
@@ -108,9 +88,7 @@ internal static class GamePatches
     {
         try
         {
-            if (
-                !__result && SprinklerAttachment.CheckForAction(__instance, justCheckingForActivity)
-            )
+            if (!__result && SprinklerAttachment.CheckForAction(__instance, justCheckingForActivity))
                 __result = true;
         }
         catch (Exception err)
@@ -119,10 +97,7 @@ internal static class GamePatches
         }
     }
 
-    private static void Object_GetModifiedRadiusForSprinkler_PostFix(
-        StardewObject __instance,
-        ref int __result
-    )
+    private static void Object_GetModifiedRadiusForSprinkler_PostFix(StardewObject __instance, ref int __result)
     {
         try
         {
@@ -130,17 +105,11 @@ internal static class GamePatches
         }
         catch (Exception err)
         {
-            ModEntry.Log(
-                $"Error in Object_GetModifiedRadiusForSprinkler_PostFix:\n{err}",
-                LogLevel.Error
-            );
+            ModEntry.Log($"Error in Object_GetModifiedRadiusForSprinkler_PostFix:\n{err}", LogLevel.Error);
         }
     }
 
-    private static void Object_updateWhenCurrentLocation_Postfix(
-        StardewObject __instance,
-        GameTime time
-    )
+    private static void Object_updateWhenCurrentLocation_Postfix(StardewObject __instance, GameTime time)
     {
         try
         {
@@ -148,10 +117,7 @@ internal static class GamePatches
         }
         catch (Exception err)
         {
-            ModEntry.Log(
-                $"Error in Object_updateWhenCurrentLocation_Postfix:\n{err}",
-                LogLevel.Error
-            );
+            ModEntry.Log($"Error in Object_updateWhenCurrentLocation_Postfix:\n{err}", LogLevel.Error);
         }
     }
 
@@ -207,10 +173,7 @@ internal static class GamePatches
                         new(OpCodes.Ldarg_0),
                         new(
                             OpCodes.Callvirt,
-                            AccessTools.Method(
-                                typeof(StardewObject),
-                                nameof(StardewObject.IsSprinkler)
-                            )
+                            AccessTools.Method(typeof(StardewObject), nameof(StardewObject.IsSprinkler))
                         ),
                         new(OpCodes.Brfalse),
                     }
@@ -228,10 +191,7 @@ internal static class GamePatches
                         new(OpCodes.Ldarg_S, 4), // float alpha = 1f
                         new(
                             OpCodes.Call,
-                            AccessTools.Method(
-                                typeof(SprinklerAttachment),
-                                nameof(SprinklerAttachment.DrawAttachment)
-                            )
+                            AccessTools.Method(typeof(SprinklerAttachment), nameof(SprinklerAttachment.DrawAttachment))
                         ),
                         new(OpCodes.Brtrue_S, lbl),
                     }
