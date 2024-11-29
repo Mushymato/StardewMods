@@ -29,7 +29,7 @@ internal static class FriendshipJewel
         CharacterData data = npc.GetData();
         if (player.friendshipData.TryGetValue(npc.Name, out Friendship friendship))
         {
-            if (data.CanBeRomanced && !friendship.IsDating())
+            if (friendship.Points >= 2000 && data.CanBeRomanced && !friendship.IsDating())
                 return 10;
             return friendship.Points / 250;
         }
@@ -67,10 +67,6 @@ internal static class FriendshipJewel
                     AccessTools.Method(typeof(FriendshipJewel), nameof(Return10For8HeartDateableButNotDating))
                 )
                 .SetOpcodeAndAdvance(OpCodes.Nop);
-
-            ModEntry.Log($"====matcher at {matcher.Pos}====");
-            for (int i = -9; i < 9; i++)
-                ModEntry.Log($"inst {i}: {matcher.InstructionAt(i)}");
 
             return matcher.Instructions();
         }

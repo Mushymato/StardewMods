@@ -24,13 +24,10 @@ internal static class ChestSize
 
     private static void Chest_GetActualCapacity_Postfix(Chest __instance, ref int __result)
     {
-        switch (__instance.SpecialChestType)
+        __result = __instance.SpecialChestType switch
         {
-            case SpecialChestTypes.BigChest:
-                __result = 80;
-                break;
-            default:
-                break;
-        }
+            SpecialChestTypes.BigChest => 140,
+            _ => 80,
+        };
     }
 }
