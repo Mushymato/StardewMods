@@ -23,7 +23,8 @@ internal static class ChestSize
                 original: AccessTools.DeclaredMethod(typeof(Chest), nameof(Chest.GetActualCapacity)),
                 postfix: new HarmonyMethod(typeof(ChestSize), nameof(Chest_GetActualCapacity_Postfix))
             );
-            // grant fridge some behaviors of chest, by actually the chest item
+            // grant fridge some behaviors of chest, by actually passing the chest item
+            // funny side effect of showing the color picker :v
             patcher.Patch(
                 original: AccessTools.DeclaredMethod(typeof(Chest), nameof(Chest.ShowMenu)),
                 transpiler: new HarmonyMethod(typeof(ChestSize), nameof(Chest_ShowMenu_Transpiler))
