@@ -1,12 +1,6 @@
 ﻿using HarmonyLib;
 using MatoTweaks.Tweak;
 using StardewModdingAPI;
-using StardewModdingAPI.Events;
-using StardewValley;
-using StardewValley.GameData;
-using StardewValley.GameData.Machines;
-using StardewValley.ItemTypeDefinitions;
-using StardewObject = StardewValley.Object;
 
 namespace MatoTweaks;
 
@@ -17,7 +11,6 @@ public class ModEntry : Mod
     public override void Entry(IModHelper helper)
     {
         mon = Monitor;
-        // helper.Events.Content.AssetRequested += OnAssetRequested;
         Harmony patcher = new(ModManifest.UniqueID);
         AtravitaItemSort.Patch(patcher);
         ChestSize.Patch(patcher);
