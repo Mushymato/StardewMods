@@ -17,6 +17,7 @@ public class ModEntry : Mod
         Harmony patcher = new(ModManifest.UniqueID);
         AtravitaItemSort.Patch(patcher);
         ChestSize.Patch(patcher);
+        ChestStack.Patch(patcher);
         FriendshipJewel.Patch(patcher);
         StackCount.Patch(patcher);
 
