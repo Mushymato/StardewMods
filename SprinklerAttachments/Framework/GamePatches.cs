@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Menus;
 using StardewValley.Objects;
 using StardewObject = StardewValley.Object;
 
@@ -51,6 +52,10 @@ internal static class GamePatches
             harmony.Patch(
                 original: AccessTools.DeclaredMethod(typeof(Chest), nameof(Chest.GetActualCapacity)),
                 postfix: new HarmonyMethod(typeof(GamePatches), nameof(Chest_GetActualCapacity_Postfix))
+            );
+            harmony.Patch(
+                original: AccessTools.DeclaredMethod(typeof(ItemGrabMenu), nameof(ItemGrabMenu.CanHaveColorPicker)),
+                postfix: new HarmonyMethod(typeof(GamePatches), nameof(ItemGrabMenu_CanHaveColorPicker_Postfix))
             );
         }
         catch (Exception err)
@@ -222,6 +227,21 @@ internal static class GamePatches
         try
         {
             __result = SprinklerAttachment.GetActualCapacity(__instance, __result);
+        }
+        catch (Exception err)
+        {
+            ModEntry.Log($"Error in Chest_GetActualCapacity_Postfix:\n{err}", LogLevel.Error);
+        }
+    }
+
+    private static void ItemGrabMenu_CanHaveColorPicker_Postfix(ItemGrabMenu __instance, ref bool __result)
+    {
+        try
+        {
+            if (__instance.sourceItem is Chest chest)
+            {
+                __result = SprinklerAttachment.CanHaveColorPicker(chest, __result);
+            }
         }
         catch (Exception err)
         {

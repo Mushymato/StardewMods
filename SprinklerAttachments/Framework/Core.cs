@@ -398,7 +398,7 @@ internal static class SprinklerAttachment
         // setup chest if IsSowing is set
         if (ModFieldHelper.TryGetIntakeChestAcceptCategory(data, out string? ret) && attached.heldObject.Value == null)
         {
-            Chest intakeChest = new(playerChest: false) { SpecialChestType = Chest.SpecialChestTypes.Enricher };
+            Chest intakeChest = new(playerChest: false);
 
             intakeChest.modData.Add(ContentModId, "true");
             intakeChest.modData.Add(ModFieldHelper.Field_IntakeChestAcceptCategory, ret);
@@ -547,6 +547,17 @@ internal static class SprinklerAttachment
     {
         if (ModFieldHelper.TryParseModData(intakeChest.modData, ContentModId, out bool? ret) && (bool)ret)
             return Config?.IntakeChestSize ?? originalValue;
+        return originalValue;
+    }
+
+    /// <summary>Override color picker status</summary>
+    /// <param name="intakeChest"></param>
+    /// <param name="originalValue"></param>
+    /// <returns></returns>
+    public static bool CanHaveColorPicker(Chest intakeChest, bool originalValue)
+    {
+        if (ModFieldHelper.TryParseModData(intakeChest.modData, ContentModId, out bool? ret))
+            return !ret ?? false;
         return originalValue;
     }
 
