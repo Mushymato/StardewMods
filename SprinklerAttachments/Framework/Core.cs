@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -145,6 +146,8 @@ internal class ModConfig
     public bool InvisibleAttachments { get; set; } = false;
     public bool SeasonAwarePlanting = true;
 
+    public static string RestrictKrobusStockMail = null!;
+
     private void Reset()
     {
         RestrictKrobusStock = true;
@@ -156,31 +159,15 @@ internal class ModConfig
         InvisibleAttachments = false;
         SeasonAwarePlanting = true;
         OpenIntakeChestKey = KeybindList.Parse($"{SButton.MouseRight}, {SButton.ControllerA}"); // weh
+        if (RestrictKrobusStock)
+            Game1.player.mailReceived.Add(RestrictKrobusStockMail);
+        else
+            Game1.player.RemoveMail(RestrictKrobusStockMail);
     }
 
-    public void Register(
-        IModHelper helper,
-        IManifest mod,
-        Integration.IContentPatcherAPI CP,
-        Integration.IGenericModConfigMenuApi? GMCM
-    )
+    public void Register(IModHelper helper, IManifest mod, Integration.IGenericModConfigMenuApi? GMCM)
     {
-        CP.RegisterToken(
-            mod,
-            nameof(RestrictKrobusStock),
-            () =>
-            {
-                return new string[] { RestrictKrobusStock.ToString() };
-            }
-        );
-        CP.RegisterToken(
-            mod,
-            nameof(InvisibleAttachments),
-            () =>
-            {
-                return new string[] { InvisibleAttachments.ToString() };
-            }
-        );
+        RestrictKrobusStockMail = $"{mod.UniqueID}/RestrictKrobusStock";
         if (GMCM == null)
         {
             helper.WriteConfig(this);
@@ -193,78 +180,50 @@ internal class ModConfig
                 Reset();
                 helper.WriteConfig(this);
             },
-            save: () =>
-            {
-                helper.WriteConfig(this);
-            },
+            save: () => helper.WriteConfig(this),
             titleScreenOnly: false
         );
         GMCM.AddBoolOption(
             mod,
-            getValue: () =>
-            {
-                return RestrictKrobusStock;
-            },
+            getValue: () => RestrictKrobusStock,
             setValue: (value) =>
             {
                 RestrictKrobusStock = value;
+                if (Game1.gameMode == 3)
+                    if (RestrictKrobusStock)
+                        Game1.addMail(RestrictKrobusStockMail, noLetter: true, sendToEveryone: false);
+                    else
+                        Game1.player.RemoveMail(RestrictKrobusStockMail);
             },
             name: () => helper.Translation.Get("config.RestrictKrobusStock.name"),
             tooltip: () => helper.Translation.Get("config.RestrictKrobusStock.description")
         );
         GMCM.AddBoolOption(
             mod,
-            getValue: () =>
-            {
-                return InvisibleAttachments;
-            },
-            setValue: (value) =>
-            {
-                InvisibleAttachments = value;
-            },
+            getValue: () => InvisibleAttachments,
+            setValue: (value) => InvisibleAttachments = value,
             name: () => helper.Translation.Get("config.InvisibleAttachments.name"),
             tooltip: () => helper.Translation.Get("config.InvisibleAttachments.description")
         );
         GMCM.AddBoolOption(
             mod,
-            getValue: () =>
-            {
-                return WaterOnPlanting;
-            },
-            setValue: (value) =>
-            {
-                WaterOnPlanting = value;
-            },
+            getValue: () => WaterOnPlanting,
+            setValue: (value) => WaterOnPlanting = value,
             name: () => helper.Translation.Get("config.WaterOnPlanting.name"),
             tooltip: () => helper.Translation.Get("config.WaterOnPlanting.description")
         );
         GMCM.AddBoolOption(
             mod,
-            getValue: () =>
-            {
-                return EnableForGardenPots;
-            },
-            setValue: (value) =>
-            {
-                EnableForGardenPots = value;
-            },
+            getValue: () => EnableForGardenPots,
+            setValue: (value) => EnableForGardenPots = value,
             name: () => helper.Translation.Get("config.EnableForGardenPots.name"),
             tooltip: () => helper.Translation.Get("config.EnableForGardenPots.description")
         );
         GMCM.AddNumberOption(
             mod,
-            getValue: () =>
-            {
-                return (int)TrellisPattern;
-            },
-            setValue: (value) =>
-            {
-                TrellisPattern = (Trellis)value;
-            },
-            formatValue: (value) =>
-            {
-                return helper.Translation.Get($"config.TrellisPattern.{value}");
-            },
+            getValue: () => (int)TrellisPattern,
+            setValue: (value) => TrellisPattern = (Trellis)value,
+            formatValue: (value) => helper.Translation.Get($"config.TrellisPattern.{value}"),
             name: () => helper.Translation.Get("config.TrellisPattern.name"),
             tooltip: () => helper.Translation.Get("config.TrellisPattern.description"),
             min: 0,
@@ -272,40 +231,22 @@ internal class ModConfig
         );
         GMCM.AddBoolOption(
             mod,
-            getValue: () =>
-            {
-                return SeasonAwarePlanting;
-            },
-            setValue: (value) =>
-            {
-                SeasonAwarePlanting = value;
-            },
+            getValue: () => SeasonAwarePlanting,
+            setValue: (value) => SeasonAwarePlanting = value,
             name: () => helper.Translation.Get("config.SeasonAwarePlanting.name"),
             tooltip: () => helper.Translation.Get("config.SeasonAwarePlanting.description")
         );
         GMCM.AddKeybindList(
             mod,
-            getValue: () =>
-            {
-                return OpenIntakeChestKey;
-            },
-            setValue: (value) =>
-            {
-                OpenIntakeChestKey = value;
-            },
+            getValue: () => OpenIntakeChestKey,
+            setValue: (value) => OpenIntakeChestKey = value,
             name: () => helper.Translation.Get("config.OpenIntakeChestKey.name"),
             tooltip: () => helper.Translation.Get("config.OpenIntakeChestKey.description")
         );
         GMCM.AddNumberOption(
             mod,
-            getValue: () =>
-            {
-                return IntakeChestSize;
-            },
-            setValue: (value) =>
-            {
-                IntakeChestSize = value;
-            },
+            getValue: () => IntakeChestSize,
+            setValue: (value) => IntakeChestSize = value,
             name: () => helper.Translation.Get("config.IntakeChestSize.name"),
             tooltip: () => helper.Translation.Get("config.IntakeChestSize.description"),
             min: 3,
@@ -314,14 +255,8 @@ internal class ModConfig
         );
         GMCM.AddBoolOption(
             mod,
-            getValue: () =>
-            {
-                return PlantOnChestClose;
-            },
-            setValue: (value) =>
-            {
-                PlantOnChestClose = value;
-            },
+            getValue: () => PlantOnChestClose,
+            setValue: (value) => PlantOnChestClose = value,
             name: () => helper.Translation.Get("config.PlantOnChestClose.name"),
             tooltip: () => helper.Translation.Get("config.PlantOnChestClose.description")
         );
@@ -342,6 +277,10 @@ internal static class SprinklerAttachment
     private static Integration.IBetterSprinklersApi? BetterSprinklersApi;
     private static Integration.IUltimateFertilizerApi? UltimateFertilizerApi;
     public static ModConfig? Config;
+    public static FieldInfo SeasonOverrideField = typeof(GameLocation).GetField(
+        "seasonOverride",
+        BindingFlags.NonPublic | BindingFlags.Instance
+    )!;
 
     public static void SetUpModCompatibility(IModHelper helper)
     {
@@ -378,15 +317,13 @@ internal static class SprinklerAttachment
 
     public static void SetUpModConfigMenu(IModHelper helper, IManifest manifest)
     {
-        Integration.IContentPatcherAPI? CP =
-            helper.ModRegistry.GetApi<Integration.IContentPatcherAPI>("Pathoschild.ContentPatcher")
-            ?? throw new ContentLoadException("Failed to get Content Patcher API");
         // IModInfo cpMod = helper.ModRegistry.Get(ContentModId) ?? throw new ContentLoadException($"Required content pack {ContentModId} not loaded");
         Config = helper.ReadConfig<ModConfig>();
-        Integration.IGenericModConfigMenuApi? GMCM = helper.ModRegistry.GetApi<Integration.IGenericModConfigMenuApi>(
-            "spacechase0.GenericModConfigMenu"
-        );
-        Config.Register(helper, manifest, CP, GMCM);
+        Integration.IGenericModConfigMenuApi? GMCM =
+            helper.ModRegistry.GetApi<Integration.IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu")
+            ?? throw new ContentLoadException("Failed to get GMCM API");
+        ;
+        Config.Register(helper, manifest, GMCM);
     }
 
     public static void ReadConfig(IModHelper helper)
@@ -1039,6 +976,12 @@ internal static class SprinklerAttachment
                     // check that planted crop can be harvested in time
                     if (!ignoreSeasons && Config!.SeasonAwarePlanting)
                     {
+                        // ignore harvested in time check if season override in effect
+                        if (
+                            SeasonOverrideField.GetValue(dirt.Location) is Lazy<Season?> seasonOverride
+                            && seasonOverride.Value != null
+                        )
+                            continue;
                         int growthDays = dirt.crop!.phaseDays.Take(dirt.crop.phaseDays.Count - 1).Sum();
                         if (growthDays > (WorldDate.DaysPerMonth - Game1.dayOfMonth))
                         {

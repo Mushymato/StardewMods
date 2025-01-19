@@ -7,70 +7,34 @@
         "ShadowShop",
         "Items"
       ],
-      "When": {
-        "mushymato.SprinklerAttachments/RestrictKrobusStock": true
-      },
       "Entries": {
-        "{{ModId}}_SeedSpreader": {
-          "Id": "{{ModId}}_SeedSpreader",
+        "{{ModId}}_SeedSpreader_Sunday": {
+          "Id": "{{ModId}}_SeedSpreader_Sunday",
           "ItemId": "{{ModId}}_SeedSpreader",
           "Price": 20000,
-          "Condition": "DAY_OF_WEEK Sunday",
+          "Condition": "DAY_OF_WEEK Sunday, PLAYER_HAS_MAIL Current mushymato.SprinklerAttachments/RestrictKrobusStock",
           "AvailableStock": 1
         },
-        "{{ModId}}_3in1Nozzle": {
-          "Id": "{{ModId}}_3in1Nozzle",
+        "{{ModId}}_3in1Nozzle_Sunday": {
+          "Id": "{{ModId}}_3in1Nozzle_Sunday",
           "ItemId": "{{ModId}}_3in1Nozzle",
           "Price": 60000,
-          "Condition": "DAY_OF_WEEK Sunday",
+          "Condition": "DAY_OF_WEEK Sunday, PLAYER_HAS_MAIL Current mushymato.SprinklerAttachments/RestrictKrobusStock",
           "AvailableStock": 1
-        }
-      },
-      "MoveEntries": [
-        {
-          "Id": "{{ModId}}_SeedSpreader",
-          "BeforeId": "(O)767"
         },
-        {
-          "Id": "{{ModId}}_3in1Nozzle",
-          "BeforeId": "(O)767"
-        }
-      ],
-      "Update": "OnLocationChange"
-    },
-    {
-      "Action": "EditData",
-      "Target": "Data/Shops",
-      "TargetField": [
-        "ShadowShop",
-        "Items"
-      ],
-      "When": {
-        "mushymato.SprinklerAttachments/RestrictKrobusStock": false
-      },
-      "Entries": {
-        "{{ModId}}_SeedSpreader": {
-          "Id": "{{ModId}}_SeedSpreader",
+        "{{ModId}}_SeedSpreader_Any": {
+          "Id": "{{ModId}}_SeedSpreader_Any",
           "ItemId": "{{ModId}}_SeedSpreader",
+          "Condition": "!PLAYER_HAS_MAIL Current mushymato.SprinklerAttachments/RestrictKrobusStock",
           "Price": 20000
         },
-        "{{ModId}}_3in1Nozzle": {
-          "Id": "{{ModId}}_3in1Nozzle",
+        "{{ModId}}_3in1Nozzle_Any": {
+          "Id": "{{ModId}}_3in1Nozzle_Any",
           "ItemId": "{{ModId}}_3in1Nozzle",
+          "Condition": "!PLAYER_HAS_MAIL Current mushymato.SprinklerAttachments/RestrictKrobusStock",
           "Price": 60000
         }
-      },
-      "MoveEntries": [
-        {
-          "Id": "{{ModId}}_SeedSpreader",
-          "BeforeId": "(O)305"
-        },
-        {
-          "Id": "{{ModId}}_3in1Nozzle",
-          "BeforeId": "(O)305"
-        }
-      ],
-      "Update": "OnLocationChange"
+      }
     },
     {
       "Action": "EditData",

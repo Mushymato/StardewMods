@@ -2,6 +2,7 @@
 using SprinklerAttachments.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
+using StardewValley;
 
 namespace SprinklerAttachments;
 
@@ -19,12 +20,21 @@ internal sealed class ModEntry : Mod
         GamePatches.Apply(patcher);
         helper.Events.Input.ButtonsChanged += OnButtonsChanged;
         helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+        helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.DayEnding += OnDayEnding;
         helper.ConsoleCommands.Add(
             "apply_sowing",
             "Triggers sowing (planting of seed and fertilizer from attachment) on all sprinklers with applicable attachment.",
             ConsoleApplySowing
         );
+    }
+
+    private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
+    {
+        if (SprinklerAttachment.Config?.RestrictKrobusStock ?? false)
+            Game1.player.mailReceived.Add(ModConfig.RestrictKrobusStockMail);
+        else
+            Game1.player.RemoveMail(ModConfig.RestrictKrobusStockMail);
     }
 
     /// <summary>Get an API that other mods can access. This is always called after <see cref="Entry"/>.</summary>

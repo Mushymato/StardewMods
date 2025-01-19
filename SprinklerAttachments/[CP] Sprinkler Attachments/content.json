@@ -4,18 +4,7 @@
         {
             "Action": "Load",
             "Target": "Mod/{{ModId}}/Objects",
-            "FromFile": "assets/{{TargetWithoutPath}}.png",
-            "When": {
-                "mushymato.SprinklerAttachments/InvisibleAttachments": false
-            }
-        },
-        {
-            "Action": "Load",
-            "Target": "Mod/{{ModId}}/Objects",
-            "FromFile": "assets/{{TargetWithoutPath}}_Invisible.png",
-            "When": {
-                "mushymato.SprinklerAttachments/InvisibleAttachments": true
-            }
+            "FromFile": "assets/{{TargetWithoutPath}}.png"
         },
         {
             "Action": "Include",
