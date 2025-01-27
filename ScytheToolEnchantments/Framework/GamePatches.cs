@@ -29,8 +29,10 @@ internal sealed class GamePatches
             harmony.Patch(
                 original: AccessTools.Method(typeof(MeleeWeapon), nameof(MeleeWeapon.Forge)),
                 transpiler: new HarmonyMethod(typeof(GamePatches), nameof(MeleeWeapon_Forge_Transpiler))
-            );
-            // tooltip draw
+                {
+                    before = ["DaLion.Enchantments"],
+                }
+            ); // tooltip draw
             harmony.Patch(
                 original: AccessTools.Method(typeof(MeleeWeapon), nameof(MeleeWeapon.drawTooltip)),
                 transpiler: new HarmonyMethod(typeof(GamePatches), nameof(MeleeWeapon_drawTooltip_Transpiler))

@@ -16,7 +16,7 @@
     <Description>Add 5 new enchantment effects for the iridium scythe.</Description>
     <UniqueId>mushymato.ScytheToolEnchantments</UniqueId>
     <UpdateKeys>Nexus:26217</UpdateKeys>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <MinimumApiVersion_Behavior>UpdateFull</MinimumApiVersion_Behavior>
     <MinimumGameVersion_Behavior>UpdateFull</MinimumGameVersion_Behavior>
     <Dependencies_VersionBehavior>UpdateFull</Dependencies_VersionBehavior>

@@ -72,7 +72,7 @@ internal static class FriendshipJewel
         }
         catch (Exception err)
         {
-            ModEntry.Log($"Error in ShopMenu_receiveLeftClick_transpiler:\n{err}", LogLevel.Error);
+            ModEntry.Log($"Error in DialogueBox_drawPortrait_Transpiler:\n{err}", LogLevel.Error);
             return instructions;
         }
     }
