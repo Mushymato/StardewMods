@@ -9,17 +9,36 @@ namespace MatoTweaks;
 
 public class ModEntry : Mod
 {
+    public class ModConfig
+    {
+        public bool AtravitaItemSort = true;
+        public bool ChestSize = true;
+        public int ChestSizeNormal = 80;
+        public int ChestSizeBig = 140;
+        public bool ChestStack = true;
+        public bool FriendshipJewel = true;
+        public bool StackCount = true;
+    }
+
     private static IMonitor? mon = null;
+    public static ModConfig Config { get; set; } = null!;
 
     public override void Entry(IModHelper helper)
     {
         mon = Monitor;
+        Config = Helper.ReadConfig<ModConfig>();
+        Helper.WriteConfig(Config);
         Harmony patcher = new(ModManifest.UniqueID);
-        AtravitaItemSort.Patch(patcher);
-        ChestSize.Patch(patcher);
-        ChestStack.Patch(patcher);
-        FriendshipJewel.Patch(patcher);
-        StackCount.Patch(patcher);
+        if (Config.AtravitaItemSort)
+            AtravitaItemSort.Patch(patcher);
+        if (Config.ChestSize)
+            ChestSize.Patch(patcher);
+        if (Config.ChestStack)
+            ChestStack.Patch(patcher);
+        if (Config.FriendshipJewel)
+            FriendshipJewel.Patch(patcher);
+        if (Config.StackCount)
+            StackCount.Patch(patcher);
 
         // helper.ConsoleCommands.Add("icon-edit", "Get icon edit CP defs for an object", GetIconEdit);
     }

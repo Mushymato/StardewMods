@@ -7,9 +7,6 @@ namespace MatoTweaks.Tweak;
 
 internal static class ChestSize
 {
-    public const int CHEST_SIZE = 80;
-    public const int BIG_CHEST_SIZE = 140;
-
     public static void Patch(Harmony patcher)
     {
         try
@@ -30,8 +27,8 @@ internal static class ChestSize
     {
         __result = __instance.SpecialChestType switch
         {
-            SpecialChestTypes.BigChest => BIG_CHEST_SIZE,
-            _ => CHEST_SIZE,
+            SpecialChestTypes.BigChest => ModEntry.Config.ChestSizeBig,
+            _ => ModEntry.Config.ChestSizeNormal,
         };
     }
 }
