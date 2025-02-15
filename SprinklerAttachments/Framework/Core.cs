@@ -585,7 +585,7 @@ internal static class SprinklerAttachment
             {
                 if (verbose)
                     ModEntry.Log(
-                        $"Try ApplySowing on sprinkler {pair.Value.Name} ({pair.Key}:{location})",
+                        $"Try ApplySowing on sprinkler {pair.Value.Name} ({pair.Key.X},{pair.Key.Y}:{location.NameOrUniqueName})",
                         LogLevel.Debug
                     );
                 ApplySowing(pair.Value);
@@ -851,6 +851,7 @@ internal static class SprinklerAttachment
     private static void PlantFromIntakeChest(List<HoeDirt> dirtList, Vector2 sprinklerPos, Chest intakeChest)
     {
         Inventory chestItems = intakeChest.Items;
+        chestItems.RemoveEmptySlots();
         int seedIdx = 0;
         int fertIdx = 0;
         bool fertilized = false;
@@ -863,11 +864,9 @@ internal static class SprinklerAttachment
         seedMapping.Sort(
             (int x, int y) =>
             {
-                Item itemX = chestItems[x];
-                if (!Crop.TryGetData(itemX.ItemId, out CropData cropDataX))
+                if (chestItems[x] is not Item itemX || !Crop.TryGetData(itemX.ItemId, out CropData cropDataX))
                     return 1;
-                Item itemY = chestItems[y];
-                if (!Crop.TryGetData(itemY.ItemId, out CropData cropDataY))
+                if (chestItems[y] is not Item itemY || !Crop.TryGetData(itemY.ItemId, out CropData cropDataY))
                     return -1;
                 // trellis first
                 if (cropDataX.IsRaised && cropDataX.IsRaised != cropDataY.IsRaised)
@@ -879,12 +878,10 @@ internal static class SprinklerAttachment
         fertilizerMapping.Sort(
             (int x, int y) =>
             {
-                Item itemX = chestItems[x];
-                if (itemX.Category != StardewObject.fertilizerCategory)
+                if (chestItems[x] is not Item itemX || itemX.Category != StardewObject.fertilizerCategory)
                     return 1;
-                Item itemY = chestItems[y];
                 HoeDirt fakeDirt = new();
-                if (itemY.Category != StardewObject.fertilizerCategory)
+                if (chestItems[y] is not Item itemY || itemY.Category != StardewObject.fertilizerCategory)
                     return -1;
                 fakeDirt.fertilizer.Value = itemX.QualifiedItemId;
                 float speedBoostX = fakeDirt.GetFertilizerSpeedBoost();
