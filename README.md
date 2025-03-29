@@ -21,9 +21,6 @@ Move the quality star on the cask up by just under 1 tile distance, so that it's
 #### [Scythe Tool Enchantments](https://www.nexusmods.com/stardewvalley/mods/26217)
 Add new custom enchantments for the iridium scythe tool added in 1.6
 
-#### [Misc Map Action Properties](https://www.nexusmods.com/stardewvalley/mods/28423)
-Map actions/properties made for other mods. See [README](MiscMapActionsProperties/README.md) for details
-
 
 ## Unreleased
 

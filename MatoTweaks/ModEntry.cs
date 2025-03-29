@@ -18,6 +18,7 @@ public class ModEntry : Mod
         public bool ChestStack = true;
         public bool FriendshipJewel = true;
         public bool StackCount = true;
+        public bool SuppressSteamHelper = true;
     }
 
     private static IMonitor? mon = null;
@@ -39,6 +40,8 @@ public class ModEntry : Mod
             FriendshipJewel.Patch(patcher);
         if (Config.StackCount)
             StackCount.Patch(patcher);
+        if (Config.SuppressSteamHelper)
+            SuppressSteamHelper.Patch(patcher);
 
         // helper.ConsoleCommands.Add("icon-edit", "Get icon edit CP defs for an object", GetIconEdit);
     }
