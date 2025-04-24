@@ -38,8 +38,8 @@ public class ModEntry : Mod
             ChestStack.Patch(patcher);
         if (Config.FriendshipJewel)
             FriendshipJewel.Patch(patcher);
-        if (Config.StackCount)
-            StackCount.Patch(patcher);
+        // if (Config.StackCount)
+        //     StackCount.Patch(patcher);
         if (Config.SuppressSteamHelper)
             SuppressSteamHelper.Patch(patcher);
 

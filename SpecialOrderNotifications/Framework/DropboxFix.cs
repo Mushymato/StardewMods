@@ -19,18 +19,32 @@ internal static class DropboxFix
             "DropBox",
             (location, args, farmer, tile) =>
             {
-                // if (!ArgUtility.TryGet(args, 1, out var boxId, out string error, allowBlank: true, "string box_id"))
-                // {
-                //     location.LogTileActionError(args, tile.X, tile.Y, error);
-                //     return false;
-                // }
-                List<SpecialOrder> specialOrders = [];
+                if (!ArgUtility.TryGet(args, 1, out var boxId, out string error, allowBlank: true, "string box_id"))
+                {
+                    location.LogTileActionError(args, tile.X, tile.Y, error);
+                    return false;
+                }
+                List<SpecialOrder> specialOrdersMatchingId = [];
+                List<SpecialOrder> specialOrdersAny = [];
                 foreach (SpecialOrder specialOrder in Game1.player.team.specialOrders)
                 {
-                    if (UsesDropBoxAnyId(specialOrder))
+                    if (specialOrder.UsesDropBox(boxId))
                     {
-                        specialOrders.Add(specialOrder);
+                        specialOrdersMatchingId.Add(specialOrder);
                     }
+                    else if (UsesDropBoxAnyId(specialOrder))
+                    {
+                        specialOrdersAny.Add(specialOrder);
+                    }
+                }
+                List<SpecialOrder> specialOrders;
+                if (specialOrdersMatchingId.Count > 0)
+                {
+                    specialOrders = specialOrdersMatchingId;
+                }
+                else
+                {
+                    specialOrders = specialOrdersAny;
                 }
                 if (specialOrders.Any())
                 {

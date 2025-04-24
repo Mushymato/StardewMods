@@ -100,7 +100,7 @@ internal sealed class GamePatches
 
     private static bool HasCrescentEnchantment(Tool tool)
     {
-        return (tool is MeleeWeapon weapon && weapon.isScythe() && weapon.hasEnchantmentOfType<CrescentEnchantment>());
+        return tool is MeleeWeapon weapon && weapon.isScythe() && weapon.hasEnchantmentOfType<CrescentEnchantment>();
     }
 
     private static IEnumerable<CodeInstruction> MeleeWeapon_drawTooltip_Transpiler(
