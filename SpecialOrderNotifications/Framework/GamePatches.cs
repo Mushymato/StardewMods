@@ -9,9 +9,8 @@ namespace SpecialOrderNotifications.Framework;
 
 public static class GamePatches
 {
-    public static void Patch(string modId)
+    public static void Patch(Harmony harmony)
     {
-        Harmony harmony = new(modId);
         try
         {
             // can use same transpiler for these two as they have same code
@@ -82,8 +81,7 @@ public static class GamePatches
             matcher
                 .Start()
                 .MatchEndForward(
-                    new CodeMatch[]
-                    {
+                    [
                         new(OpCodes.Brtrue_S),
                         new(OpCodes.Ldarg_0),
                         new(OpCodes.Ldarg_2),
@@ -93,11 +91,10 @@ public static class GamePatches
                             AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.IncrementCount))
                         ),
                         new(OpCodes.Leave_S),
-                    }
+                    ]
                 )
                 .Insert(
-                    new CodeInstruction[]
-                    {
+                    [
                         new(OpCodes.Ldarg_2),
                         new(OpCodes.Ldarg_0),
                         new(
@@ -113,7 +110,7 @@ public static class GamePatches
                             OpCodes.Call,
                             AccessTools.DeclaredMethod(typeof(QuestPingHelper), nameof(QuestPingHelper.PingItem))
                         ),
-                    }
+                    ]
                 );
 
             return matcher.Instructions();
@@ -137,8 +134,7 @@ public static class GamePatches
             matcher
                 .Start()
                 .MatchEndForward(
-                    new CodeMatch[]
-                    {
+                    [
                         new(OpCodes.Brfalse_S),
                         new(OpCodes.Ldarg_0),
                         new(OpCodes.Ldc_I4_1),
@@ -147,11 +143,10 @@ public static class GamePatches
                             AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.IncrementCount))
                         ),
                         new(OpCodes.Leave_S),
-                    }
+                    ]
                 )
                 .InsertAndAdvance(
-                    new CodeInstruction[]
-                    {
+                    [
                         new(OpCodes.Ldarg_2),
                         new(OpCodes.Ldarg_0),
                         new(
@@ -167,7 +162,7 @@ public static class GamePatches
                             OpCodes.Call,
                             AccessTools.DeclaredMethod(typeof(QuestPingHelper), nameof(QuestPingHelper.PingMonster))
                         ),
-                    }
+                    ]
                 );
 
             return matcher.Instructions();
@@ -191,8 +186,7 @@ public static class GamePatches
             matcher
                 .Start()
                 .MatchEndForward(
-                    new CodeMatch[]
-                    {
+                    [
                         new(OpCodes.Ldarg_0),
                         new(OpCodes.Ldc_I4_1),
                         new(
@@ -200,11 +194,10 @@ public static class GamePatches
                             AccessTools.Method(typeof(OrderObjective), nameof(OrderObjective.IncrementCount))
                         ),
                         new(OpCodes.Ret),
-                    }
+                    ]
                 )
                 .Insert(
-                    new CodeInstruction[]
-                    {
+                    [
                         new(OpCodes.Ldarg_0),
                         new(
                             OpCodes.Callvirt,
@@ -219,7 +212,7 @@ public static class GamePatches
                             OpCodes.Call,
                             AccessTools.DeclaredMethod(typeof(QuestPingHelper), nameof(QuestPingHelper.PingGift))
                         ),
-                    }
+                    ]
                 );
 
             return matcher.Instructions();
@@ -286,21 +279,19 @@ public static class GamePatches
             matcher
                 .Start()
                 .MatchEndForward(
-                    new CodeMatch[]
-                    {
+                    [
                         new(OpCodes.Ldarg_0),
                         new(OpCodes.Ldfld, AccessTools.Field(typeof(DayTimeMoneyBox), "questNotificationTimer")),
                         new(OpCodes.Ldc_I4_0),
                         new(OpCodes.Ble),
-                    }
+                    ]
                 );
             Label lbl = (Label)matcher.Instruction.operand;
 
             matcher
                 .Advance(1)
                 .InsertAndAdvance(
-                    new CodeInstruction[]
-                    {
+                    [
                         new(OpCodes.Ldarg_1),
                         new(OpCodes.Ldarg_0),
                         new(
@@ -321,7 +312,7 @@ public static class GamePatches
                             )
                         ),
                         new(OpCodes.Br, lbl),
-                    }
+                    ]
                 );
 
             return matcher.Instructions();
