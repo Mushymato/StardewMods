@@ -13,7 +13,7 @@
   <PropertyGroup>
     <Name>CarpenterAutobuy</Name>
     <Authors>mushymato</Authors>
-    <Description>DESCRIPTION</Description>
+    <Description>Press 'Tab' to buy (O)388 and (O)390</Description>
     <UniqueId>mushymato.CarpenterAutobuy</UniqueId>
     <UpdateKeys>Nexus:???</UpdateKeys>
     <Version>0.1.0</Version>
