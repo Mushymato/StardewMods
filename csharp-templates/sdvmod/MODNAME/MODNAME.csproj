@@ -23,10 +23,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Required="false" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.4.1" />
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
     <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
