@@ -3,7 +3,7 @@ using StardewModdingAPI.Events;
 
 namespace MODNAME;
 
-public class ModEntry : Mod
+public sealed class ModEntry : Mod
 {
 //-:cnd:noEmit
 #if DEBUG
@@ -12,20 +12,14 @@ public class ModEntry : Mod
     private const LogLevel DEFAULT_LOG_LEVEL = LogLevel.Trace;
 #endif
 //+:cnd:noEmit
+
+    public const string ModId = "mushymato.MODNAME";
     private static IMonitor? mon;
-    internal static ModConfig Config = null!;
 
     public override void Entry(IModHelper helper)
     {
         I18n.Init(helper.Translation);
         mon = Monitor;
-        Config = Helper.ReadConfig<ModConfig>();
-        helper.Events.GameLoop.GameLaunched += OnGameLaunched;
-    }
-
-    private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
-    {
-        Config.Register(Helper, ModManifest);
     }
 
     /// <summary>SMAPI static monitor Log wrapper</summary>

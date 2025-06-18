@@ -7,14 +7,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>default</LangVersion>
-    <EnableHarmony>true</EnableHarmony>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Name>MODNAME</Name>
+    <Name>BirbGlow</Name>
     <Authors>mushymato</Authors>
-    <Description>DESCRIPTION</Description>
-    <UniqueId>mushymato.MODNAME</UniqueId>
+    <Description>Birb (and other NPCs) can now glow in the dark.</Description>
+    <UniqueId>mushymato.BirbGlow</UniqueId>
     <UpdateKeys>Nexus:???</UpdateKeys>
     <Version>0.1.0</Version>
     <MinimumApiVersion_Behavior>UpdateFull</MinimumApiVersion_Behavior>
@@ -23,13 +22,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Required="false" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.4.1" />
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
-    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
+    <PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.4.0" />
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.2" />
   </ItemGroup>
 
 </Project>

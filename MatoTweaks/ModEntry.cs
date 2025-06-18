@@ -40,8 +40,8 @@ public class ModEntry : Mod
             FriendshipJewel.Patch(patcher);
         // if (Config.StackCount)
         //     StackCount.Patch(patcher);
-        if (Config.SuppressSteamHelper)
-            SuppressSteamHelper.Patch(patcher);
+        // if (Config.SuppressSteamHelper)
+        //     SuppressSteamHelper.Patch(patcher);
 
         // helper.ConsoleCommands.Add("icon-edit", "Get icon edit CP defs for an object", GetIconEdit);
     }

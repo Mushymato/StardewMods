@@ -1,0 +1,18 @@
+{
+  "Format": "2.5.0",
+  "Changes": [
+    // Location
+    {
+      "Action": "EditData",
+      "Target": "Data/Characters",
+      "TargetField": [
+        "Linus"
+      ],
+      "Entries": {
+        "CustomFields": {
+          "mushymato.BirbGlow": 4
+        }
+      },
+    },
+  ]
+}
