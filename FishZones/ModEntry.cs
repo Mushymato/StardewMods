@@ -4,6 +4,7 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Extensions;
 using StardewValley.GameData.Locations;
+using StardewValley.TokenizableStrings;
 using StardewValley.Tools;
 
 namespace FishZones;
@@ -78,16 +79,15 @@ public sealed class ModEntry : Mod
         {
             if (fishArea.Position is not Rectangle posRect)
                 continue;
-            Monitor.Log(posRect.ToString());
             Vector2 local = Game1.GlobalToLocal(new(posRect.X * Game1.tileSize, posRect.Y * Game1.tileSize));
             Utility.DrawSquare(
                 e.SpriteBatch,
                 new((int)local.X, (int)local.Y, posRect.Width * Game1.tileSize, posRect.Height * Game1.tileSize),
                 8,
-                borderColor: Color.White,
-                backgroundColor: Color.Black * 0.1f
+                borderColor: Color.White
             );
-            Utility.drawBoldText(e.SpriteBatch, key, Game1.dialogueFont, local + margin * 3, Color.White, 4);
+            string displayName = (fishArea.DisplayName != null) ? TokenParser.ParseText(fishArea.DisplayName) : key;
+            Utility.drawBoldText(e.SpriteBatch, displayName, Game1.dialogueFont, local + margin * 3, Color.White, 4);
         }
     }
 
@@ -123,7 +123,7 @@ public sealed class ModEntry : Mod
         if (text != null)
         {
             Monitor.Log(
-                $"Saved screenshot to '{Path.Combine(Game1.game1.GetScreenshotFolder(), text)}'.",
+                $"Saved fishzone screenshot to '{Path.Combine(Game1.game1.GetScreenshotFolder(), text)}'.",
                 LogLevel.Info
             );
         }
@@ -193,12 +193,12 @@ public sealed class ModEntry : Mod
         {
             if (loc.canFishHere() && IterateMapFishableTiles(loc).Any())
             {
-                Monitor.Log($"Enqueue {loc.NameOrUniqueName}", LogLevel.Debug);
+                Monitor.Log($"Enqueue {loc.NameOrUniqueName}", LogLevel.Info);
                 FishableLocationQueue.Enqueue(loc);
             }
             else
             {
-                Monitor.Log($"Enqueue {loc.NameOrUniqueName}", LogLevel.Debug);
+                Monitor.Log($"Skip {loc.NameOrUniqueName}", LogLevel.Debug);
             }
             return true;
         });
