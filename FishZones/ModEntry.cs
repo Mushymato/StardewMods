@@ -3,9 +3,20 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Extensions;
+using StardewValley.GameData.Locations;
 using StardewValley.Tools;
 
 namespace FishZones;
+
+public enum PhaseMode
+{
+    None,
+    JustWarped,
+    WillCapture,
+    WillWarp,
+}
+
+public sealed record FishZoneRecord(List<(Vector2, int)> TileDistance, Dictionary<string, FishAreaData>? FishAreas);
 
 public sealed class ModEntry : Mod
 {
@@ -22,11 +33,9 @@ public sealed class ModEntry : Mod
     ];
     private readonly Point square = new(Game1.tileSize, Game1.tileSize);
     private readonly Vector2 margin = new(4, 4);
-    private List<(Vector2, int)>? FishZoneData = null;
+    private FishZoneRecord? FishZoneInfo = null;
     private readonly Queue<GameLocation> FishableLocationQueue = [];
-    private bool JustWarped = false;
-    private bool WillCapture = false;
-    private bool WillWarp = false;
+    private PhaseMode Phase = PhaseMode.None;
 
     public override void Entry(IModHelper helper)
     {
@@ -47,19 +56,38 @@ public sealed class ModEntry : Mod
 
     private void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
     {
-        if (FishZoneData == null)
+        if (FishZoneInfo == null)
             return;
-        foreach ((Vector2 pos, int distance) in FishZoneData)
+        foreach ((Vector2 pos, int distance) in FishZoneInfo.TileDistance)
         {
             Vector2 local = Game1.GlobalToLocal(pos * Game1.tileSize);
             Utility.DrawSquare(
                 e.SpriteBatch,
                 new(local.ToPoint(), square),
                 4,
-                borderColor: FishZoneColors[distance] * 0.5f,
-                backgroundColor: FishZoneColors[distance]
+                borderColor: FishZoneColors[distance],
+                backgroundColor: FishZoneColors[distance] * 0.8f
             );
             Utility.drawTinyDigits(distance, e.SpriteBatch, local + margin, 4f, 1f, Color.White);
+        }
+
+        if (FishZoneInfo.FishAreas == null)
+            return;
+
+        foreach ((string key, FishAreaData fishArea) in FishZoneInfo.FishAreas)
+        {
+            if (fishArea.Position is not Rectangle posRect)
+                continue;
+            Monitor.Log(posRect.ToString());
+            Vector2 local = Game1.GlobalToLocal(new(posRect.X * Game1.tileSize, posRect.Y * Game1.tileSize));
+            Utility.DrawSquare(
+                e.SpriteBatch,
+                new((int)local.X, (int)local.Y, posRect.Width * Game1.tileSize, posRect.Height * Game1.tileSize),
+                8,
+                borderColor: Color.White,
+                backgroundColor: Color.Black * 0.1f
+            );
+            Utility.drawBoldText(e.SpriteBatch, key, Game1.dialogueFont, local + margin * 3, Color.White, 4);
         }
     }
 
@@ -83,9 +111,10 @@ public sealed class ModEntry : Mod
     {
         if (location == null)
             return;
-        FishZoneData = IterateMapFishableTiles(location).ToList();
-        if (FishZoneData.Count == 0)
+        List<(Vector2, int)> fishableTiles = IterateMapFishableTiles(location).ToList();
+        if (fishableTiles.Count == 0)
             return;
+        FishZoneInfo = new(fishableTiles, location.GetData()?.FishAreas);
         string text = Game1.game1.takeMapScreenshot(
             0.25f,
             $"fishzone_{SaveGame.FilterFileName(Game1.player.Name)}_{location.NameOrUniqueName}",
@@ -102,7 +131,7 @@ public sealed class ModEntry : Mod
         {
             Monitor.Log($"Failed to take screenshot.", LogLevel.Error);
         }
-        FishZoneData = null;
+        FishZoneInfo = null;
     }
 
     private void ConsoleFishZones(string arg1, string[] arg2)
@@ -115,6 +144,7 @@ public sealed class ModEntry : Mod
 
     private void DoNextFishableLocation()
     {
+        Phase = PhaseMode.None;
         if (!FishableLocationQueue.TryDequeue(out GameLocation? nextLoc))
         {
             Game1.warpHome();
@@ -131,20 +161,18 @@ public sealed class ModEntry : Mod
 
     private void OnWarpToFishableLocation()
     {
-        JustWarped = true;
+        Phase = PhaseMode.JustWarped;
     }
 
     private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)
     {
-        if (WillWarp)
+        if (Phase == PhaseMode.WillWarp)
         {
             DoNextFishableLocation();
-            WillWarp = false;
         }
-        else if (JustWarped && Game1.player.CanMove && Game1.currentLocation != null)
+        else if (Phase == PhaseMode.JustWarped && Game1.player.CanMove && Game1.currentLocation != null)
         {
-            JustWarped = false;
-            WillCapture = true;
+            Phase = PhaseMode.WillCapture;
             Game1.outdoorLight = Color.White;
             Game1.ambientLight = Color.White;
         }
@@ -152,11 +180,10 @@ public sealed class ModEntry : Mod
 
     private void OnOneSecondUpdatedTicked(object? sender, OneSecondUpdateTickedEventArgs e)
     {
-        if (WillCapture)
+        if (Phase == PhaseMode.WillCapture)
         {
             SaveFishZones(Game1.currentLocation);
-            WillCapture = false;
-            WillWarp = true;
+            Phase = PhaseMode.WillWarp;
         }
     }
 
@@ -166,8 +193,12 @@ public sealed class ModEntry : Mod
         {
             if (loc.canFishHere() && IterateMapFishableTiles(loc).Any())
             {
-                Monitor.Log($"Enqueue {loc.NameOrUniqueName}", LogLevel.Info);
+                Monitor.Log($"Enqueue {loc.NameOrUniqueName}", LogLevel.Debug);
                 FishableLocationQueue.Enqueue(loc);
+            }
+            else
+            {
+                Monitor.Log($"Enqueue {loc.NameOrUniqueName}", LogLevel.Debug);
             }
             return true;
         });
