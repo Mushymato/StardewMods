@@ -18,6 +18,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarpenterAutobuy", "CarpenterAutobuy\CarpenterAutobuy.csproj", "{08EC8C64-AB13-448B-AFAA-5B9A499E31EB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheLegendReturns", "TheLegendReturns\TheLegendReturns.csproj", "{62E60C59-4902-4845-9A73-760498E2EE9D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FishZones", "FishZones\FishZones.csproj", "{4C6BE848-7308-4AFE-A70C-9A8011D214B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -113,6 +114,7 @@ Global
 		{08EC8C64-AB13-448B-AFAA-5B9A499E31EB}.Release|x64.Build.0 = Release|Any CPU
 		{08EC8C64-AB13-448B-AFAA-5B9A499E31EB}.Release|x86.ActiveCfg = Release|Any CPU
 		{08EC8C64-AB13-448B-AFAA-5B9A499E31EB}.Release|x86.Build.0 = Release|Any CPU
+<<<<<<< HEAD
 		{62E60C59-4902-4845-9A73-760498E2EE9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{62E60C59-4902-4845-9A73-760498E2EE9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{62E60C59-4902-4845-9A73-760498E2EE9D}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -125,6 +127,20 @@ Global
 		{62E60C59-4902-4845-9A73-760498E2EE9D}.Release|x64.Build.0 = Release|Any CPU
 		{62E60C59-4902-4845-9A73-760498E2EE9D}.Release|x86.ActiveCfg = Release|Any CPU
 		{62E60C59-4902-4845-9A73-760498E2EE9D}.Release|x86.Build.0 = Release|Any CPU
+=======
+		{4C6BE848-7308-4AFE-A70C-9A8011D214B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C6BE848-7308-4AFE-A70C-9A8011D214B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C6BE848-7308-4AFE-A70C-9A8011D214B7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4C6BE848-7308-4AFE-A70C-9A8011D214B7}.Debug|x64.Build.0 = Debug|Any CPU
+		{4C6BE848-7308-4AFE-A70C-9A8011D214B7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4C6BE848-7308-4AFE-A70C-9A8011D214B7}.Debug|x86.Build.0 = Debug|Any CPU
+		{4C6BE848-7308-4AFE-A70C-9A8011D214B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C6BE848-7308-4AFE-A70C-9A8011D214B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C6BE848-7308-4AFE-A70C-9A8011D214B7}.Release|x64.ActiveCfg = Release|Any CPU
+		{4C6BE848-7308-4AFE-A70C-9A8011D214B7}.Release|x64.Build.0 = Release|Any CPU
+		{4C6BE848-7308-4AFE-A70C-9A8011D214B7}.Release|x86.ActiveCfg = Release|Any CPU
+		{4C6BE848-7308-4AFE-A70C-9A8011D214B7}.Release|x86.Build.0 = Release|Any CPU
+>>>>>>> cfcc403 (fish zones mod)
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
