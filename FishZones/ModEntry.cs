@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
+using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Extensions;
 using StardewValley.GameData.Locations;
@@ -17,13 +18,13 @@ public enum PhaseMode
     WillWarp,
 }
 
-public sealed record FishZoneRecord(List<(Vector2, int)> TileDistance, Dictionary<string, FishAreaData>? FishAreas);
-
-public sealed class ModEntry : Mod
+public sealed class ModConfig
 {
-    public const string ModId = "mushymato.FishZones";
-
-    private static readonly Color[] FishZoneColors =
+    public KeybindList ToggleKey = KeybindList.Parse($"{SButton.F5}+{SButton.F}");
+    public bool Enabled = false;
+    public bool ShowAreas = true;
+    public bool ShowNumber = true;
+    private readonly Color[] DefaultFishZoneColors =
     [
         new(138, 228, 0),
         new(176, 200, 0),
@@ -32,16 +33,32 @@ public sealed class ModEntry : Mod
         Color.Black,
         new(248, 89, 0),
     ];
+    private Color[] fishZoneColors = [];
+    public Color[] FishZoneColors
+    {
+        get => fishZoneColors?.Length >= 6 ? fishZoneColors : DefaultFishZoneColors;
+        set => fishZoneColors = value;
+    }
+}
+
+public sealed record FishZoneRecord(List<(Vector2, int)> TileDistance, Dictionary<string, FishAreaData>? FishAreas);
+
+public sealed class ModEntry : Mod
+{
+    public const string ModId = "mushymato.FishZones";
+
     private readonly Point square = new(Game1.tileSize, Game1.tileSize);
     private readonly Vector2 margin = new(4, 4);
     private FishZoneRecord? FishZoneInfo = null;
     private readonly Queue<GameLocation> FishableLocationQueue = [];
     private PhaseMode Phase = PhaseMode.None;
+    private ModConfig Config = null!;
 
     public override void Entry(IModHelper helper)
     {
+        Config = helper.ReadConfig<ModConfig>();
         helper.ConsoleCommands.Add(
-            "fishzones",
+            "fishzones.here",
             "Take mapwide screenshot of current map with fish zones",
             ConsoleFishZones
         );
@@ -50,9 +67,117 @@ public sealed class ModEntry : Mod
             "Take mapwide screenshot of all maps with fish zones",
             ConsoleFishZonesAll
         );
+        helper.ConsoleCommands.Add(
+            "fishzones.toggle",
+            "Toggle certain settings depending on first arg:\n- fishzones.toggle e : always on fish zones\n- fishzones.toggle n : show numbers on fish zones\n- fishzones.toggle a : show area on fish zones",
+            ConsoleToggles
+        );
         Helper.Events.Display.RenderedWorld += OnRenderedWorld;
         helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
         helper.Events.GameLoop.OneSecondUpdateTicked += OnOneSecondUpdatedTicked;
+        helper.Events.Input.ButtonsChanged += OnButtonsChanged;
+        helper.Events.GameLoop.DayStarted += OnDayStarted;
+        helper.Events.Player.Warped += OnWarped;
+    }
+
+    private void ConsoleFishZones(string arg1, string[] arg2)
+    {
+        SaveFishZones(Game1.currentLocation);
+    }
+
+    private void ConsoleFishZonesAll(string arg1, string[] arg2)
+    {
+        Utility.ForEachLocation(loc =>
+        {
+            if (loc.canFishHere() && IterateMapFishableTiles(loc).Any())
+            {
+                Monitor.Log($"Enqueue {loc.NameOrUniqueName}", LogLevel.Info);
+                FishableLocationQueue.Enqueue(loc);
+            }
+            else
+            {
+                Monitor.Log($"Skip {loc.NameOrUniqueName}", LogLevel.Debug);
+            }
+            return true;
+        });
+        DoNextFishableLocation();
+    }
+
+    private void ConsoleToggles(string arg1, string[] arg2)
+    {
+        if (!ArgUtility.TryGet(arg2, 0, out string kind, out string error, allowBlank: false, name: "string kind"))
+        {
+            Monitor.Log(error, LogLevel.Error);
+            return;
+        }
+        switch (kind)
+        {
+            case "e":
+                ToggleAlwaysOnDisplay();
+                Monitor.Log($"Enabled: {Config.Enabled}", LogLevel.Info);
+                break;
+            case "n":
+                Config.ShowNumber = !Config.ShowNumber;
+                Helper.WriteConfig(Config);
+                Monitor.Log($"ShowNumber: {Config.ShowNumber}", LogLevel.Info);
+                break;
+            case "a":
+                Config.ShowAreas = !Config.ShowAreas;
+                Helper.WriteConfig(Config);
+                Monitor.Log($"ShowAreas: {Config.ShowAreas}", LogLevel.Info);
+                break;
+        }
+    }
+
+    private bool InitFishZoneInfo(GameLocation location)
+    {
+        if (location is null || !location.canFishHere())
+        {
+            FishZoneInfo = null;
+            return false;
+        }
+        List<(Vector2, int)> fishableTiles = IterateMapFishableTiles(location).ToList();
+        if (fishableTiles.Count == 0)
+        {
+            FishZoneInfo = null;
+            return false;
+        }
+        FishZoneInfo = new(fishableTiles, location.GetData()?.FishAreas);
+        return true;
+    }
+
+    private void OnDayStarted(object? sender, DayStartedEventArgs e)
+    {
+        if (Config.Enabled)
+            InitFishZoneInfo(Game1.currentLocation);
+    }
+
+    private void OnWarped(object? sender, WarpedEventArgs e)
+    {
+        if (Config.Enabled)
+            InitFishZoneInfo(e.NewLocation);
+    }
+
+    private void ToggleAlwaysOnDisplay()
+    {
+        Config.Enabled = !Config.Enabled;
+        if (Config.Enabled)
+        {
+            InitFishZoneInfo(Game1.currentLocation);
+        }
+        else
+        {
+            FishZoneInfo = null;
+        }
+        Helper.WriteConfig(Config);
+    }
+
+    private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
+    {
+        if (Config.ToggleKey.JustPressed())
+        {
+            ToggleAlwaysOnDisplay();
+        }
     }
 
     private void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
@@ -66,13 +191,14 @@ public sealed class ModEntry : Mod
                 e.SpriteBatch,
                 new(local.ToPoint(), square),
                 4,
-                borderColor: FishZoneColors[distance],
-                backgroundColor: FishZoneColors[distance] * 0.8f
+                borderColor: Config.FishZoneColors[distance],
+                backgroundColor: Config.FishZoneColors[distance] * 0.8f
             );
-            Utility.drawTinyDigits(distance, e.SpriteBatch, local + margin, 4f, 1f, Color.White);
+            if (Config.ShowNumber)
+                Utility.drawTinyDigits(distance, e.SpriteBatch, local + margin, 4f, 1f, Color.White);
         }
 
-        if (FishZoneInfo.FishAreas == null)
+        if (!Config.ShowAreas || FishZoneInfo.FishAreas == null)
             return;
 
         foreach ((string key, FishAreaData fishArea) in FishZoneInfo.FishAreas)
@@ -109,12 +235,10 @@ public sealed class ModEntry : Mod
 
     private void SaveFishZones(GameLocation location)
     {
-        if (location == null)
+        var prevFishZoneInfoIsNull = FishZoneInfo == null;
+        if (FishZoneInfo == null && !InitFishZoneInfo(location))
             return;
-        List<(Vector2, int)> fishableTiles = IterateMapFishableTiles(location).ToList();
-        if (fishableTiles.Count == 0)
-            return;
-        FishZoneInfo = new(fishableTiles, location.GetData()?.FishAreas);
+
         string text = Game1.game1.takeMapScreenshot(
             0.25f,
             $"fishzone_{SaveGame.FilterFileName(Game1.player.Name)}_{location.NameOrUniqueName}",
@@ -131,15 +255,9 @@ public sealed class ModEntry : Mod
         {
             Monitor.Log($"Failed to take screenshot.", LogLevel.Error);
         }
-        FishZoneInfo = null;
-    }
 
-    private void ConsoleFishZones(string arg1, string[] arg2)
-    {
-        GameLocation currentLoc = Game1.currentLocation;
-        if (currentLoc is null || !currentLoc.canFishHere())
-            return;
-        SaveFishZones(currentLoc);
+        if (prevFishZoneInfoIsNull)
+            FishZoneInfo = null;
     }
 
     private void DoNextFishableLocation()
@@ -185,23 +303,5 @@ public sealed class ModEntry : Mod
             SaveFishZones(Game1.currentLocation);
             Phase = PhaseMode.WillWarp;
         }
-    }
-
-    private void ConsoleFishZonesAll(string arg1, string[] arg2)
-    {
-        Utility.ForEachLocation(loc =>
-        {
-            if (loc.canFishHere() && IterateMapFishableTiles(loc).Any())
-            {
-                Monitor.Log($"Enqueue {loc.NameOrUniqueName}", LogLevel.Info);
-                FishableLocationQueue.Enqueue(loc);
-            }
-            else
-            {
-                Monitor.Log($"Skip {loc.NameOrUniqueName}", LogLevel.Debug);
-            }
-            return true;
-        });
-        DoNextFishableLocation();
     }
 }
