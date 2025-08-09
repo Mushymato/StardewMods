@@ -5,7 +5,7 @@ using StardewValley;
 using StardewValley.Extensions;
 using StardewValley.Menus;
 using StardewValley.Objects;
-// using StardewValley.Objects.Trinkets;
+using StardewValley.Tools;
 using SObject = StardewValley.Object;
 
 namespace MatoTweaks.Tweak;
@@ -16,8 +16,84 @@ internal static class AtravitaItemSort
     {
         patcher.Patch(
             original: AccessTools.Method(typeof(Item), nameof(Item.CompareTo)),
-            prefix: new HarmonyMethod(AccessTools.Method(typeof(AtravitaItemSort), nameof(Item_CompareTo_Prefix)))
+            prefix: new HarmonyMethod(
+                AccessTools.DeclaredMethod(typeof(AtravitaItemSort), nameof(Item_CompareTo_Prefix))
+            )
         );
+
+        patcher.Patch(
+            original: AccessTools.DeclaredMethod(typeof(ItemGrabMenu), nameof(ItemGrabMenu.organizeItemsInList)),
+            postfix: new HarmonyMethod(
+                AccessTools.DeclaredMethod(typeof(AtravitaItemSort), nameof(ItemGrabMenu_organizeItemsInList_Postfix))
+            )
+        );
+    }
+
+    private static readonly HashSet<string> BombItems = ["(O)286", "(O)287", "(O)288"];
+    private static readonly string[] ToolClasses =
+    [
+        "WateringCan",
+        "Pan",
+        "FishingRod",
+        "Scythe",
+        "Hoe",
+        "Axe",
+        "Pickaxe",
+    ];
+
+    private static void ItemGrabMenu_organizeItemsInList_Postfix(IList<Item> items)
+    {
+        if (items != Game1.player.Items)
+            return;
+        // tools
+        Dictionary<string, Item> tools = [];
+        foreach (Item item in items)
+        {
+            if (item == null)
+                continue;
+            if (item is MeleeWeapon weapon1 && weapon1.isScythe())
+            {
+                tools["Scythe"] = item;
+            }
+            else if (
+                item is Tool tool
+                && tool.GetToolData()?.ClassName is string className
+                && ToolClasses.Contains(className)
+            )
+            {
+                tools[className] = item;
+            }
+        }
+        items.RemoveWhere(tools.ContainsValue);
+        foreach (string toolClass in ToolClasses)
+        {
+            if (tools.TryGetValue(toolClass, out Item? item))
+            {
+                items.Insert(0, item);
+            }
+        }
+        // bombs
+        List<Item> bombs = [];
+        foreach (Item item in items)
+        {
+            if (item != null && BombItems.Contains(item.QualifiedItemId))
+            {
+                bombs.Add(item);
+            }
+        }
+        items.RemoveWhere(bombs.Contains);
+        bombs.Sort();
+        bombs.Reverse();
+        foreach (Item item in bombs)
+        {
+            items.Insert(0, item);
+        }
+        // weapon
+        if (items.FirstOrDefault(item => item is MeleeWeapon wpn && !wpn.isScythe()) is Item weapon)
+        {
+            items.Remove(weapon);
+            items.Insert(0, weapon);
+        }
     }
 
     private static bool Item_CompareTo_Prefix(Item __instance, object other, ref int __result)
