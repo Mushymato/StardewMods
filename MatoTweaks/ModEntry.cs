@@ -15,7 +15,7 @@ public class ModEntry : Mod
         public bool ChestStack = true;
         public bool FriendshipJewel = true;
         public bool ExpMult = true;
-        internal Dictionary<int, Dictionary<int, float>> ExpMultipliers =
+        public Dictionary<int, Dictionary<int, float>> ExpMultipliers =
             new()
             {
                 [0] = new()
