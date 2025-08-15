@@ -1,0 +1,27 @@
+{
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
+  "UniqueID": "mushymato.FishZones",
+  "Name": "SpacecoreGuidebookFontFix",
+  "Author": "mushymato",
+  "Version": "0.1.0",
+  "Description": "非英文 spacecore 手册字体错误补丁, spacecore 更新 1.29.x (PR#521) 后可删除",
+  "MinimumApiVersion": "4.3.2",
+  "MinimumGameVersion": "1.6.15",
+  "EntryDll": "SpacecoreGuidebookFontFix.dll",
+  "Dependencies": [
+    {
+      "UniqueID": "spacechase0.SpaceCore",
+      "MinimumVersion": "1.28.0"
+    }
+  ],
+  "UpdateKeys": [
+    "Nexus:???"
+  ]
+}

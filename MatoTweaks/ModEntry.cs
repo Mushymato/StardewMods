@@ -2,9 +2,6 @@
 using MatoTweaks.Tweak;
 using StardewModdingAPI;
 
-// using StardewValley;
-// using StardewValley.ItemTypeDefinitions;
-
 namespace MatoTweaks;
 
 public class ModEntry : Mod
@@ -17,9 +14,38 @@ public class ModEntry : Mod
         public int ChestSizeBig = 140;
         public bool ChestStack = true;
         public bool FriendshipJewel = true;
-        public bool StackCount = true;
-        public bool SuppressSteamHelper = true;
         public bool ExpMult = true;
+        internal Dictionary<int, Dictionary<int, float>> ExpMultipliers =
+            new()
+            {
+                [0] = new()
+                {
+                    // farming
+                    [0] = 1f,
+                    // mining
+                    [3] = 1f,
+                    // fishing
+                    [1] = 1f,
+                    // foraging
+                    [2] = 1f,
+                    // combat
+                    [4] = 1f,
+                },
+                [10] = new()
+                {
+                    // farming
+                    [0] = 1f,
+                    // mining
+                    [3] = 1f,
+                    // fishing
+                    [1] = 3f,
+                    // foraging
+                    [2] = 1f,
+                    // combat
+                    [4] = 1f,
+                },
+            };
+        public bool FixFarmhouseX49Y19 = true;
     }
 
     private static IMonitor? mon = null;
@@ -39,35 +65,11 @@ public class ModEntry : Mod
             ChestStack.Patch(patcher);
         if (Config.FriendshipJewel)
             FriendshipJewel.Patch(patcher);
-        // if (Config.StackCount)
-        //     StackCount.Patch(patcher);
-        // if (Config.SuppressSteamHelper)
-        //     SuppressSteamHelper.Patch(patcher);
         if (Config.ExpMult)
             ExpMult.Patch(patcher);
-
-        // helper.ConsoleCommands.Add("icon-edit", "Get icon edit CP defs for an object", GetIconEdit);
+        if (Config.FixFarmhouseX49Y19)
+            FixFarmhouseX49Y19.Patch(patcher);
     }
-
-    // private void GetIconEdit(string arg1, string[] arg2)
-    // {
-    //     List<Dictionary<string, object>> changes = [];
-    //     foreach (var wf in DataLoader.FloorsAndPaths(Game1.content))
-    //     {
-    //         ParsedItemData data = ItemRegistry.GetDataOrErrorItem(wf.Value.ItemId);
-    //         Dictionary<string, object> editimage = [];
-    //         editimage["LogName"] = data.DisplayName;
-    //         editimage["Action"] = "EditImage";
-    //         editimage["Target"] = data.TextureName;
-    //         editimage["FromFile"] = "FROMFILE";
-    //         editimage["FromArea"] = data.GetSourceRect();
-    //         editimage["ToArea"] = data.GetSourceRect();
-    //         changes.Add(editimage);
-    //     }
-    //     Dictionary<string, object> cpedits = [];
-    //     cpedits["Changes"] = changes;
-    //     Helper.Data.WriteJsonFile("cpedits.json", cpedits);
-    // }
 
     public static void Log(string msg, LogLevel level = LogLevel.Debug)
     {

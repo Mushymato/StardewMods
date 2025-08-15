@@ -6,37 +6,6 @@ namespace MatoTweaks.Tweak;
 
 internal static class ExpMult
 {
-    internal static Dictionary<int, Dictionary<int, float>> Multiplier =
-        new()
-        {
-            [0] = new()
-            {
-                // farming
-                [0] = 1f,
-                // mining
-                [3] = 1f,
-                // fishing
-                [1] = 1f,
-                // foraging
-                [2] = 1f,
-                // combat
-                [4] = 1f,
-            },
-            [10] = new()
-            {
-                // farming
-                [0] = 1f,
-                // mining
-                [3] = 1f,
-                // fishing
-                [1] = 2f,
-                // foraging
-                [2] = 1f,
-                // combat
-                [4] = 1f,
-            },
-        };
-
     public static void Patch(Harmony patcher)
     {
         try
@@ -71,11 +40,11 @@ internal static class ExpMult
         float mult;
         if (level >= 10)
         {
-            mult = Multiplier[10][which];
+            mult = ModEntry.Config.ExpMultipliers[10][which];
         }
         else
         {
-            mult = Multiplier[0][which];
+            mult = ModEntry.Config.ExpMultipliers[0][which];
         }
         ModEntry.Log($"Farmer_gainExperience: {which}: {howMuch} * {mult} = {howMuch * mult}", LogLevel.Debug);
         howMuch = (int)MathF.Ceiling(howMuch * mult);
