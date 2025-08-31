@@ -33,7 +33,7 @@ internal static class FixFarmhouseX49Y19
         if (__instance.Map?.RequireLayer("Front")?.Tiles[49, 19] is xTile.Tiles.Tile tile)
         {
             __state = new(tile.TileIndex, tile.TileSheet.Id);
-            ModEntry.Log(__state.ToString() ?? "?");
+            // ModEntry.Log(__state.ToString() ?? "?");
         }
         else
         {

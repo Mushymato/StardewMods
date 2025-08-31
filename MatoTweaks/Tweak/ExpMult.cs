@@ -46,7 +46,7 @@ internal static class ExpMult
         {
             mult = ModEntry.Config.ExpMultipliers[0][which];
         }
-        ModEntry.Log($"Farmer_gainExperience: {which}: {howMuch} * {mult} = {howMuch * mult}", LogLevel.Debug);
+        // ModEntry.Log($"Farmer_gainExperience: {which}: {howMuch} * {mult} = {howMuch * mult}", LogLevel.Debug);
         howMuch = (int)MathF.Ceiling(howMuch * mult);
     }
 }

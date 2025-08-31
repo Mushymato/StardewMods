@@ -15,7 +15,7 @@
     <Description>Generate fishing zone graphics with 'fishzones' and 'fishzones.all'</Description>
     <UniqueId>mushymato.FishZones</UniqueId>
     <UpdateKeys>Nexus:???</UpdateKeys>
-    <Version>0.3.0</Version>
+    <Version>0.3.1</Version>
     <MinimumApiVersion_Behavior>UpdateFull</MinimumApiVersion_Behavior>
     <MinimumGameVersion_Behavior>UpdateFull</MinimumGameVersion_Behavior>
     <Dependencies_VersionBehavior>UpdateFull</Dependencies_VersionBehavior>

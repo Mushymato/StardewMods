@@ -238,22 +238,30 @@ public sealed class ModEntry : Mod
         var prevFishZoneInfoIsNull = FishZoneInfo == null;
         if (FishZoneInfo == null && !InitFishZoneInfo(location))
             return;
+        Game1.player.viewingLocation.Value = location.NameOrUniqueName;
 
-        string text = Game1.game1.takeMapScreenshot(
-            0.25f,
-            $"fishzone_{SaveGame.FilterFileName(Game1.player.Name)}_{location.NameOrUniqueName}",
-            null
-        );
-        if (text != null)
+        try
         {
-            Monitor.Log(
-                $"Saved fishzone screenshot to '{Path.Combine(Game1.game1.GetScreenshotFolder(), text)}'.",
-                LogLevel.Info
+            string text = Game1.game1.takeMapScreenshot(
+                0.25f,
+                $"fishzone_{SaveGame.FilterFileName(Game1.player.Name)}_{location.NameOrUniqueName}",
+                null
             );
+            if (text != null)
+            {
+                Monitor.Log(
+                    $"Saved fishzone screenshot to '{Path.Combine(Game1.game1.GetScreenshotFolder(), text)}'.",
+                    LogLevel.Info
+                );
+            }
+            else
+            {
+                Monitor.Log($"Failed to take screenshot.", LogLevel.Error);
+            }
         }
-        else
+        finally
         {
-            Monitor.Log($"Failed to take screenshot.", LogLevel.Error);
+            Game1.player.viewingLocation.Value = null;
         }
 
         if (prevFishZoneInfoIsNull)
