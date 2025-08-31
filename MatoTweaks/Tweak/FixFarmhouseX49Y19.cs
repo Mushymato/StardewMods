@@ -19,41 +19,24 @@ internal static class FixFarmhouseX49Y19
         }
         catch (Exception err)
         {
-            ModEntry.Log($"Failed to patch ChestStack:\n{err}", LogLevel.Error);
+            ModEntry.Log($"Failed to patch FixFarmhouseX49Y19:\n{err}", LogLevel.Error);
         }
     }
 
-    private static void FarmHouse__ApplyRenovations_Prefix(FarmHouse __instance, ref (int, string)? __state)
+    private static void FarmHouse__ApplyRenovations_Prefix(ref bool ___displayingSpouseRoom, ref bool __state)
     {
-        __state = null;
-        if (__instance.upgradeLevel < 2)
+        if (___displayingSpouseRoom)
         {
-            return;
-        }
-        if (__instance.Map?.RequireLayer("Front")?.Tiles[49, 19] is xTile.Tiles.Tile tile)
-        {
-            __state = new(tile.TileIndex, tile.TileSheet.Id);
-            // ModEntry.Log(__state.ToString() ?? "?");
-        }
-        else
-        {
-            __state = (-1, string.Empty);
+            __state = true;
+            ___displayingSpouseRoom = false;
         }
     }
 
-    private static void FarmHouse__ApplyRenovations_Postfix(FarmHouse __instance, ref (int, string)? __state)
+    private static void FarmHouse__ApplyRenovations_Postfix(ref bool ___displayingSpouseRoom, ref bool __state)
     {
-        if (__state == null)
+        if (__state)
         {
-            return;
-        }
-        else if (__state.Value.Item1 == -1)
-        {
-            __instance.removeMapTile(49, 19, "Front");
-        }
-        else
-        {
-            __instance.setMapTile(49, 19, __state.Value.Item1, "Front", __state.Value.Item2);
+            ___displayingSpouseRoom = true;
         }
     }
 }
