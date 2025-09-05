@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using MatoTweaks.Tweak;
 using StardewModdingAPI;
+using StardewValley;
 
 namespace MatoTweaks;
 
@@ -69,6 +70,16 @@ public class ModEntry : Mod
             ExpMult.Patch(patcher);
         if (Config.FixFarmhouseX49Y19)
             FixFarmhouseX49Y19.Patch(patcher);
+
+        patcher.Patch(
+            AccessTools.Method(typeof(Fence), nameof(Fence.minutesElapsed)),
+            prefix: new HarmonyMethod(typeof(ModEntry), nameof(Fence_minutesElapsed_Prefix))
+        );
+    }
+
+    private static void Fence_minutesElapsed_Prefix(int minutes)
+    {
+        Log($"Fence_minutesElapsed_Prefix: {minutes}");
     }
 
     public static void Log(string msg, LogLevel level = LogLevel.Debug)
