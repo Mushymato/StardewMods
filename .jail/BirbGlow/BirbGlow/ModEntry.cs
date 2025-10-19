@@ -70,6 +70,8 @@ internal sealed class NPCLightWatcher
                     kv.Value.Teardown();
                 }
                 lightSources.Clear();
+                location.characters.OnValueAdded -= SetupNPCLight;
+                location.characters.OnValueRemoved -= TeardownNPCLight;
             }
             location = value;
             if (location != null)
@@ -79,7 +81,7 @@ internal sealed class NPCLightWatcher
                     SetupNPCLight(npc);
                 }
                 location.characters.OnValueAdded += SetupNPCLight;
-                location.characters.OnValueRemoved -= TeardownNPCLight;
+                location.characters.OnValueRemoved += TeardownNPCLight;
             }
         }
     }
