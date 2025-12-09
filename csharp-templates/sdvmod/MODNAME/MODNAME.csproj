@@ -15,7 +15,7 @@
     <Authors>mushymato</Authors>
     <Description>DESCRIPTION</Description>
     <UniqueId>mushymato.MODNAME</UniqueId>
-    <UpdateKeys>Nexus:???</UpdateKeys>
+    <UpdateKeys>Nexus:???,GitHub:Mushymato/MODNAME</UpdateKeys>
     <Version>0.1.0</Version>
     <MinimumApiVersion_Behavior>UpdateFull</MinimumApiVersion_Behavior>
     <MinimumGameVersion_Behavior>UpdateFull</MinimumGameVersion_Behavior>
