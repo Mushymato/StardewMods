@@ -17,9 +17,10 @@
     <UniqueId>mushymato.MODNAME</UniqueId>
     <UpdateKeys>Nexus:???,GitHub:Mushymato/MODNAME</UpdateKeys>
     <Version>0.1.0</Version>
+    <BaseManifest>new</BaseManifest>
     <MinimumApiVersion_Behavior>Update</MinimumApiVersion_Behavior>
     <MinimumGameVersion_Behavior>UpdateFull</MinimumGameVersion_Behavior>
-    <Dependencies_VersionBehavior>UpdateFull</Dependencies_VersionBehavior>
+    <Dependencies_VersionBehavior>Ignore</Dependencies_VersionBehavior>
   </PropertyGroup>
 
   <ItemGroup>
