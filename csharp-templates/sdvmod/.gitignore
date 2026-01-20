@@ -4,4 +4,5 @@
 */*/bin
 */*/obj
 */config.json
-*/manifest.json
+*/_releases/
+MODNAME/manifest.json
