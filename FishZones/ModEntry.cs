@@ -89,7 +89,7 @@ public sealed class ModEntry : Mod
     {
         Utility.ForEachLocation(loc =>
         {
-            if (loc.canFishHere() && IterateMapFishableTiles(loc).Any())
+            if (loc.canFishHere() && IterateMapFishableTiles(loc).Count > 0)
             {
                 Monitor.Log($"Enqueue {loc.NameOrUniqueName}", LogLevel.Info);
                 FishableLocationQueue.Enqueue(loc);
@@ -136,7 +136,7 @@ public sealed class ModEntry : Mod
             FishZoneInfo = null;
             return false;
         }
-        List<(Vector2, int)> fishableTiles = IterateMapFishableTiles(location).ToList();
+        List<(Vector2, int)> fishableTiles = IterateMapFishableTiles(location);
         if (fishableTiles.Count == 0)
         {
             FishZoneInfo = null;
@@ -217,20 +217,20 @@ public sealed class ModEntry : Mod
         }
     }
 
-    internal static IEnumerable<(Vector2, int)> IterateMapFishableTiles(GameLocation location)
+    internal static List<(Vector2, int)> IterateMapFishableTiles(GameLocation location)
     {
+        List<(Vector2, int)> fishableTiles = [];
         xTile.Layers.Layer layer = location.map.RequireLayer("Back");
         for (int x = 0; x < layer.LayerWidth; x++)
         {
             for (int y = 0; y < layer.LayerHeight; y++)
             {
-                if (layer.Tiles[x, y] is null)
-                    continue;
                 if (!location.isTileFishable(x, y))
                     continue;
-                yield return new(new(x, y), FishingRod.distanceToLand(x, y, location));
+                fishableTiles.Add(new(new(x, y), FishingRod.distanceToLand(x, y, location)));
             }
         }
+        return fishableTiles;
     }
 
     private void SaveFishZones(GameLocation location)
@@ -301,6 +301,19 @@ public sealed class ModEntry : Mod
             Phase = PhaseMode.WillCapture;
             Game1.outdoorLight = Color.White;
             Game1.ambientLight = Color.White;
+        }
+        if (Game1.currentLocation != null && Game1.player.CurrentTool is FishingRod rod)
+        {
+            if (rod.bobber.Value != Vector2.Zero)
+            {
+                Vector2 bobberTile = new(rod.bobber.X / 64f, rod.bobber.Y / 64f);
+                int bobberX = (int)bobberTile.X;
+                int bobberY = (int)bobberTile.Y;
+                Monitor.Log(
+                    $"{Game1.ticks} bobber {rod.bobber.Value} -> {new Vector2(bobberX, bobberY)} ({Game1.currentLocation.isTileFishable(bobberX, bobberY)})",
+                    LogLevel.Info
+                );
+            }
         }
     }
 
