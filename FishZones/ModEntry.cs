@@ -302,19 +302,19 @@ public sealed class ModEntry : Mod
             Game1.outdoorLight = Color.White;
             Game1.ambientLight = Color.White;
         }
-        if (Game1.currentLocation != null && Game1.player.CurrentTool is FishingRod rod)
-        {
-            if (rod.bobber.Value != Vector2.Zero)
-            {
-                Vector2 bobberTile = new(rod.bobber.X / 64f, rod.bobber.Y / 64f);
-                int bobberX = (int)bobberTile.X;
-                int bobberY = (int)bobberTile.Y;
-                Monitor.Log(
-                    $"{Game1.ticks} bobber {rod.bobber.Value} -> {new Vector2(bobberX, bobberY)} ({Game1.currentLocation.isTileFishable(bobberX, bobberY)})",
-                    LogLevel.Info
-                );
-            }
-        }
+        // if (Game1.currentLocation != null && Game1.player.CurrentTool is FishingRod rod)
+        // {
+        //     if (rod.bobber.Value != Vector2.Zero)
+        //     {
+        //         Vector2 bobberTile = new(rod.bobber.X / 64f, rod.bobber.Y / 64f);
+        //         int bobberX = (int)bobberTile.X;
+        //         int bobberY = (int)bobberTile.Y;
+        //         Monitor.Log(
+        //             $"{Game1.ticks} bobber {rod.bobber.Value} -> {new Vector2(bobberX, bobberY)} ({Game1.currentLocation.isTileFishable(bobberX, bobberY)})",
+        //             LogLevel.Info
+        //         );
+        //     }
+        // }
     }
 
     private void OnOneSecondUpdatedTicked(object? sender, OneSecondUpdateTickedEventArgs e)
