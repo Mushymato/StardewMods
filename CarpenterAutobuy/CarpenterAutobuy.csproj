@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$(MSBuildUserExtensionsPath)/sdv.props"
-    Condition="Exists('$(MSBuildUserExtensionsPath)/sdv.props')" />
+  <Import
+    Project="$(MSBuildUserExtensionsPath)/sdv.props"
+    Condition="Exists('$(MSBuildUserExtensionsPath)/sdv.props')"
+  />
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -27,5 +29,4 @@
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
     <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
   </ItemGroup>
-
 </Project>

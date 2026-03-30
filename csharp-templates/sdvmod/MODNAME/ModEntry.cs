@@ -38,4 +38,13 @@ public sealed class ModEntry : Mod
     {
         mon!.LogOnce(msg, level);
     }
+
+    /// <summary>SMAPI static monitor Log wrapper, debug only</summary>
+    /// <param name="msg"></param>
+    /// <param name="level"></param>
+    [Conditional("DEBUG")]
+    internal static void LogDebug(string msg, LogLevel level = DEFAULT_LOG_LEVEL)
+    {
+        mon!.Log(msg, level);
+    }
 }
