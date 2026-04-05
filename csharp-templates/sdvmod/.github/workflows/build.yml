@@ -1,0 +1,56 @@
+name: Build releases
+on:
+  push:
+    tags:
+      - '*.*.*'
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        permissions:
+            # for attestation
+            id-token: write
+            attestations: write
+            # for release
+            contents: write
+        env:
+            RELEASE_REF: refs/heads/main # pushes to this branch are treated as public releases
+            REPO_NAME: MODNAME
+        steps:
+            - name: Fetch code
+              uses: actions/checkout@v4
+              with:
+                  submodules: true
+                  fetch-tags: false
+
+            - name: Add build environment
+              uses: Pathoschild/SMAPI-ModBuildWorkflow/add-build-environment@v1
+
+            - name: Build mods
+              run: dotnet build --configuration Release
+
+            - id: create-artifacts
+              name: Upload release zips
+              uses: Pathoschild/SMAPI-ModBuildWorkflow/upload-release-artifacts@v1
+              with:
+                  create_attestations: ${{github.ref == env.RELEASE_REF}}
+
+            - name: Upload to GitHub Release
+              uses: ncipollo/release-action@v1
+              if: github.ref_type == 'tag'
+              with:
+                  prerelease: ${{ contains(github.ref_name, '-') }}
+                  artifacts: '_releases/*.zip'
+                  name: ${{github.ref_name}}
+                  body: |
+                      [CHANGELOG.md](CHANGELOG.md) and [attestation](${{steps.create-artifacts.outputs.attestation-url}}).
+
+            - name: Upload to Nexus Mods
+              uses: Nexus-Mods/upload-action@v1.0.0-beta.3
+              if: false && github.ref_type == 'tag' && !contains(github.ref_name, '-')
+              with:
+                api_key: ${{secrets.NEXUS_MODS_API_KEY}}
+                file_group_id: ${{secrets.NEXUSMODS_FILE_GROUP_ID}}
+                filename: _releases/${{env.REPO_NAME}} ${{github.ref_name}}.zip
+                version: ${{github.ref_name}}
+                display_name: ${{env.REPO_NAME}}
+                description: "For SDV 1.6.15+, see changelogs."
