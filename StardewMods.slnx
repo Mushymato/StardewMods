@@ -1,0 +1,17 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="CarpenterAutobuy/CarpenterAutobuy.csproj" />
+  <Project Path="FishZones/FishZones.csproj" />
+  <Project Path="FixFarmhouseX49Y19/FixFarmhouseX49Y19.csproj" />
+  <Project Path="FixIndoorItemMoves/FixIndoorItemMoves.csproj" />
+  <Project Path="FullInventoryToolbar/FullInventoryToolbar.csproj" />
+  <Project Path="MatoTweaks/MatoTweaks.csproj" />
+  <Project Path="MoreVisibleCaskRarity/MoreVisibleCaskRarity.csproj" />
+  <Project Path="ScytheToolEnchantments/ScytheToolEnchantments.csproj" />
+  <Project Path="SpecialOrderNotifications/SpecialOrderNotifications.csproj" />
+  <Project Path="SprinklerAttachments/SprinklerAttachments.csproj" />
+</Solution>
